@@ -1,0 +1,19 @@
+name: Java Format Check with Spotless
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  checkformat:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Add permissions
+        run: chmod +x ./gradlew
+      - name: Run spotless check
+        run: ./gradlew spotlessCheck

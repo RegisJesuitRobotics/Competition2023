@@ -1,0 +1,32 @@
+name: Apply with Spotless
+
+on:
+  workflow_dispatch:
+
+jobs:
+  checkformat:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Add permissions
+        run: chmod +x ./gradlew
+      - name: Run spotless apply
+        run: ./gradlew spotlessApply
+      - name: Commit and push reformat
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git remote add github "https://$GITHUB_ACTOR:$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY.git"
+          git pull github ${GITHUB_REF} --ff-only
+          git add .
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "Nothing to reformat"
+            exit 0
+          fi
+          git commit -m "Refomated code using Spotless"
+          git push github HEAD:${GITHUB_REF}
