@@ -1,10 +1,6 @@
 package frc.robot;
 
-import com.pathplanner.lib.PathPlanner;
-import com.pathplanner.lib.PathPoint;
 import com.pathplanner.lib.server.PathPlannerServer;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
@@ -12,12 +8,10 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveTrainConstants;
 import frc.robot.Constants.MiscConstants;
 import frc.robot.commands.drive.LockModulesCommand;
 import frc.robot.commands.drive.auto.Autos;
-import frc.robot.commands.drive.auto.FollowPathCommand;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
 import frc.robot.hid.CommandXboxPlaystationController;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
@@ -124,7 +118,7 @@ public class RobotContainer {
                 .onTrue(Commands.runOnce(driveSubsystem::resetOdometry)
                         .ignoringDisable(true)
                         .withName("Reset Odometry"));
-        
+
         driverController
                 .povUp()
                 .whileTrue(new LockModulesCommand(driveSubsystem).repeatedly().withName("Lock Modules"));
