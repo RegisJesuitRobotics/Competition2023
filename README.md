@@ -1,2 +1,1 @@
 # Competition 2023
-

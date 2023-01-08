@@ -24,7 +24,7 @@ import frc.robot.telemetry.types.EventTelemetryEntry;
 import frc.robot.telemetry.types.rich.ChassisSpeedsEntry;
 import frc.robot.utils.Alert;
 import frc.robot.utils.Alert.AlertType;
-import frc.robot.utils.SwerveUtils;
+import frc.robot.utils.RaiderMathUtils;
 
 /** The subsystem containing all the swerve modules */
 public class SwerveDriveSubsystem extends SubsystemBase {
@@ -202,8 +202,8 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         driveMode = openLoop ? DriveMode.OPEN_LOOP : DriveMode.CLOSE_LOOP;
         this.activeSteer = activeSteer;
 
-        this.desiredStates = SwerveUtils.copySwerveStateArray(desiredStates);
-        this.nextStates = SwerveUtils.copySwerveStateArray(nextStates);
+        this.desiredStates = RaiderMathUtils.copySwerveStateArray(desiredStates);
+        this.nextStates = RaiderMathUtils.copySwerveStateArray(nextStates);
     }
 
     /**

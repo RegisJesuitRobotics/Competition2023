@@ -1,11 +1,12 @@
 package frc.robot.utils;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 
-public class SwerveUtils {
-    private SwerveUtils() {}
+public class RaiderMathUtils {
+    private RaiderMathUtils() {}
 
     /**
      * @param currentAngleRadians what the controller currently reads (radians)
@@ -64,5 +65,18 @@ public class SwerveUtils {
             copied[i] = copySwerveState(swerveModuleStates[i]);
         }
         return copied;
+    }
+
+    /**
+     * @param value the value
+     * @param pow   the power to put the value to
+     * @return      the value returned by with sign copied
+     */
+    public static double signCopyPow(double value, double pow) {
+        return Math.signum(value) * Math.pow(Math.abs(value), pow);
+    }
+
+    public static double deadZoneAndSquareJoystick(double value) {
+        return signCopyPow(MathUtil.applyDeadband(value, 0.03), 2);
     }
 }

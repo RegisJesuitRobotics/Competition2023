@@ -27,8 +27,8 @@ import frc.robot.telemetry.types.IntegerTelemetryEntry;
 import frc.robot.telemetry.wrappers.TelemetryTalonFX;
 import frc.robot.utils.Alert;
 import frc.robot.utils.Alert.AlertType;
+import frc.robot.utils.RaiderMathUtils;
 import frc.robot.utils.SwerveModuleConfiguration;
-import frc.robot.utils.SwerveUtils;
 
 public class SwerveModule {
     private enum SwerveModuleControlMode {
@@ -494,7 +494,7 @@ public class SwerveModule {
         if (activeSteer) {
             steerMotor.set(
                     TalonFXControlMode.Position,
-                    SwerveUtils.calculateContinuousInputSetpoint(getSteerAngleRadiansNoWrap(), targetAngleRadians)
+                    RaiderMathUtils.calculateContinuousInputSetpoint(getSteerAngleRadiansNoWrap(), targetAngleRadians)
                             / steerMotorConversionFactorPosition);
         } else {
             steerMotor.neutralOutput();

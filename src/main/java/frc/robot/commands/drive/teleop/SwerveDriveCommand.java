@@ -8,7 +8,7 @@ import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveTrainConstants;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.tunable.TunableTelemetryProfiledPIDController;
-import frc.robot.utils.SwerveUtils;
+import frc.robot.utils.RaiderMathUtils;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
@@ -59,7 +59,7 @@ public class SwerveDriveCommand extends CommandBase {
         Rotation2d currentHeading = driveSubsystem.getPose().getRotation();
         double omega;
         // Snap does not work if we are field relative
-        if (isSnapSupplier.getAsBoolean() && !isFieldRelative) {
+        if (isSnapSupplier.getAsBoolean() && isFieldRelative) {
             double currentOmegaRadiansSecond = driveSubsystem.getCurrentChassisSpeeds().omegaRadiansPerSecond;
             if (!isSnapping) {
                 snapPIDController.reset(currentHeading.getRadians(), currentOmegaRadiansSecond);
@@ -75,7 +75,7 @@ public class SwerveDriveCommand extends CommandBase {
         ChassisSpeeds nextChassisSpeeds =
                 ChassisSpeeds.fromFieldRelativeSpeeds(translation.getX(), translation.getY(), omega, currentHeading);
 
-        if (SwerveUtils.isChassisSpeedsZero(
+        if (RaiderMathUtils.isChassisSpeedsZero(
                 chassisSpeeds,
                 DriveTrainConstants.TELEOP_MINIMUM_VELOCITY_METERS_SECOND,
                 DriveTrainConstants.TELEOP_MINIMUM_ANGULAR_VELOCITY_RADIANS_SECOND)) {

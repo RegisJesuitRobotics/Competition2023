@@ -25,6 +25,8 @@ import frc.robot.telemetry.tunable.TunableDouble;
 import frc.robot.utils.Alert;
 import frc.robot.utils.Alert.AlertType;
 import frc.robot.utils.ListenableSendableChooser;
+import frc.robot.utils.RaiderMathUtils;
+import java.awt.*;
 import java.util.Map.Entry;
 import java.util.function.DoubleSupplier;
 
@@ -72,7 +74,7 @@ public class RobotContainer {
 
     private void configureButtonBindings() {
         TunableDouble maxTranslationSpeedPercent = new TunableDouble("speed/maxTranslation", 0.9, true);
-        TunableDouble maxMaxAngularSpeedPercent = new TunableDouble("speed/maxAngular", 0.75, true);
+        TunableDouble maxMaxAngularSpeedPercent = new TunableDouble("speed/maxAngular", 0.9, true);
 
         DoubleSupplier maxTranslationalSpeedSuppler =
                 () -> maxTranslationSpeedPercent.get() * DriveTrainConstants.MAX_VELOCITY_METERS_SECOND;
@@ -82,19 +84,27 @@ public class RobotContainer {
         driveCommandChooser.setDefaultOption(
                 "Hybrid (Default to Field Relative & absolute control but use robot centric when holding button)",
                 new SwerveDriveCommand(
-                        () -> new Translation2d(-driverController.getLeftY(), -driverController.getLeftX())
+                        () -> new Translation2d(
+                                        RaiderMathUtils.deadZoneAndSquareJoystick(-driverController.getLeftY()),
+                                        RaiderMathUtils.deadZoneAndSquareJoystick(-driverController.getLeftX()))
                                 .times(maxTranslationalSpeedSuppler.getAsDouble()),
-                        () -> -driverController.getRightX(),
-                        driverController.leftBumper().negate(),
+                        () -> RaiderMathUtils.deadZoneAndSquareJoystick(-driverController.getRightX())
+                                * maxAngularSpeedSupplier.getAsDouble(),
+                        //                        driverController.leftBumper().negate(),
+                        () -> false,
                         () -> Math.atan2(driverController.getRightY(), driverController.getRightX()),
                         driverController.rightBumper().negate(),
                         driveSubsystem));
+
         driveCommandChooser.addOption(
                 "Robot Orientated",
                 new SwerveDriveCommand(
-                        () -> new Translation2d(-driverController.getLeftY(), -driverController.getLeftX())
+                        () -> new Translation2d(
+                                        RaiderMathUtils.deadZoneAndSquareJoystick(-driverController.getLeftY()),
+                                        RaiderMathUtils.deadZoneAndSquareJoystick(-driverController.getLeftX()))
                                 .times(maxTranslationalSpeedSuppler.getAsDouble()),
-                        () -> -driverController.getRightX() * maxAngularSpeedSupplier.getAsDouble(),
+                        () -> RaiderMathUtils.deadZoneAndSquareJoystick(-driverController.getRightX())
+                                * maxAngularSpeedSupplier.getAsDouble(),
                         () -> false,
                         () -> 0.0,
                         () -> false,
@@ -114,33 +124,10 @@ public class RobotContainer {
                 .onTrue(Commands.runOnce(driveSubsystem::resetOdometry)
                         .ignoringDisable(true)
                         .withName("Reset Odometry"));
+        
         driverController
                 .povUp()
                 .whileTrue(new LockModulesCommand(driveSubsystem).repeatedly().withName("Lock Modules"));
-
-        driverController
-                .square()
-                .debounce(0.5)
-                .onTrue(new FollowPathCommand(
-                                () -> {
-                                    Pose2d currentPose = driveSubsystem.getPose();
-                                    Pose2d targetPose = new Pose2d();
-                                    Translation2d translation =
-                                            currentPose.minus(targetPose).getTranslation();
-                                    return PathPlanner.generatePath(
-                                            AutoConstants.PATH_CONSTRAINTS,
-                                            new PathPoint(
-                                                    currentPose.getTranslation(),
-                                                    new Rotation2d(-translation.getX(), -translation.getY()),
-                                                    currentPose.getRotation()),
-                                            new PathPoint(
-                                                    new Translation2d(0, 0),
-                                                    new Rotation2d(-translation.getX(), -translation.getY()),
-                                                    new Rotation2d(0)));
-                                },
-                                driveSubsystem)
-                        .until(driverController.rightBumper())
-                        .withName("To (0, 0) Follow Path"));
     }
 
     private void evaluateDriveStyle(Command newCommand) {

@@ -115,7 +115,7 @@ public final class Constants {
         public static final TunablePIDGains PATH_ANGULAR_POSITION_PID_GAINS =
                 new TunablePIDGains("gains/pathAngular", 1, 0.0, 0.0, MiscConstants.TUNING_MODE);
         public static final TunablePIDGains SNAP_ANGULAR_POSITION_PID_GAINS =
-                new TunablePIDGains("gains/snapAngular", 3.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
+                new TunablePIDGains("gains/snapAngular", 0.5, 0.0, 0.0, MiscConstants.TUNING_MODE);
         public static final TunableTrapezoidalProfileGains SNAP_ANGULAR_POSITION_TRAPEZOIDAL_GAINS =
                 new TunableTrapezoidalProfileGains(
                         "gains/snapAngular",

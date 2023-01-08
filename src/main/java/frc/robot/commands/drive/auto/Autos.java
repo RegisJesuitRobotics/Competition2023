@@ -20,14 +20,7 @@ public class Autos {
 
         autoBuilder = new RaiderSwerveAutoBuilder(eventMap, driveSubsystem);
 
-        addPPAuto("FigureEights");
-        addPPAuto("FigureEightsWithRotation");
-        addPPAuto("FUN");
-        addPPAuto("NoRotation");
-        addPPAuto("StopPointTest");
-        addPPAuto("StraightNoRotation");
-        addPPAuto("StraightWithRotation");
-        addPPAuto("WithRotation");
+        addPPAuto("New Path");
         addAuto("QuasistaticCharacterization", new QuasistaticCharacterizeDriveCommand(0.4, driveSubsystem));
         addAuto("DynamicCharacterization", new DynamicCharacterizeDriveCommand(8.0, driveSubsystem));
         addAuto("StepCharacterization", new StepCharacterizeDriveCommand(3.0, 2.0, driveSubsystem));
