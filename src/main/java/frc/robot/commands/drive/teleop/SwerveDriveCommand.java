@@ -6,6 +6,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveTrainConstants;
+import frc.robot.Robot;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.tunable.TunableTelemetryProfiledPIDController;
 import frc.robot.utils.RaiderMathUtils;
@@ -53,6 +54,7 @@ public class SwerveDriveCommand extends CommandBase {
 
     @Override
     public void execute() {
+        Robot.startWNode("DriveExecute");
         boolean isFieldRelative = isFieldRelativeSupplier.getAsBoolean();
         Translation2d translation = translationSupplier.get();
 
@@ -65,7 +67,7 @@ public class SwerveDriveCommand extends CommandBase {
                 snapPIDController.reset(currentHeading.getRadians(), currentOmegaRadiansSecond);
                 isSnapping = true;
             }
-            omega = snapPIDController.calculate(currentOmegaRadiansSecond, snapAngleSupplier.getAsDouble())
+            omega = snapPIDController.calculate(currentHeading.getRadians(), snapAngleSupplier.getAsDouble())
                     + snapPIDController.getSetpoint().velocity;
         } else {
             omega = omegaRadiansSecondSupplier.getAsDouble();
@@ -81,10 +83,13 @@ public class SwerveDriveCommand extends CommandBase {
                 DriveTrainConstants.TELEOP_MINIMUM_ANGULAR_VELOCITY_RADIANS_SECOND)) {
             driveSubsystem.stopMovement();
         } else {
-            driveSubsystem.setChassisSpeeds(chassisSpeeds, nextChassisSpeeds, true);
+            // FIXME
+            //            driveSubsystem.setChassisSpeeds(chassisSpeeds, nextChassisSpeeds, true);
+            driveSubsystem.setChassisSpeeds(chassisSpeeds, true);
         }
 
         chassisSpeeds = nextChassisSpeeds;
+        Robot.endWNode();
     }
 
     @Override

@@ -167,7 +167,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
                 true,
                 openLoop,
                 KINEMATICS.toSwerveModuleStates(chassisSpeeds),
-                KINEMATICS.toSwerveModuleStates(nextChassisSpeeds));
+                KINEMATICS2.toSwerveModuleStates(nextChassisSpeeds));
     }
 
     /**
