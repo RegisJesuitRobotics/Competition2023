@@ -3,6 +3,7 @@ package frc.robot.subsystems.swerve;
 import static frc.robot.Constants.DriveTrainConstants.*;
 
 import com.kauailabs.navx.frc.AHRS;
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -25,6 +26,7 @@ import frc.robot.telemetry.types.rich.ChassisSpeedsEntry;
 import frc.robot.utils.Alert;
 import frc.robot.utils.Alert.AlertType;
 import frc.robot.utils.RaiderMathUtils;
+import frc.robot.subsystems.swerve.PhotonCameraWrapperSubsystem;
 
 /** The subsystem containing all the swerve modules */
 public class SwerveDriveSubsystem extends SubsystemBase {
@@ -36,6 +38,8 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     }
 
     private final SwerveModule[] modules = new SwerveModule[NUM_MODULES];
+
+    private PhotonCameraWrapperSubsystem cameraSubsystem;
 
     private final AHRS gyro = new AHRS();
 
@@ -69,6 +73,10 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         driveEventLogger.append("Swerve modules initialized");
 
         poseEstimator = new SwerveDrivePoseEstimator(KINEMATICS, getGyroRotation(), getModulePositions(), new Pose2d());
+
+
+        Pair<Pose2d, Double> timeStampCameraPose = cameraSubsystem.getVisionPose(poseEstimator.getEstimatedPosition());
+        poseEstimator.addVisionMeasurement(timeStampCameraPose.getFirst(), timeStampCameraPose.getSecond());
 
         ShuffleboardTab driveTab = Shuffleboard.getTab("DriveTrainRaw");
 
@@ -134,6 +142,8 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     public Pose2d getPose() {
         return poseEstimator.getEstimatedPosition();
     }
+
+
 
     public ChassisSpeeds getCurrentChassisSpeeds() {
         return KINEMATICS.toChassisSpeeds(getActualStates());
