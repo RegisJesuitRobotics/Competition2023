@@ -20,7 +20,7 @@ import org.photonvision.RobotPoseEstimator.PoseStrategy;
 public class PhotonCameraWrapperSubsystem extends SubsystemBase {
     // TODO: add camera names
     public PhotonCamera frontCamera = new PhotonCamera("frontCameraName");
-    public PhotonCamera backCamera = new PhotonCamera("backCameraName");
+    public final PhotonCamera backCamera = new PhotonCamera("backCameraName");
 
     public AprilTagFieldLayout fieldLayout;
 
