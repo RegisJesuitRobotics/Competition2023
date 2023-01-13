@@ -18,7 +18,7 @@ import org.photonvision.RobotPoseEstimator;
 import org.photonvision.RobotPoseEstimator.PoseStrategy;
 
 public class PhotonCameraWrapperSubsystem extends SubsystemBase {
-    // add camera names
+    // TODO: add camera names
     public PhotonCamera frontCamera = new PhotonCamera("frontCameraName");
     public PhotonCamera backCamera = new PhotonCamera("backCameraName");
 
