@@ -19,7 +19,7 @@ public final class Constants {
     private Constants() {}
 
     public static class VisionConstants {
-        // update once cameras are mounted
+        // TODO: update once cameras are mounted
         public static final Transform3d FRONT_CAMERA_LOCATION =
                 new Transform3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0));
         public static final Transform3d BACK_CAMERA_LOCATION =
