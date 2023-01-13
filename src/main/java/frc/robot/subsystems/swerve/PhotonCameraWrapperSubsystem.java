@@ -28,7 +28,6 @@ public class PhotonCameraWrapperSubsystem extends SubsystemBase {
 
     {
         try {
-
             fieldLayout = new AprilTagFieldLayout(
                     (Path) AprilTagFieldLayout.loadFromResource(AprilTagFields.k2022RapidReact.m_resourceFile));
 
