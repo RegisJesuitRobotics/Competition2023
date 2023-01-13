@@ -39,7 +39,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
     private final SwerveModule[] modules = new SwerveModule[NUM_MODULES];
 
-    private PhotonCameraWrapperSubsystem cameraSubsystem;
+    private final PhotonCameraWrapperSubsystem cameraSubsystem = new PhotonCameraWrapperSubsystem();
 
     private final AHRS gyro = new AHRS();
 
@@ -73,10 +73,6 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         driveEventLogger.append("Swerve modules initialized");
 
         poseEstimator = new SwerveDrivePoseEstimator(KINEMATICS, getGyroRotation(), getModulePositions(), new Pose2d());
-
-
-        Pair<Pose2d, Double> timeStampCameraPose = cameraSubsystem.getVisionPose(poseEstimator.getEstimatedPosition());
-        poseEstimator.addVisionMeasurement(timeStampCameraPose.getFirst(), timeStampCameraPose.getSecond());
 
         ShuffleboardTab driveTab = Shuffleboard.getTab("DriveTrainRaw");
 
@@ -339,6 +335,10 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         logValues();
         Robot.endWNode();
         Robot.endWNode();
+
+        Pair<Pose2d, Double> timeStampCameraPose = cameraSubsystem.getVisionPose(poseEstimator.getEstimatedPosition());
+        poseEstimator.addVisionMeasurement(timeStampCameraPose.getFirst(), timeStampCameraPose.getSecond());
+
     }
 
     double[] estimatedPoseLoggingArray = new double[3];

@@ -30,8 +30,9 @@ public final class Constants {
                 new Rotation3d(0, 0, 0));
 
 
-        public VisionConstants() throws IOException {
-        }
+        public static final String FRONT_CAMERA_NAME = "cameraName";
+
+        public static final String BACK_CAMERA_NAME = "cameraName";
     }
 
     public static final double DT = 0.02;
