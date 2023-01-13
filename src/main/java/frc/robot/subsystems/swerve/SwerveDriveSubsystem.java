@@ -26,7 +26,6 @@ import frc.robot.telemetry.types.rich.ChassisSpeedsEntry;
 import frc.robot.utils.Alert;
 import frc.robot.utils.Alert.AlertType;
 import frc.robot.utils.RaiderMathUtils;
-import frc.robot.subsystems.swerve.PhotonCameraWrapperSubsystem;
 
 /** The subsystem containing all the swerve modules */
 public class SwerveDriveSubsystem extends SubsystemBase {
@@ -73,7 +72,6 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         driveEventLogger.append("Swerve modules initialized");
 
         poseEstimator = new SwerveDrivePoseEstimator(KINEMATICS, getGyroRotation(), getModulePositions(), new Pose2d());
-
 
         Pair<Pose2d, Double> timeStampCameraPose = cameraSubsystem.getVisionPose(poseEstimator.getEstimatedPosition());
         poseEstimator.addVisionMeasurement(timeStampCameraPose.getFirst(), timeStampCameraPose.getSecond());
@@ -142,8 +140,6 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     public Pose2d getPose() {
         return poseEstimator.getEstimatedPosition();
     }
-
-
 
     public ChassisSpeeds getCurrentChassisSpeeds() {
         return KINEMATICS.toChassisSpeeds(getActualStates());

@@ -1,8 +1,6 @@
 package frc.robot;
 
 import com.pathplanner.lib.PathConstraints;
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -14,24 +12,20 @@ import frc.robot.telemetry.tunable.TunablePIDGains;
 import frc.robot.telemetry.tunable.TunableTrapezoidalProfileGains;
 import frc.robot.utils.SwerveModuleConfiguration;
 import frc.robot.utils.SwerveModuleConfiguration.SharedSwerveModuleConfiguration;
-
 import java.io.IOException;
-import java.nio.file.Path;
 
 /** File containing all constants for the robot. */
 public final class Constants {
     private Constants() {}
 
     public static class VisionConstants {
-        //update once cameras are mounted
-        public static final Transform3d FRONT_CAMERA_LOCATION = new Transform3d(new Translation3d(0, 0, 0),
-                new Rotation3d(0, 0, 0));
-        public static final Transform3d BACK_CAMERA_LOCATION = new Transform3d(new Translation3d(0, 0, 0),
-                new Rotation3d(0, 0, 0));
+        // update once cameras are mounted
+        public static final Transform3d FRONT_CAMERA_LOCATION =
+                new Transform3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0));
+        public static final Transform3d BACK_CAMERA_LOCATION =
+                new Transform3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0));
 
-
-        public VisionConstants() throws IOException {
-        }
+        public VisionConstants() throws IOException {}
     }
 
     public static final double DT = 0.02;
