@@ -14,6 +14,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.MiscConstants;
@@ -49,6 +50,9 @@ public class SwerveDriveSubsystem extends SubsystemBase {
             new ChassisSpeedsEntry("/drive/speeds", MiscConstants.TUNING_MODE);
     private final DoubleArrayTelemetryEntry odometryEntry =
             new DoubleArrayTelemetryEntry("/drive/estimatedPose", false);
+    private final DoubleArrayTelemetryEntry advantageScopeSwerveDesiredStates = new DoubleArrayTelemetryEntry("/drive/desiredStates", MiscConstants.TUNING_MODE);
+    private final DoubleArrayTelemetryEntry advantageScopeSwerveActualStates = new DoubleArrayTelemetryEntry("/drive/actualStates", MiscConstants.TUNING_MODE);
+
     private final EventTelemetryEntry driveEventLogger = new EventTelemetryEntry("/drive/events");
 
     private final Field2d field2d = new Field2d();
@@ -333,7 +337,11 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
     double[] estimatedPoseLoggingArray = new double[3];
 
+
+    double[] actualStatesLogArray = new double[NUM_MODULES * 2];
+    double[] desiredStatesLogArray = new double[NUM_MODULES * 2];
     private void logValues() {
+
         gyroEntry.append(getGyroRotation().getDegrees());
 
         Pose2d estimatedPose = getPose();
@@ -351,9 +359,20 @@ public class SwerveDriveSubsystem extends SubsystemBase {
                             new Transform2d(MODULE_TRANSLATIONS[i], modules[i].getActualState().angle)));
         }
 
-        for (SwerveModule module : modules) {
+        for (int i = 0; i < modules.length; i++) {
+            SwerveModule module = modules[i];
             module.logValues();
+
+            SwerveModuleState state = module.getActualState();
+            // FIXME: Field2d uses degrees so it has to be consistent for advantage scope
+            actualStatesLogArray[i * 2] = state.angle.getDegrees();
+            actualStatesLogArray[i * 2 + 1] = state.speedMetersPerSecond;
+
+            desiredStatesLogArray[i * 2] = desiredStates[i].angle.getDegrees();
+            desiredStatesLogArray[i * 2 + 1] = desiredStates[i].speedMetersPerSecond;
         }
+        advantageScopeSwerveActualStates.append(actualStatesLogArray);
+        advantageScopeSwerveDesiredStates.append(desiredStatesLogArray);
 
         navXNotConnectedFaultAlert.set(!gyro.isConnected());
         navXCalibratingAlert.set(gyro.isCalibrating());

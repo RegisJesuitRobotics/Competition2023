@@ -21,6 +21,7 @@ public class Autos {
         autoBuilder = new RaiderSwerveAutoBuilder(eventMap, driveSubsystem);
 
         addPPAuto("New Path");
+        addPPAuto("Testing");
         addAuto("QuasistaticCharacterization", new QuasistaticCharacterizeDriveCommand(0.4, driveSubsystem));
         addAuto("DynamicCharacterization", new DynamicCharacterizeDriveCommand(8.0, driveSubsystem));
         addAuto("StepCharacterization", new StepCharacterizeDriveCommand(3.0, 2.0, driveSubsystem));

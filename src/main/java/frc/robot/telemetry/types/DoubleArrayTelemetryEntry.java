@@ -35,7 +35,7 @@ public class DoubleArrayTelemetryEntry extends TelemetryEntry {
             if (networkPublisher != null) {
                 networkPublisher.set(value);
             }
-            lastValue = value;
+            lastValue = Arrays.copyOf(value, value.length);
         }
     }
 }
