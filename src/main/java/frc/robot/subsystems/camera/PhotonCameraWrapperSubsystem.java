@@ -5,13 +5,12 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.VisionConstants;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import org.photonvision.PhotonCamera;
 import org.photonvision.RobotPoseEstimator;
@@ -19,8 +18,6 @@ import org.photonvision.RobotPoseEstimator.PoseStrategy;
 
 public class PhotonCameraWrapperSubsystem extends SubsystemBase {
     private final RobotPoseEstimator poseEstimator;
-
-    private final ArrayList<Pair<PhotonCamera, Transform3d>> camList = new ArrayList<>();
 
     public PhotonCameraWrapperSubsystem() {
         AprilTagFieldLayout fieldLayout;
@@ -31,13 +28,16 @@ public class PhotonCameraWrapperSubsystem extends SubsystemBase {
             throw new RuntimeException(e);
         }
 
-        // TODO: add camera names
-        PhotonCamera frontCamera = new PhotonCamera(VisionConstants.FRONT_CAMERA_NAME);
-        camList.add(new Pair<>(frontCamera, VisionConstants.FRONT_CAMERA_LOCATION));
-        PhotonCamera backCamera = new PhotonCamera(VisionConstants.BACK_CAMERA_NAME);
-        camList.add(new Pair<>(backCamera, VisionConstants.BACK_CAMERA_LOCATION));
-
-        poseEstimator = new RobotPoseEstimator(fieldLayout, PoseStrategy.AVERAGE_BEST_TARGETS, camList);
+        poseEstimator = new RobotPoseEstimator(
+                fieldLayout,
+                PoseStrategy.AVERAGE_BEST_TARGETS,
+                List.of(
+                        new Pair<>(
+                                new PhotonCamera(VisionConstants.FRONT_CAMERA_NAME),
+                                VisionConstants.FRONT_CAMERA_LOCATION),
+                        new Pair<>(
+                                new PhotonCamera(VisionConstants.BACK_CAMERA_NAME),
+                                VisionConstants.BACK_CAMERA_LOCATION)));
     }
 
     public void setReferencePose(Pose2d referencePose) {
