@@ -31,6 +31,11 @@ import frc.robot.utils.RaiderMathUtils;
 import frc.robot.utils.SwerveModuleConfiguration;
 
 public class SwerveModule {
+    /**
+     *
+     */
+    private static final double MaxControlEffortVoltage = 7.0;
+
     private enum SwerveModuleControlMode {
         NORMAL(1),
         CHARACTERIZATION(2),
@@ -120,7 +125,7 @@ public class SwerveModule {
         inDeadModeAlert = new Alert(alertPrefix + "In dead mode", AlertType.WARNING);
 
         this.driveMotorConversionFactorPosition = (config.sharedConfiguration().wheelDiameterMeters() * Math.PI)
-                / (config.sharedConfiguration().driveGearRatio() * 2048);
+                / (config.sharedConfiguration().driveGearRatio() * 2048);//TODO Pull all of these magic numbers out to consts
         this.driveMotorConversionFactorVelocity = driveMotorConversionFactorPosition * 10.0;
         this.steerMotorConversionFactorPosition =
                 (Math.PI * 2) / (config.sharedConfiguration().steerGearRatio() * 2048);
@@ -224,7 +229,7 @@ public class SwerveModule {
                     config.sharedConfiguration().allowableSteerErrorRadians() / steerMotorConversionFactorPosition;
             // Max control effort of 7 volts
             motorConfiguration.slot0.closedLoopPeakOutput =
-                    7.0 / config.sharedConfiguration().nominalVoltage();
+                    MaxControlEffortVoltage / config.sharedConfiguration().nominalVoltage();
 
             faultInitializing |= checkCTREError(
                     steerMotor.configAllSettings(motorConfiguration, CAN_TIMEOUT_MS),

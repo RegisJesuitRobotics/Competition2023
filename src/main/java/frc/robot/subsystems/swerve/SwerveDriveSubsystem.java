@@ -28,7 +28,7 @@ import frc.robot.utils.RaiderMathUtils;
 
 /** The subsystem containing all the swerve modules */
 public class SwerveDriveSubsystem extends SubsystemBase {
-    enum DriveMode {
+    enum DriveMode { // TODO: Describe each value
         OPEN_LOOP,
         CLOSE_LOOP,
         CHARACTERIZATION,
@@ -42,7 +42,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     private final SwerveDrivePoseEstimator poseEstimator;
 
     private final Alert navXNotConnectedFaultAlert = new Alert(
-            "navX is not connected. Field-centric drive and odometry will be negatively effected!", AlertType.ERROR);
+            "navX is not connected. Field-centric drive and odometry will be negatively affected!", AlertType.ERROR);
     private final Alert navXCalibratingAlert = new Alert("navX is calibrating. Keep the robot still!", AlertType.INFO);
     private final DoubleTelemetryEntry gyroEntry = new DoubleTelemetryEntry("/drive/gyroDegrees", true);
     private final ChassisSpeedsEntry chassisSpeedsEntry =
