@@ -6,6 +6,7 @@ import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -27,6 +28,10 @@ import frc.robot.utils.Alert;
 import frc.robot.utils.Alert.AlertType;
 import frc.robot.utils.RaiderMathUtils;
 
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
 /** The subsystem containing all the swerve modules */
 public class SwerveDriveSubsystem extends SubsystemBase {
     enum DriveMode {
@@ -38,7 +43,8 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
     private final SwerveModule[] modules = new SwerveModule[NUM_MODULES];
 
-    private final PhotonCameraWrapperSubsystem cameraSubsystem = new PhotonCameraWrapperSubsystem();
+    private final Supplier<Optional<Pair<Pose3d, Double>>> cameraPoseDataSupplier;
+    private final Consumer<Pose2d> referencePoseCameraConsumer;
 
     private final AHRS gyro = new AHRS();
 
@@ -63,7 +69,10 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     private double rawDriveVolts = 0.0;
     private double rawSteerVolts = 0.0;
 
-    public SwerveDriveSubsystem() {
+    public SwerveDriveSubsystem(Supplier<Optional<Pair<Pose3d, Double>>> cameraPoseDataSupplier, Consumer<Pose2d> referencePoseCameraConsumer) {
+        this.cameraPoseDataSupplier = cameraPoseDataSupplier;
+        this.referencePoseCameraConsumer = referencePoseCameraConsumer;
+
         modules[0] = new SwerveModule(FRONT_LEFT_MODULE_CONFIGURATION, MiscConstants.TUNING_MODE);
         modules[1] = new SwerveModule(FRONT_RIGHT_MODULE_CONFIGURATION, MiscConstants.TUNING_MODE);
         modules[2] = new SwerveModule(BACK_LEFT_MODULE_CONFIGURATION, MiscConstants.TUNING_MODE);
@@ -326,16 +335,16 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
         Robot.startWNode("odometry");
         poseEstimator.update(getGyroRotation(), getModulePositions());
+
+        referencePoseCameraConsumer.accept(getPose());
+        Optional<Pair<Pose3d, Double>> timeStampCameraPose = cameraPoseDataSupplier.get();
+        timeStampCameraPose.ifPresent(pose3dDoublePair -> poseEstimator.addVisionMeasurement(pose3dDoublePair.getFirst().toPose2d(), pose3dDoublePair.getSecond()));
         Robot.endWNode();
 
         Robot.startWNode("logging");
         logValues();
         Robot.endWNode();
         Robot.endWNode();
-
-        Pair<Pose2d, Double> timeStampCameraPose = cameraSubsystem.getVisionPose(poseEstimator.getEstimatedPosition());
-        poseEstimator.addVisionMeasurement(timeStampCameraPose.getFirst(), timeStampCameraPose.getSecond());
-
     }
 
     double[] estimatedPoseLoggingArray = new double[3];

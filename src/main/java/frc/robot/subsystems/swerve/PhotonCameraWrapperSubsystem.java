@@ -7,62 +7,52 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.VisionConstants;
+import org.photonvision.PhotonCamera;
+import org.photonvision.RobotPoseEstimator;
+import org.photonvision.RobotPoseEstimator.PoseStrategy;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Optional;
-import frc.robot.Constants;
-import org.photonvision.PhotonCamera;
-import org.photonvision.RobotPoseEstimator;
-import org.photonvision.RobotPoseEstimator.PoseStrategy;
 
 
 public class PhotonCameraWrapperSubsystem extends SubsystemBase {
-    //add camera names
-    private PhotonCamera frontCamera = new PhotonCamera(FRONT_CAMERA_NAME);
-    private PhotonCamera backCamera = new PhotonCamera(BACK_CAMERA_NAME);
+    private final RobotPoseEstimator poseEstimator;
 
-    private AprilTagFieldLayout fieldLayout;
+    private final ArrayList<Pair<PhotonCamera, Transform3d>> camList = new ArrayList<>();
 
-    private RobotPoseEstimator poseEstimator;
-
-    private ArrayList camList;
-
-    {
+    public PhotonCameraWrapperSubsystem() {
+        AprilTagFieldLayout fieldLayout;
         try {
-            fieldLayout = new AprilTagFieldLayout(
-                    (Path) AprilTagFieldLayout.loadFromResource(AprilTagFields.k2022RapidReact.m_resourceFile));
-
             fieldLayout = new AprilTagFieldLayout((Path) AprilTagFieldLayout.loadFromResource(AprilTagFields.k2022RapidReact.m_resourceFile));
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        camList = new ArrayList<Pair<PhotonCamera, Transform3d>>();
-
-
-        camList.add(new Pair<PhotonCamera, Transform3d>(frontCamera, FRONT_CAMERA_LOCATION));
-        camList.add(new Pair<PhotonCamera, Transform3d>(backCamera, BACK_CAMERA_LOCATION));
+        //TODO: add camera names
+        PhotonCamera frontCamera = new PhotonCamera(VisionConstants.FRONT_CAMERA_NAME);
+        camList.add(new Pair<>(frontCamera, VisionConstants.FRONT_CAMERA_LOCATION));
+        PhotonCamera backCamera = new PhotonCamera(VisionConstants.BACK_CAMERA_NAME);
+        camList.add(new Pair<>(backCamera, VisionConstants.BACK_CAMERA_LOCATION));
 
         poseEstimator = new RobotPoseEstimator(fieldLayout, PoseStrategy.AVERAGE_BEST_TARGETS, camList);
         
     }
 
-    public Pair<Pose2d, Double> getVisionPose(Pose2d prevPosition) {
-        poseEstimator.setReferencePose(prevPosition);
+    public void setReferencePose(Pose2d referencePose) {
+        poseEstimator.setReferencePose(referencePose);
+    }
 
+    public Optional<Pair<Pose3d, Double>> getVisionPose() {
         double currentTime = Timer.getFPGATimestamp();
 
         Optional<Pair<Pose3d, Double>> result = poseEstimator.update();
 
-        if (result.isPresent()) {
-            return new Pair<Pose2d, Double>(
-                    result.get().getFirst().toPose2d(),
-                    currentTime - result.get().getSecond());
-        } else {
-            return new Pair<Pose2d, Double>(null, 0.0);
-        }
+        return result.map(pose3dDoublePair -> new Pair<>(
+                pose3dDoublePair.getFirst(),
+                currentTime - pose3dDoublePair.getSecond()));
     }
 }

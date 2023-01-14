@@ -28,7 +28,6 @@ public final class Constants {
         private VisionConstants() {}
 
         public static final String FRONT_CAMERA_NAME = "cameraName";
-
         public static final String BACK_CAMERA_NAME = "cameraName";
     }
 
