@@ -88,7 +88,7 @@ public class SwerveDriveCommand extends CommandBase {
         } else {
             // FIXME
             //            driveSubsystem.setChassisSpeeds(chassisSpeeds, nextChassisSpeeds, true);
-            driveSubsystem.setChassisSpeeds(chassisSpeeds, true);
+            driveSubsystem.setChassisSpeeds(chassisSpeeds, false);
         }
 
         chassisSpeeds = nextChassisSpeeds;
