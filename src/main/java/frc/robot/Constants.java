@@ -12,7 +12,6 @@ import frc.robot.telemetry.tunable.TunablePIDGains;
 import frc.robot.telemetry.tunable.TunableTrapezoidalProfileGains;
 import frc.robot.utils.SwerveModuleConfiguration;
 import frc.robot.utils.SwerveModuleConfiguration.SharedSwerveModuleConfiguration;
-import java.io.IOException;
 
 /** File containing all constants for the robot. */
 public final class Constants {

@@ -27,7 +27,6 @@ import frc.robot.telemetry.types.rich.ChassisSpeedsEntry;
 import frc.robot.utils.Alert;
 import frc.robot.utils.Alert.AlertType;
 import frc.robot.utils.RaiderMathUtils;
-
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -69,7 +68,9 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     private double rawDriveVolts = 0.0;
     private double rawSteerVolts = 0.0;
 
-    public SwerveDriveSubsystem(Supplier<Optional<Pair<Pose3d, Double>>> cameraPoseDataSupplier, Consumer<Pose2d> referencePoseCameraConsumer) {
+    public SwerveDriveSubsystem(
+            Supplier<Optional<Pair<Pose3d, Double>>> cameraPoseDataSupplier,
+            Consumer<Pose2d> referencePoseCameraConsumer) {
         this.cameraPoseDataSupplier = cameraPoseDataSupplier;
         this.referencePoseCameraConsumer = referencePoseCameraConsumer;
 
@@ -338,7 +339,8 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
         referencePoseCameraConsumer.accept(getPose());
         Optional<Pair<Pose3d, Double>> timeStampCameraPose = cameraPoseDataSupplier.get();
-        timeStampCameraPose.ifPresent(pose3dDoublePair -> poseEstimator.addVisionMeasurement(pose3dDoublePair.getFirst().toPose2d(), pose3dDoublePair.getSecond()));
+        timeStampCameraPose.ifPresent(pose3dDoublePair -> poseEstimator.addVisionMeasurement(
+                pose3dDoublePair.getFirst().toPose2d(), pose3dDoublePair.getSecond()));
         Robot.endWNode();
 
         Robot.startWNode("logging");

@@ -1,4 +1,4 @@
-package frc.robot.subsystems.swerve;
+package frc.robot.subsystems.camera;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
@@ -9,15 +9,13 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.VisionConstants;
-import org.photonvision.PhotonCamera;
-import org.photonvision.RobotPoseEstimator;
-import org.photonvision.RobotPoseEstimator.PoseStrategy;
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Optional;
-
+import org.photonvision.PhotonCamera;
+import org.photonvision.RobotPoseEstimator;
+import org.photonvision.RobotPoseEstimator.PoseStrategy;
 
 public class PhotonCameraWrapperSubsystem extends SubsystemBase {
     private final RobotPoseEstimator poseEstimator;
@@ -27,19 +25,19 @@ public class PhotonCameraWrapperSubsystem extends SubsystemBase {
     public PhotonCameraWrapperSubsystem() {
         AprilTagFieldLayout fieldLayout;
         try {
-            fieldLayout = new AprilTagFieldLayout((Path) AprilTagFieldLayout.loadFromResource(AprilTagFields.k2022RapidReact.m_resourceFile));
+            fieldLayout = new AprilTagFieldLayout(
+                    (Path) AprilTagFieldLayout.loadFromResource(AprilTagFields.k2022RapidReact.m_resourceFile));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        //TODO: add camera names
+        // TODO: add camera names
         PhotonCamera frontCamera = new PhotonCamera(VisionConstants.FRONT_CAMERA_NAME);
         camList.add(new Pair<>(frontCamera, VisionConstants.FRONT_CAMERA_LOCATION));
         PhotonCamera backCamera = new PhotonCamera(VisionConstants.BACK_CAMERA_NAME);
         camList.add(new Pair<>(backCamera, VisionConstants.BACK_CAMERA_LOCATION));
 
         poseEstimator = new RobotPoseEstimator(fieldLayout, PoseStrategy.AVERAGE_BEST_TARGETS, camList);
-        
     }
 
     public void setReferencePose(Pose2d referencePose) {
@@ -51,8 +49,7 @@ public class PhotonCameraWrapperSubsystem extends SubsystemBase {
 
         Optional<Pair<Pose3d, Double>> result = poseEstimator.update();
 
-        return result.map(pose3dDoublePair -> new Pair<>(
-                pose3dDoublePair.getFirst(),
-                currentTime - pose3dDoublePair.getSecond()));
+        return result.map(pose3dDoublePair ->
+                new Pair<>(pose3dDoublePair.getFirst(), currentTime - pose3dDoublePair.getSecond()));
     }
 }
