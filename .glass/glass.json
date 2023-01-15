@@ -16,6 +16,12 @@
       "followPath": {
         "open": true
       },
+      "gains": {
+        "open": true,
+        "steer": {
+          "open": true
+        }
+      },
       "power": {
         "0": {
           "open": true
@@ -53,7 +59,7 @@
               "lockMin": true
             }
           ],
-          "height": 632,
+          "height": -43,
           "series": [
             {
               "color": [

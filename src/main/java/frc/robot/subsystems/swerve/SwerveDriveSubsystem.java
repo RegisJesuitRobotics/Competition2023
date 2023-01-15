@@ -173,7 +173,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
                 true,
                 openLoop,
                 KINEMATICS.toSwerveModuleStates(RaiderMathUtils.correctForSwerveSkew(chassisSpeeds)),
-                KINEMATICS2.toSwerveModuleStates(RaiderMathUtils.correctForSwerveSkew(nextChassisSpeeds)));
+                KINEMATICS.toSwerveModuleStates(RaiderMathUtils.correctForSwerveSkew(nextChassisSpeeds)));
     }
 
     /**
@@ -366,7 +366,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
             module.logValues();
 
             SwerveModuleState state = module.getActualState();
-            // FIXME: Field2d uses degrees so it has to be consistent for advantage scope
+            // FIXME: Field2d uses degrees, so it has to be consistent for advantage scope
             actualStatesLogArray[i * 2] = state.angle.getDegrees();
             actualStatesLogArray[i * 2 + 1] = state.speedMetersPerSecond;
 
