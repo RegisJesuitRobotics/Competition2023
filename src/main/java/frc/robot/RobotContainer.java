@@ -89,10 +89,9 @@ public class RobotContainer {
                                         RaiderMathUtils.deadZoneAndSquareJoystick(-driverController.getLeftX()))
                                 .times(maxTranslationalSpeedSuppler.getAsDouble())),
                         () -> rotationLimiter.calculate(
-                                RaiderMathUtils.deadZoneAndSquareJoystick(-driverController.getRightX())
+                                RaiderMathUtils.deadZoneAndSquareJoystick(driverController.getLeftTriggerAxis() - driverController.getRightTriggerAxis())
                                         * maxAngularSpeedSupplier.getAsDouble()),
-                        //                        driverController.leftBumper(),
-                        () -> false,
+                        () -> Math.abs(driverController.getRightY()) > 0.2 || Math.abs(driverController.getRightX()) > 0.2,
                         () -> Math.atan2(driverController.getRightY(), driverController.getRightX()),
                         driverController.rightBumper().negate(),
                         driveSubsystem));
