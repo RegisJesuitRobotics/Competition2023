@@ -129,6 +129,12 @@ public final class Constants {
                 DriveTrainConstants.MAX_VELOCITY_METERS_SECOND, MAX_PATH_ACCELERATION_METERS_PER_SECOND_SQUARED);
     }
 
+    public static class TeleopConstants {
+        private TeleopConstants() {}
+
+        public static final boolean OPEN_LOOP_DRIVETRAIN = false;
+    }
+
     public static class MiscConstants {
         private MiscConstants() {}
 

@@ -6,6 +6,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveTrainConstants;
+import frc.robot.Constants.TeleopConstants;
 import frc.robot.Robot;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.tunable.TunableTelemetryProfiledPIDController;
@@ -27,7 +28,6 @@ public class SwerveDriveCommand extends CommandBase {
             AutoConstants.SNAP_ANGULAR_POSITION_TRAPEZOIDAL_GAINS);
     private final SwerveDriveSubsystem driveSubsystem;
 
-    private ChassisSpeeds chassisSpeeds = new ChassisSpeeds();
     private boolean isSnapping = false;
 
     public SwerveDriveCommand(
@@ -74,11 +74,11 @@ public class SwerveDriveCommand extends CommandBase {
             isSnapping = false;
         }
 
-        ChassisSpeeds nextChassisSpeeds = new ChassisSpeeds(translation.getX(), translation.getY(), omega);
+        ChassisSpeeds chassisSpeeds = new ChassisSpeeds(translation.getX(), translation.getY(), omega);
 
         if (isFieldRelative) {
-            nextChassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-                    nextChassisSpeeds, driveSubsystem.getPose().getRotation());
+            chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+                    chassisSpeeds, driveSubsystem.getPose().getRotation());
         }
 
         if (RaiderMathUtils.isChassisSpeedsZero(
@@ -87,12 +87,9 @@ public class SwerveDriveCommand extends CommandBase {
                 DriveTrainConstants.TELEOP_MINIMUM_ANGULAR_VELOCITY_RADIANS_SECOND)) {
             driveSubsystem.stopMovement();
         } else {
-            // FIXME
-            //            driveSubsystem.setChassisSpeeds(chassisSpeeds, nextChassisSpeeds, true);
-            driveSubsystem.setChassisSpeeds(chassisSpeeds, false);
+            driveSubsystem.setChassisSpeeds(chassisSpeeds, TeleopConstants.OPEN_LOOP_DRIVETRAIN);
         }
 
-        chassisSpeeds = nextChassisSpeeds;
         Robot.endWNode();
     }
 

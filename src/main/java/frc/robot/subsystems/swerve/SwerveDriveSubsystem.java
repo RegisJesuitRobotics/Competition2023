@@ -154,7 +154,8 @@ public class SwerveDriveSubsystem extends SubsystemBase {
      *     for teleop). If false a PIDF will be used (mostly used for auto)
      */
     public void setChassisSpeeds(ChassisSpeeds chassisSpeeds, boolean openLoop) {
-        setRawStates(true, openLoop, KINEMATICS.toSwerveModuleStates(chassisSpeeds));
+        setRawStates(
+                true, openLoop, KINEMATICS.toSwerveModuleStates(RaiderMathUtils.correctForSwerveSkew(chassisSpeeds)));
     }
 
     /**
@@ -171,8 +172,8 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         setRawStates(
                 true,
                 openLoop,
-                KINEMATICS.toSwerveModuleStates(chassisSpeeds),
-                KINEMATICS2.toSwerveModuleStates(nextChassisSpeeds));
+                KINEMATICS.toSwerveModuleStates(RaiderMathUtils.correctForSwerveSkew(chassisSpeeds)),
+                KINEMATICS2.toSwerveModuleStates(RaiderMathUtils.correctForSwerveSkew(nextChassisSpeeds)));
     }
 
     /**
