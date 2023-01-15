@@ -14,7 +14,6 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.MiscConstants;
@@ -50,8 +49,10 @@ public class SwerveDriveSubsystem extends SubsystemBase {
             new ChassisSpeedsEntry("/drive/speeds", MiscConstants.TUNING_MODE);
     private final DoubleArrayTelemetryEntry odometryEntry =
             new DoubleArrayTelemetryEntry("/drive/estimatedPose", false);
-    private final DoubleArrayTelemetryEntry advantageScopeSwerveDesiredStates = new DoubleArrayTelemetryEntry("/drive/desiredStates", MiscConstants.TUNING_MODE);
-    private final DoubleArrayTelemetryEntry advantageScopeSwerveActualStates = new DoubleArrayTelemetryEntry("/drive/actualStates", MiscConstants.TUNING_MODE);
+    private final DoubleArrayTelemetryEntry advantageScopeSwerveDesiredStates =
+            new DoubleArrayTelemetryEntry("/drive/desiredStates", MiscConstants.TUNING_MODE);
+    private final DoubleArrayTelemetryEntry advantageScopeSwerveActualStates =
+            new DoubleArrayTelemetryEntry("/drive/actualStates", MiscConstants.TUNING_MODE);
 
     private final EventTelemetryEntry driveEventLogger = new EventTelemetryEntry("/drive/events");
 
@@ -337,9 +338,9 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
     double[] estimatedPoseLoggingArray = new double[3];
 
-
     double[] actualStatesLogArray = new double[NUM_MODULES * 2];
     double[] desiredStatesLogArray = new double[NUM_MODULES * 2];
+
     private void logValues() {
 
         gyroEntry.append(getGyroRotation().getDegrees());

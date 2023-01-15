@@ -77,7 +77,8 @@ public class SwerveDriveCommand extends CommandBase {
         ChassisSpeeds nextChassisSpeeds = new ChassisSpeeds(translation.getX(), translation.getY(), omega);
 
         if (isFieldRelative) {
-            nextChassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(nextChassisSpeeds, driveSubsystem.getPose().getRotation());
+            nextChassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+                    nextChassisSpeeds, driveSubsystem.getPose().getRotation());
         }
 
         if (RaiderMathUtils.isChassisSpeedsZero(
