@@ -43,6 +43,7 @@ public class SwerveDriveCommand extends CommandBase {
         this.snapAngleSupplier = snapAngleSupplier;
         this.isFieldRelativeSupplier = isFieldRelativeSupplier;
 
+        snapPIDController.enableContinuousInput(-Math.PI, Math.PI);
         this.driveSubsystem = driveSubsystem;
         addRequirements(driveSubsystem);
     }
