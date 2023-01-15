@@ -23,6 +23,7 @@ public class Autos {
         addPPAuto("New Path");
         addPPAuto("Testing");
         addPPAuto("Straight Rotation");
+        addAuto("Auto Balance", new AutoBalanceCommand(driveSubsystem).andThen(new LockModulesCommand(driveSubsystem)));
         addAuto("QuasistaticCharacterization", new QuasistaticCharacterizeDriveCommand(0.4, driveSubsystem));
         addAuto("DynamicCharacterization", new DynamicCharacterizeDriveCommand(8.0, driveSubsystem));
         addAuto("StepCharacterization", new StepCharacterizeDriveCommand(3.0, 2.0, driveSubsystem));

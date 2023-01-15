@@ -4,9 +4,12 @@
       "open": false
     },
     "transitory": {
+      "SmartDashboard": {
+        "open": true
+      },
       "drive": {
         "modules": {
-          "3": {
+          "0": {
             "open": true
           },
           "open": true

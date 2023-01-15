@@ -14,6 +14,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.MiscConstants;
@@ -103,6 +104,15 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     /** Sets the odometry perceived location to zero */
     public void zeroHeading() {
         setHeading(Rotation2d.fromDegrees(0.0));
+    }
+
+    double pitchOffset = 0.0;
+    public double getPitch() {
+        return gyro.getPitch() - pitchOffset;
+    }
+
+    public void resetPitch() {
+        pitchOffset = gyro.getPitch();
     }
 
     /**
@@ -305,6 +315,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     public void periodic() {
         Robot.startWNode("SwerveDriveSubsystem#periodic");
         Robot.startWNode("setDesiredStates");
+        SmartDashboard.putNumber("pitch", getPitch());
         switch (driveMode) {
             case OPEN_LOOP, CLOSE_LOOP -> {
                 SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, MAX_VELOCITY_METERS_SECOND);
