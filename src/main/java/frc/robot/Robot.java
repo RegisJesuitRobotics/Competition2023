@@ -1,12 +1,10 @@
 package frc.robot;
 
-import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.Constants.MiscConstants;
 import frc.robot.telemetry.CommandSchedulerLogger;
 import frc.robot.telemetry.MiscRobotTelemetryAndAlerts;
 import frc.robot.telemetry.wrappers.TelemetryPowerDistribution;
@@ -91,12 +89,6 @@ public class Robot extends TreeTimedRobot {
         watchdog.addNode("commandScheduler");
         CommandScheduler.getInstance().run();
         watchdog.endCurrentNode();
-
-        if (MiscConstants.TUNING_MODE) {
-            watchdog.addNode("networkTablesFlush");
-            NetworkTableInstance.getDefault().flush();
-            watchdog.endCurrentNode();
-        }
     }
 
     /** This method is called once each time the robot enters Disabled mode. */
