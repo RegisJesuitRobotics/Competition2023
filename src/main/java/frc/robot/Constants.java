@@ -134,6 +134,15 @@ public final class Constants {
         public static final boolean OPEN_LOOP_DRIVETRAIN = false;
     }
 
+    public static class FieldConstants {
+        private FieldConstants() {}
+
+        // TODO Validate
+        public static final Translation2d[] CHARGE_STATION_CORNERS = new Translation2d[4];
+        // TODO
+        public static final Translation2d CENTER_OF_CHARGE_STATION = new Translation2d();
+    }
+
     public static class MiscConstants {
         private MiscConstants() {}
 

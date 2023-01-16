@@ -107,6 +107,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     }
 
     double pitchOffset = 0.0;
+
     public double getPitch() {
         return gyro.getPitch() - pitchOffset;
     }
