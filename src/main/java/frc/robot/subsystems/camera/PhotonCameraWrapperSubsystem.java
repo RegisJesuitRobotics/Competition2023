@@ -23,7 +23,7 @@ public class PhotonCameraWrapperSubsystem extends SubsystemBase {
         AprilTagFieldLayout fieldLayout;
         try {
             fieldLayout = new AprilTagFieldLayout(
-                    (Path) AprilTagFieldLayout.loadFromResource(AprilTagFields.k2022RapidReact.m_resourceFile));
+                    (Path) AprilTagFieldLayout.loadFromResource(AprilTagFields.k2023ChargedUp.m_resourceFile));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
