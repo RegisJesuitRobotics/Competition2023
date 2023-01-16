@@ -164,8 +164,7 @@ public class SwerveModule {
         double startTime = Timer.getFPGATimestamp();
         boolean faultInitializing;
         do {
-            faultInitializing = checkCTREError(
-                    driveMotor.configFactoryDefault(CAN_TIMEOUT_MS), "Could not config drive motor factory default");
+            faultInitializing = checkCTREErrorSilent(driveMotor.configFactoryDefault(CAN_TIMEOUT_MS));
 
             TalonFXConfiguration motorConfiguration = new TalonFXConfiguration();
             applyCommonMotorConfiguration(motorConfiguration, config);
@@ -179,16 +178,13 @@ public class SwerveModule {
 
             config.sharedConfiguration().driveVelocityPIDGains().setSlot(motorConfiguration.slot0);
 
-            faultInitializing |= checkCTREError(
-                    driveMotor.configAllSettings(motorConfiguration, CAN_TIMEOUT_MS),
-                    "Could not configure drive motor");
+            faultInitializing |= checkCTREErrorSilent(driveMotor.configAllSettings(motorConfiguration, CAN_TIMEOUT_MS));
 
             driveMotor.setInverted(
                     config.driveMotorInverted() ? TalonFXInvertType.Clockwise : TalonFXInvertType.CounterClockwise);
 
-            faultInitializing |= checkCTREError(
-                    driveMotor.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor, 0, CAN_TIMEOUT_MS),
-                    "Could not config drive motor sensor");
+            faultInitializing |= checkCTREErrorSilent(
+                    driveMotor.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor, 0, CAN_TIMEOUT_MS));
 
             driveMotor.setSensorPhase(false);
 
@@ -206,8 +202,7 @@ public class SwerveModule {
         double startTime = Timer.getFPGATimestamp();
         boolean faultInitializing;
         do {
-            faultInitializing =
-                    checkCTREError(steerMotor.configFactoryDefault(), "Could not config steer motor factory default");
+            faultInitializing = checkCTREErrorSilent(steerMotor.configFactoryDefault());
 
             TalonFXConfiguration motorConfiguration = new TalonFXConfiguration();
             applyCommonMotorConfiguration(motorConfiguration, config);
@@ -226,16 +221,13 @@ public class SwerveModule {
             motorConfiguration.slot0.closedLoopPeakOutput =
                     7.0 / config.sharedConfiguration().nominalVoltage();
 
-            faultInitializing |= checkCTREError(
-                    steerMotor.configAllSettings(motorConfiguration, CAN_TIMEOUT_MS),
-                    "Could not configure steer motor");
+            faultInitializing |= checkCTREErrorSilent(steerMotor.configAllSettings(motorConfiguration, CAN_TIMEOUT_MS));
 
             steerMotor.setInverted(
                     config.steerMotorInverted() ? TalonFXInvertType.Clockwise : TalonFXInvertType.CounterClockwise);
 
-            faultInitializing |= checkCTREError(
-                    steerMotor.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor, 0, CAN_TIMEOUT_MS),
-                    "Could not config steer motor sensor");
+            faultInitializing |= checkCTREErrorSilent(
+                    steerMotor.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor, 0, CAN_TIMEOUT_MS));
 
             // Because + on motor is clockwise, and we want + on encoder to be
             // counter-clockwise we have to set the sensor phase
@@ -268,16 +260,13 @@ public class SwerveModule {
 
         boolean faultInitializing;
         do {
-            faultInitializing = checkCTREError(
-                    absoluteSteerEncoder.configAllSettings(encoderConfiguration, CAN_TIMEOUT_MS),
-                    "Could not configure steer encoder");
+            faultInitializing =
+                    checkCTREErrorSilent(absoluteSteerEncoder.configAllSettings(encoderConfiguration, CAN_TIMEOUT_MS));
 
             // Because we are only reading this at the beginning we do not have to update it
             // often
-            faultInitializing |= checkCTREError(
-                    absoluteSteerEncoder.setStatusFramePeriod(
-                            CANCoderStatusFrame.SensorData, CANCODER_PERIOD_MS, CAN_TIMEOUT_MS),
-                    "Could not set steer encoder status frame");
+            faultInitializing |= checkCTREErrorSilent(absoluteSteerEncoder.setStatusFramePeriod(
+                    CANCoderStatusFrame.SensorData, CANCODER_PERIOD_MS, CAN_TIMEOUT_MS));
         } while (faultInitializing && Timer.getFPGATimestamp() - startTime <= SwerveModule.INITIAL_TIMEOUT_SECONDS);
 
         steerEncoderFaultAlert.set(faultInitializing);
@@ -300,13 +289,17 @@ public class SwerveModule {
      * @return true of there was an error, false if there wasn't
      */
     private boolean checkCTREError(ErrorCode errorCode, String message) {
-        if (errorCode != ErrorCode.OK) {
+        if (checkCTREErrorSilent(errorCode)) {
             String fullMessage = String.format("%s: %s", message, errorCode.toString());
 
             reportError(fullMessage);
             return true;
         }
         return false;
+    }
+
+    private boolean checkCTREErrorSilent(ErrorCode errorCode) {
+        return errorCode != ErrorCode.OK;
     }
 
     private void checkForSteerMotorReset() {
@@ -339,25 +332,26 @@ public class SwerveModule {
         boolean gotAbsolutePosition = false;
         do {
             absolutePosition = getAbsoluteRadians();
-            // If no error
-            if (!checkCTREError(absoluteSteerEncoder.getLastError(), "Could not get absolute position from encoder")) {
+            if (!checkCTREErrorSilent(absoluteSteerEncoder.getLastError())) {
                 gotAbsolutePosition = true;
-                break;
             }
-        } while (timeout != 0.0 && Timer.getFPGATimestamp() - startTime < timeout);
+            if (gotAbsolutePosition) {
+                ErrorCode settingPositionError = steerMotor.setSelectedSensorPosition(
+                        absolutePosition / steerMotorConversionFactorPosition, 0, CAN_TIMEOUT_MS);
+                // If no error
+                if (!checkCTREErrorSilent(settingPositionError)) {
+                    setToAbsolute = true;
+                }
+            }
+        } while (!setToAbsolute && timeout != 0.0 && Timer.getFPGATimestamp() - startTime < timeout);
 
-        if (gotAbsolutePosition) {
-            ErrorCode settingPositionError = steerMotor.setSelectedSensorPosition(
-                    absolutePosition / steerMotorConversionFactorPosition, 0, CAN_TIMEOUT_MS);
-            // If no error
-            if (!checkCTREError(settingPositionError, "Could not set steer motor encoder to absolute position")) {
-                setToAbsolute = true;
-                lastAbsoluteResetTime = Timer.getFPGATimestamp();
-                moduleEventEntry.append("Reset steer motor encoder to position: " + absolutePosition);
-            }
+        if (!setToAbsolute) {
+            reportError("CANCoder/TalonFX timed out while trying to get absolute position");
         } else {
-            reportError("CANCoder timed out while trying to get absolute position");
+            lastAbsoluteResetTime = Timer.getFPGATimestamp();
+            moduleEventEntry.append("Reset steer motor encoder to position: " + absolutePosition);
         }
+
         notSetToAbsoluteAlert.set(!setToAbsolute);
     }
 

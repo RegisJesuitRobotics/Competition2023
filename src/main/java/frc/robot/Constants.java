@@ -111,11 +111,11 @@ public final class Constants {
 
     public static class AutoConstants {
         public static final TunablePIDGains PATH_TRANSLATION_POSITION_GAINS =
-                new TunablePIDGains("gains/pathXY", 0.5, 0.0, 0.0, MiscConstants.TUNING_MODE);
+                new TunablePIDGains("gains/pathXY", 2.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
         public static final TunablePIDGains PATH_ANGULAR_POSITION_PID_GAINS =
-                new TunablePIDGains("gains/pathAngular", 1, 0.0, 0.0, MiscConstants.TUNING_MODE);
+                new TunablePIDGains("gains/pathAngular", 1.5, 0.0, 0.0, MiscConstants.TUNING_MODE);
         public static final TunablePIDGains SNAP_ANGULAR_POSITION_PID_GAINS =
-                new TunablePIDGains("gains/snapAngular", 0.5, 0.0, 0.0, MiscConstants.TUNING_MODE);
+                new TunablePIDGains("gains/snapAngular", 1.5, 0.0, 0.0, MiscConstants.TUNING_MODE);
         public static final TunableTrapezoidalProfileGains SNAP_ANGULAR_POSITION_TRAPEZOIDAL_GAINS =
                 new TunableTrapezoidalProfileGains(
                         "gains/snapAngular",
@@ -123,7 +123,7 @@ public final class Constants {
                         DriveTrainConstants.MAX_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED,
                         MiscConstants.TUNING_MODE);
         public static final double MAX_PATH_ACCELERATION_METERS_PER_SECOND_SQUARED =
-                DriveTrainConstants.MAX_VELOCITY_METERS_SECOND / 2.0;
+                DriveTrainConstants.MAX_VELOCITY_METERS_SECOND / 1.5;
         public static final PathConstraints PATH_CONSTRAINTS = new PathConstraints(
                 DriveTrainConstants.MAX_VELOCITY_METERS_SECOND, MAX_PATH_ACCELERATION_METERS_PER_SECOND_SQUARED);
     }
@@ -154,6 +154,12 @@ public final class Constants {
 
             public static final int BOTTOM_RIGHT_SOLENOID_PORT_REVERSE_INTAKE = 0;
         }
+    }
+
+    public static class TeleopConstants {
+        private TeleopConstants() {}
+
+        public static final boolean OPEN_LOOP_DRIVETRAIN = false;
     }
 
     public static class MiscConstants {

@@ -59,8 +59,8 @@ public class TreeTracer {
     public void printEpochs(Consumer<String> output) {
         long now = RobotController.getFPGATime();
         if (now - lastEpochsPrintTime > MIN_PRINT_PERIOD) {
-            StringBuilder sb = new StringBuilder();
             lastEpochsPrintTime = now;
+            StringBuilder sb = new StringBuilder();
             for (Node child : currentNode.children) {
                 printNode(child, sb, 0);
             }
