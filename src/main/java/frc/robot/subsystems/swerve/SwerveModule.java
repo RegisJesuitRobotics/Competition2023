@@ -164,8 +164,7 @@ public class SwerveModule {
         double startTime = Timer.getFPGATimestamp();
         boolean faultInitializing;
         do {
-            faultInitializing = checkCTREErrorSilent(
-                    driveMotor.configFactoryDefault(CAN_TIMEOUT_MS));
+            faultInitializing = checkCTREErrorSilent(driveMotor.configFactoryDefault(CAN_TIMEOUT_MS));
 
             TalonFXConfiguration motorConfiguration = new TalonFXConfiguration();
             applyCommonMotorConfiguration(motorConfiguration, config);
@@ -179,8 +178,7 @@ public class SwerveModule {
 
             config.sharedConfiguration().driveVelocityPIDGains().setSlot(motorConfiguration.slot0);
 
-            faultInitializing |= checkCTREErrorSilent(
-                    driveMotor.configAllSettings(motorConfiguration, CAN_TIMEOUT_MS));
+            faultInitializing |= checkCTREErrorSilent(driveMotor.configAllSettings(motorConfiguration, CAN_TIMEOUT_MS));
 
             driveMotor.setInverted(
                     config.driveMotorInverted() ? TalonFXInvertType.Clockwise : TalonFXInvertType.CounterClockwise);
@@ -204,8 +202,7 @@ public class SwerveModule {
         double startTime = Timer.getFPGATimestamp();
         boolean faultInitializing;
         do {
-            faultInitializing =
-                    checkCTREErrorSilent(steerMotor.configFactoryDefault());
+            faultInitializing = checkCTREErrorSilent(steerMotor.configFactoryDefault());
 
             TalonFXConfiguration motorConfiguration = new TalonFXConfiguration();
             applyCommonMotorConfiguration(motorConfiguration, config);
@@ -224,8 +221,7 @@ public class SwerveModule {
             motorConfiguration.slot0.closedLoopPeakOutput =
                     7.0 / config.sharedConfiguration().nominalVoltage();
 
-            faultInitializing |= checkCTREErrorSilent(
-                    steerMotor.configAllSettings(motorConfiguration, CAN_TIMEOUT_MS));
+            faultInitializing |= checkCTREErrorSilent(steerMotor.configAllSettings(motorConfiguration, CAN_TIMEOUT_MS));
 
             steerMotor.setInverted(
                     config.steerMotorInverted() ? TalonFXInvertType.Clockwise : TalonFXInvertType.CounterClockwise);
@@ -264,14 +260,13 @@ public class SwerveModule {
 
         boolean faultInitializing;
         do {
-            faultInitializing = checkCTREErrorSilent(
-                    absoluteSteerEncoder.configAllSettings(encoderConfiguration, CAN_TIMEOUT_MS));
+            faultInitializing =
+                    checkCTREErrorSilent(absoluteSteerEncoder.configAllSettings(encoderConfiguration, CAN_TIMEOUT_MS));
 
             // Because we are only reading this at the beginning we do not have to update it
             // often
-            faultInitializing |= checkCTREErrorSilent(
-                    absoluteSteerEncoder.setStatusFramePeriod(
-                            CANCoderStatusFrame.SensorData, CANCODER_PERIOD_MS, CAN_TIMEOUT_MS));
+            faultInitializing |= checkCTREErrorSilent(absoluteSteerEncoder.setStatusFramePeriod(
+                    CANCoderStatusFrame.SensorData, CANCODER_PERIOD_MS, CAN_TIMEOUT_MS));
         } while (faultInitializing && Timer.getFPGATimestamp() - startTime <= SwerveModule.INITIAL_TIMEOUT_SECONDS);
 
         steerEncoderFaultAlert.set(faultInitializing);

@@ -1,7 +1,6 @@
 package frc.robot;
 
 import com.pathplanner.lib.server.PathPlannerServer;
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -92,7 +91,11 @@ public class RobotContainer {
                         () -> rotationLimiter.calculate(
                                 RaiderMathUtils.deadZoneAndSquareJoystick(-driverController.getRightX())
                                         * maxAngularSpeedSupplier.getAsDouble()),
-                        driverController.triangle().or(driverController.circle()).or(driverController.x()).or(driverController.square()),
+                        driverController
+                                .triangle()
+                                .or(driverController.circle())
+                                .or(driverController.x())
+                                .or(driverController.square()),
                         () -> {
                             if (driverController.square().getAsBoolean()) return Math.PI / 2;
                             if (driverController.x().getAsBoolean()) return Math.PI;
