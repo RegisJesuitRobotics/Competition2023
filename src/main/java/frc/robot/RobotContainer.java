@@ -14,6 +14,7 @@ import frc.robot.commands.drive.LockModulesCommand;
 import frc.robot.commands.drive.auto.Autos;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
 import frc.robot.hid.CommandXboxPlaystationController;
+import frc.robot.subsystems.lift.LiftSubsystem;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.tunable.TunableDouble;
 import frc.robot.utils.Alert;
@@ -32,6 +33,7 @@ import java.util.function.DoubleSupplier;
  */
 public class RobotContainer {
     private final SwerveDriveSubsystem driveSubsystem = new SwerveDriveSubsystem();
+    private final LiftSubsystem liftSubsystem = new LiftSubsystem();
 
     private final CommandXboxPlaystationController driverController = new CommandXboxPlaystationController(0);
     private final TeleopControlsStateManager teleopControlsStateManager = new TeleopControlsStateManager();
