@@ -128,6 +128,17 @@ public final class Constants {
                 DriveTrainConstants.MAX_VELOCITY_METERS_SECOND, MAX_PATH_ACCELERATION_METERS_PER_SECOND_SQUARED);
     }
 
+    public static class LiftConstants {
+        // TODO: update motor ports
+        public static int TOP_LEFT_MOTOR_PORT = 0;
+
+        public static int BOTTOM_LEFT_MOTOR_PORT = 0;
+
+        public static int TOP_RIGHT_MOTOR_PORT = 0;
+
+        public static int BOTOM_RIGHT_MOTOR_PORT = 0;
+    }
+
     public static class MiscConstants {
         private MiscConstants() {}
 
