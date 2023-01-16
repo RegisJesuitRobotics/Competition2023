@@ -128,32 +128,21 @@ public final class Constants {
                 DriveTrainConstants.MAX_VELOCITY_METERS_SECOND, MAX_PATH_ACCELERATION_METERS_PER_SECOND_SQUARED);
     }
 
-    public static class PneumaticsConstants {
-        public static class ClawConstants {
-            public static final int LEFT_SOLENOID_FORWARD_PORT_CLAW = 0;
+    public static class ClawConstants {
+        public static final int[] LEFT_SOLENOID_PORTS = {0, 0};
 
-            public static final int LEFT_SOLENOID_REVERSE_PORT_CLAW = 0;
-            public static final int RIGHT_SOLENOID_FORWARD_PORT_CLAW = 1;
+        public static final int[] RIGHT_SOLENOID_PORTS = {0, 0};
+    }
 
-            public static final int RIGHT_SOLENOID_REVERSE_PORT_CLAW = 1;
-        }
-        // TODO: change names when theres a cad for intake and change ports
-        public static class IntakeConstants {
-            public static final int TOP_LEFT_SOLENOID_PORT_FORWARD_INTAKE = 0;
+    // TODO: change names when theres a cad for intake and change ports
+    public static class IntakeConstants {
+        public static final int[] TOP_LEFT_SOLENOID_PORTS = {0, 0};
 
-            public static final int TOP_LEFT_SOLENOID_PORT_REVERSE_INTAKE = 0;
-            public static final int BOTTOM_LEFT_SOLENOID_PORT_FORWARD_INTAKE = 0;
+        public static final int[] BOTTOM_LEFT_SOLENOID_PORTS = {0, 0};
 
-            public static final int BOTTOM_LEFT_SOLENOID_PORT_REVERSE_INTAKE = 0;
+        public static final int[] TOP_RIGHT_SOLENOID_PORTS = {0, 0};
 
-            public static final int TOP_RIGHT_SOLENOID_PORT_FORWARD_INTAKE = 0;
-
-            public static final int TOP_RIGHT_SOLENOID_PORT_REVERSE_INTAKE = 0;
-
-            public static final int BOTTOM_RIGHT_SOLENOID_PORT_FOWARD_INTAKE = 0;
-
-            public static final int BOTTOM_RIGHT_SOLENOID_PORT_REVERSE_INTAKE = 0;
-        }
+        public static final int[] BOTTOM_RIGHT_SOLENOID_PORTS = {0, 0};
     }
 
     public static class TeleopConstants {
