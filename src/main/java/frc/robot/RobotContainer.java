@@ -1,6 +1,7 @@
 package frc.robot;
 
 import com.pathplanner.lib.server.PathPlannerServer;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
@@ -21,6 +22,7 @@ import frc.robot.utils.Alert;
 import frc.robot.utils.Alert.AlertType;
 import frc.robot.utils.ListenableSendableChooser;
 import frc.robot.utils.RaiderMathUtils;
+import frc.robot.utils.VectorRateLimiter;
 import java.awt.*;
 import java.util.Map.Entry;
 import java.util.function.DoubleSupplier;
@@ -70,23 +72,28 @@ public class RobotContainer {
 
     private void configureButtonBindings() {
         TunableDouble maxTranslationSpeedPercent = new TunableDouble("speed/maxTranslation", 0.9, true);
-        TunableDouble maxMaxAngularSpeedPercent = new TunableDouble("speed/maxAngular", 0.9, true);
+        TunableDouble maxMaxAngularSpeedPercent = new TunableDouble("speed/maxAngular", 0.75, true);
 
         DoubleSupplier maxTranslationalSpeedSuppler =
                 () -> maxTranslationSpeedPercent.get() * DriveTrainConstants.MAX_VELOCITY_METERS_SECOND;
         DoubleSupplier maxAngularSpeedSupplier =
                 () -> maxMaxAngularSpeedPercent.get() * DriveTrainConstants.MAX_ANGULAR_VELOCITY_RADIANS_SECOND;
 
+        SlewRateLimiter rotationLimiter =
+                new SlewRateLimiter(DriveTrainConstants.ANGULAR_RATE_LIMIT_RADIANS_SECOND_SQUARED);
+        VectorRateLimiter vectorRateLimiter =
+                new VectorRateLimiter(DriveTrainConstants.TRANSLATION_RATE_LIMIT_METERS_SECOND_SQUARED);
         driveCommandChooser.setDefaultOption(
                 "Hybrid (Default to Field Relative & absolute control but use robot centric when holding button)",
                 new SwerveDriveCommand(
-                        () -> new Translation2d(
+                        () -> vectorRateLimiter.calculate(new Translation2d(
                                         RaiderMathUtils.deadZoneAndSquareJoystick(-driverController.getLeftY()),
                                         RaiderMathUtils.deadZoneAndSquareJoystick(-driverController.getLeftX()))
-                                .times(maxTranslationalSpeedSuppler.getAsDouble()),
-                        () -> RaiderMathUtils.deadZoneAndSquareJoystick(-driverController.getRightX())
-                                * maxAngularSpeedSupplier.getAsDouble(),
-                        //                        driverController.leftBumper().negate(),
+                                .times(maxTranslationalSpeedSuppler.getAsDouble())),
+                        () -> rotationLimiter.calculate(
+                                RaiderMathUtils.deadZoneAndSquareJoystick(-driverController.getRightX())
+                                        * maxAngularSpeedSupplier.getAsDouble()),
+                        //                        driverController.leftBumper(),
                         () -> false,
                         () -> Math.atan2(driverController.getRightY(), driverController.getRightX()),
                         driverController.rightBumper().negate(),
