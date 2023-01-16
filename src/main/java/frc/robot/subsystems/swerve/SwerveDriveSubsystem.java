@@ -355,7 +355,6 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     double[] desiredStatesLogArray = new double[NUM_MODULES * 2];
 
     private void logValues() {
-
         gyroEntry.append(getGyroRotation().getDegrees());
 
         Pose2d estimatedPose = getPose();
@@ -378,7 +377,6 @@ public class SwerveDriveSubsystem extends SubsystemBase {
             module.logValues();
 
             SwerveModuleState state = module.getActualState();
-            // FIXME: Field2d uses degrees, so it has to be consistent for advantage scope
             actualStatesLogArray[i * 2] = state.angle.getDegrees();
             actualStatesLogArray[i * 2 + 1] = state.speedMetersPerSecond;
 
