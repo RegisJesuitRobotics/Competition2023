@@ -3,8 +3,9 @@ package frc.robot.telemetry.types.rich;
 import edu.wpi.first.hal.can.CANStatus;
 import frc.robot.telemetry.types.DoubleTelemetryEntry;
 import frc.robot.telemetry.types.IntegerTelemetryEntry;
+import frc.robot.telemetry.types.TelemetryEntry;
 
-public class CANBusDataEntry {
+public class CANBusDataEntry implements TelemetryEntry {
     private final DoubleTelemetryEntry percentUtilizationEntry;
     private final IntegerTelemetryEntry offCountEntry;
     private final IntegerTelemetryEntry txErrorCountEntry;
@@ -26,5 +27,14 @@ public class CANBusDataEntry {
         txErrorCountEntry.append(data.transmitErrorCount);
         rxErrorCountEntry.append(data.receiveErrorCount);
         transmitFullCountEntry.append(data.txFullCount);
+    }
+
+    @Override
+    public void close() {
+        percentUtilizationEntry.close();
+        offCountEntry.close();
+        txErrorCountEntry.close();
+        rxErrorCountEntry.close();
+        transmitFullCountEntry.close();
     }
 }
