@@ -93,9 +93,17 @@ public class RobotContainer {
                         () -> rotationLimiter.calculate(
                                 RaiderMathUtils.deadZoneAndSquareJoystick(-driverController.getRightX())
                                         * maxAngularSpeedSupplier.getAsDouble()),
-                        //                        driverController.leftBumper(),
-                        () -> false,
-                        () -> Math.atan2(driverController.getRightY(), driverController.getRightX()),
+                        driverController
+                                .triangle()
+                                .or(driverController.circle())
+                                .or(driverController.x())
+                                .or(driverController.square()),
+                        () -> {
+                            if (driverController.square().getAsBoolean()) return Math.PI / 2;
+                            if (driverController.x().getAsBoolean()) return Math.PI;
+                            if (driverController.circle().getAsBoolean()) return -Math.PI / 2;
+                            return 0.0;
+                        },
                         driverController.rightBumper().negate(),
                         driveSubsystem));
 
@@ -123,7 +131,7 @@ public class RobotContainer {
                         .withName("Drive Style Checker"));
 
         driverController
-                .circle()
+                .options()
                 .onTrue(Commands.runOnce(driveSubsystem::resetOdometry)
                         .ignoringDisable(true)
                         .withName("Reset Odometry"));
