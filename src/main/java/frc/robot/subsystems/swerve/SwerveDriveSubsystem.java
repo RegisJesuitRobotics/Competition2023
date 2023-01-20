@@ -3,10 +3,8 @@ package frc.robot.subsystems.swerve;
 import static frc.robot.Constants.DriveTrainConstants.*;
 
 import com.kauailabs.navx.frc.AHRS;
-import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -27,13 +25,9 @@ import frc.robot.telemetry.types.rich.ChassisSpeedsEntry;
 import frc.robot.utils.Alert;
 import frc.robot.utils.Alert.AlertType;
 import frc.robot.utils.RaiderMathUtils;
-import org.photonvision.EstimatedRobotPose;
-
 import java.util.List;
-import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
+import org.photonvision.EstimatedRobotPose;
 
 /** The subsystem containing all the swerve modules */
 public class SwerveDriveSubsystem extends SubsystemBase {
@@ -76,8 +70,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     private double rawDriveVolts = 0.0;
     private double rawSteerVolts = 0.0;
 
-    public SwerveDriveSubsystem(
-            Function<Pose2d, List<EstimatedRobotPose>> cameraPoseDataSupplier) {
+    public SwerveDriveSubsystem(Function<Pose2d, List<EstimatedRobotPose>> cameraPoseDataSupplier) {
         this.cameraPoseDataSupplier = cameraPoseDataSupplier;
 
         modules[0] = new SwerveModule(FRONT_LEFT_MODULE_CONFIGURATION, MiscConstants.TUNING_MODE);
@@ -346,7 +339,8 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
         List<EstimatedRobotPose> estimatedRobotPoses = cameraPoseDataSupplier.apply(getPose());
         for (EstimatedRobotPose estimatedRobotPose : estimatedRobotPoses) {
-            poseEstimator.addVisionMeasurement(estimatedRobotPose.estimatedPose.toPose2d(), estimatedRobotPose.timestampSeconds);
+            poseEstimator.addVisionMeasurement(
+                    estimatedRobotPose.estimatedPose.toPose2d(), estimatedRobotPose.timestampSeconds);
         }
 
         Robot.endWNode();

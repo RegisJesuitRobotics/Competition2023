@@ -10,7 +10,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
@@ -28,8 +27,16 @@ public class PhotonCameraWrapperSubsystem extends SubsystemBase {
             throw new RuntimeException(e);
         }
 
-        poseEstimators.add(new PhotonPoseEstimator(fieldLayout, PoseStrategy.AVERAGE_BEST_TARGETS, new PhotonCamera(VisionConstants.FRONT_CAMERA_NAME), VisionConstants.FRONT_CAMERA_LOCATION));
-        poseEstimators.add(new PhotonPoseEstimator(fieldLayout, PoseStrategy.AVERAGE_BEST_TARGETS, new PhotonCamera(VisionConstants.BACK_CAMERA_NAME), VisionConstants.BACK_CAMERA_LOCATION));
+        poseEstimators.add(new PhotonPoseEstimator(
+                fieldLayout,
+                PoseStrategy.AVERAGE_BEST_TARGETS,
+                new PhotonCamera(VisionConstants.FRONT_CAMERA_NAME),
+                VisionConstants.FRONT_CAMERA_LOCATION));
+        poseEstimators.add(new PhotonPoseEstimator(
+                fieldLayout,
+                PoseStrategy.AVERAGE_BEST_TARGETS,
+                new PhotonCamera(VisionConstants.BACK_CAMERA_NAME),
+                VisionConstants.BACK_CAMERA_LOCATION));
     }
 
     public List<EstimatedRobotPose> getEstimatedGlobalPose(Pose2d prevEstimatedRobotPose) {
