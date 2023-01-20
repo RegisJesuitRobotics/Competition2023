@@ -1,37 +1,45 @@
 package frc.robot.commands.drive.auto;
 
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.Constants.AutoConstants;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
+import frc.robot.telemetry.tunable.TunableTelemetryPIDController;
 
 public class CorrectBalanceCommand extends CommandBase {
-    private SwerveDriveSubsystem driveSubsystem;
-    // TODO: maybe make this profiled and create constant
-    private PIDController pidController = new PIDController(0, 0, 0);
+    private final SwerveDriveSubsystem driveSubsystem;
+
+    // TODO: Possibly use a profiled PID controller
+    private final TunableTelemetryPIDController balanceController =
+            new TunableTelemetryPIDController("drive/balanceController", AutoConstants.AUTO_BALANCE_PID_GAINS);
 
     public CorrectBalanceCommand(SwerveDriveSubsystem driveSubsystem) {
         this.driveSubsystem = driveSubsystem;
+
+        balanceController.setTolerance(2.0);
 
         addRequirements(driveSubsystem);
     }
 
     @Override
-    public void initialize() {}
+    public void initialize() {
+        balanceController.reset();
+        balanceController.setSetpoint(0.0);
+    }
 
     @Override
     public void execute() {
-        double xTranslation = pidController.calculate(driveSubsystem.getPitch(), 0);
-        ChassisSpeeds speeds = new ChassisSpeeds(xTranslation, 0, 0);
-
-        driveSubsystem.setChassisSpeeds(speeds, true);
+        driveSubsystem.setChassisSpeeds(
+                new ChassisSpeeds(balanceController.calculate(driveSubsystem.getPitch()), 0, 0), false);
     }
 
     @Override
     public boolean isFinished() {
-        return Math.abs(driveSubsystem.getPitch()) < 2;
+        return balanceController.atSetpoint();
     }
 
     @Override
-    public void end(boolean interrupted) {}
+    public void end(boolean interrupted) {
+        driveSubsystem.stopMovement();
+    }
 }

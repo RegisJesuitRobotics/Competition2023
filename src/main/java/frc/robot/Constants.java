@@ -117,6 +117,7 @@ public final class Constants {
         public static final TunablePIDGains SNAP_ANGULAR_POSITION_PID_GAINS =
                 new TunablePIDGains("gains/snapAngular", 1.5, 0.0, 0.0, MiscConstants.TUNING_MODE);
 
+        // TODO: Tune
         public static final TunablePIDGains AUTO_BALANCE_PID_GAINS =
                 new TunablePIDGains("/gains/balance", 0, 0, 0, MiscConstants.TUNING_MODE);
 
