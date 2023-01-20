@@ -11,6 +11,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -244,24 +245,12 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         rawDriveVolts = voltage;
     }
 
-    public double getAverageDriveVelocityMetersSecond() {
-        SwerveModuleState[] actualStates = getActualStates();
-        double sum = 0.0;
-        for (SwerveModuleState state : actualStates) {
-            sum += state.speedMetersPerSecond;
+    public double[] getActualDriveVoltages() {
+        double[] voltages = new double[modules.length];
+        for (int i = 0; i < modules.length; i++) {
+            voltages[i] = modules[i].getActualDriveVoltage();
         }
-
-        return sum / actualStates.length;
-    }
-
-    public double getAverageDrivePositionMeters() {
-        SwerveModulePosition[] positions = getModulePositions();
-        double sum = 0.0;
-        for (SwerveModulePosition position : positions) {
-            sum += position.distanceMeters;
-        }
-
-        return sum / positions.length;
+        return voltages;
     }
 
     public void resetModuleEncoderPositions() {
@@ -284,7 +273,23 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         return allSet;
     }
 
-    private SwerveModuleState[] getActualStates() {
+    /**
+     * Should only be used for characterization
+     * @return the angle in radians
+     */
+    public double getRawGyroAngle() {
+        return Units.degreesToRadians(gyro.getAngle());
+    }
+
+    /**
+     * Should only be used for characterization
+     * @return the angle rate in radians/second
+     */
+    public double getRawGyroRate() {
+        return Units.degreesToRadians(gyro.getRate());
+    }
+
+    public SwerveModuleState[] getActualStates() {
         SwerveModuleState[] actualStates = new SwerveModuleState[modules.length];
         for (int i = 0; i < modules.length; i++) {
             actualStates[i] = modules[i].getActualState();
@@ -292,7 +297,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         return actualStates;
     }
 
-    private SwerveModulePosition[] getModulePositions() {
+    public SwerveModulePosition[] getModulePositions() {
         SwerveModulePosition[] actualPositions = new SwerveModulePosition[modules.length];
         for (int i = 0; i < modules.length; i++) {
             actualPositions[i] = modules[i].getActualPosition();
