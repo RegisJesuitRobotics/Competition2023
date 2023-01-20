@@ -27,8 +27,12 @@ import frc.robot.telemetry.types.rich.ChassisSpeedsEntry;
 import frc.robot.utils.Alert;
 import frc.robot.utils.Alert.AlertType;
 import frc.robot.utils.RaiderMathUtils;
+import org.photonvision.EstimatedRobotPose;
+
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /** The subsystem containing all the swerve modules */
@@ -42,8 +46,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
     private final SwerveModule[] modules = new SwerveModule[NUM_MODULES];
 
-    private final Supplier<Optional<Pair<Pose3d, Double>>> cameraPoseDataSupplier;
-    private final Consumer<Pose2d> referencePoseCameraConsumer;
+    private final Function<Pose2d, List<EstimatedRobotPose>> cameraPoseDataSupplier;
 
     private final AHRS gyro = new AHRS();
 
@@ -74,10 +77,8 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     private double rawSteerVolts = 0.0;
 
     public SwerveDriveSubsystem(
-            Supplier<Optional<Pair<Pose3d, Double>>> cameraPoseDataSupplier,
-            Consumer<Pose2d> referencePoseCameraConsumer) {
+            Function<Pose2d, List<EstimatedRobotPose>> cameraPoseDataSupplier) {
         this.cameraPoseDataSupplier = cameraPoseDataSupplier;
-        this.referencePoseCameraConsumer = referencePoseCameraConsumer;
 
         modules[0] = new SwerveModule(FRONT_LEFT_MODULE_CONFIGURATION, MiscConstants.TUNING_MODE);
         modules[1] = new SwerveModule(FRONT_RIGHT_MODULE_CONFIGURATION, MiscConstants.TUNING_MODE);
@@ -343,10 +344,11 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         Robot.startWNode("odometry");
         poseEstimator.update(getGyroRotation(), getModulePositions());
 
-        referencePoseCameraConsumer.accept(getPose());
-        Optional<Pair<Pose3d, Double>> timeStampCameraPose = cameraPoseDataSupplier.get();
-        timeStampCameraPose.ifPresent(pose3dDoublePair -> poseEstimator.addVisionMeasurement(
-                pose3dDoublePair.getFirst().toPose2d(), pose3dDoublePair.getSecond()));
+        List<EstimatedRobotPose> estimatedRobotPoses = cameraPoseDataSupplier.apply(getPose());
+        for (EstimatedRobotPose estimatedRobotPose : estimatedRobotPoses) {
+            poseEstimator.addVisionMeasurement(estimatedRobotPose.estimatedPose.toPose2d(), estimatedRobotPose.timestampSeconds);
+        }
+
         Robot.endWNode();
 
         Robot.startWNode("logging");

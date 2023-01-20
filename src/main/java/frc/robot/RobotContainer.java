@@ -35,7 +35,7 @@ import java.util.function.DoubleSupplier;
 public class RobotContainer {
     private final PhotonCameraWrapperSubsystem cameraWrapperSubsystem = new PhotonCameraWrapperSubsystem();
     private final SwerveDriveSubsystem driveSubsystem =
-            new SwerveDriveSubsystem(cameraWrapperSubsystem::getVisionPose, cameraWrapperSubsystem::setReferencePose);
+            new SwerveDriveSubsystem(cameraWrapperSubsystem::getEstimatedGlobalPose);
 
     private final CommandXboxPlaystationController driverController = new CommandXboxPlaystationController(0);
     private final TeleopControlsStateManager teleopControlsStateManager = new TeleopControlsStateManager();
