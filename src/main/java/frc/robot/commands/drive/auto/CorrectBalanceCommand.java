@@ -1,6 +1,10 @@
 package frc.robot.commands.drive.auto;
 
+import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.interfaces.Gyro;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import static frc.robot.Constants.AutoConstants.AUTO_BALANCE_PID_GAINS;
@@ -14,6 +18,7 @@ public class CorrectBalanceCommand extends CommandBase {
 
     public CorrectBalanceCommand(SwerveDriveSubsystem driveSubsystem) {
         this.driveSubsystem = driveSubsystem;
+
         addRequirements(driveSubsystem);
     }
 
@@ -24,13 +29,21 @@ public class CorrectBalanceCommand extends CommandBase {
 
     @Override
     public void execute() {
+        double xTranslation = pidController.calculate(driveSubsystem.getPitch(), 0);
+        ChassisSpeeds speeds = new ChassisSpeeds(xTranslation, 0, 0);
 
+
+        driveSubsystem.setChassisSpeeds(speeds, true);
+
+    }
+
+    private float getPitch(){
+        return gyro.getPitch();
     }
 
     @Override
     public boolean isFinished() {
-        // TODO: Make this return true when this Command no longer needs to run execute()
-        return false;
+        return Math.abs(getPitch()) < 2;
     }
 
     @Override
