@@ -126,7 +126,7 @@ public final class Constants {
                         DriveTrainConstants.MAX_ANGULAR_VELOCITY_RADIANS_SECOND,
                         DriveTrainConstants.MAX_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED,
                         MiscConstants.TUNING_MODE);
-        public static final TunableTrapezoidalProfileGains
+
         public static final double MAX_PATH_ACCELERATION_METERS_PER_SECOND_SQUARED =
                 DriveTrainConstants.MAX_VELOCITY_METERS_SECOND / 1.5;
         public static final PathConstraints PATH_CONSTRAINTS = new PathConstraints(
