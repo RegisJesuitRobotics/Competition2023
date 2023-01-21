@@ -68,12 +68,12 @@ public final class Constants {
         public static final double MAX_VELOCITY_METERS_SECOND =
                 (MOTOR_FREE_SPEED_RPM * WHEEL_DIAMETER_METERS * Math.PI) / (60.0 * DRIVE_GEAR_REDUCTION);
 
-        public static final double MAX_ANGULAR_VELOCITY_RADIANS_SECOND = Math.PI * 2;
+        public static final double MAX_ANGULAR_VELOCITY_RADIANS_SECOND = Math.PI * 4;
         public static final double MAX_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED =
-                MAX_ANGULAR_VELOCITY_RADIANS_SECOND;
+                MAX_ANGULAR_VELOCITY_RADIANS_SECOND / 2.0;
 
         public static final double TRANSLATION_RATE_LIMIT_METERS_SECOND_SQUARED = 10.0;
-        public static final double ANGULAR_RATE_LIMIT_RADIANS_SECOND_SQUARED = 10.0 * Math.PI;
+        public static final double ANGULAR_RATE_LIMIT_RADIANS_SECOND_SQUARED = 5.0 * Math.PI;
         public static final double TELEOP_MINIMUM_VELOCITY_METERS_SECOND = 0.10;
         public static final double TELEOP_MINIMUM_ANGULAR_VELOCITY_RADIANS_SECOND = 0.10;
 
