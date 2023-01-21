@@ -1,5 +1,6 @@
 package frc.robot.commands.drive.auto;
 
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants.AutoConstants;
@@ -11,7 +12,7 @@ public class CorrectBalanceCommand extends CommandBase {
 
     // TODO: Possibly use a profiled PID controller
     private final TunableTelemetryPIDController balanceController =
-            new TunableTelemetryPIDController("drive/balanceController", AutoConstants.AUTO_BALANCE_PID_GAINS);
+            new TunableTelemetryPIDController("/drive/balanceController", AutoConstants.AUTO_BALANCE_PID_GAINS);
 
     public CorrectBalanceCommand(SwerveDriveSubsystem driveSubsystem) {
         this.driveSubsystem = driveSubsystem;
@@ -30,7 +31,7 @@ public class CorrectBalanceCommand extends CommandBase {
     @Override
     public void execute() {
         driveSubsystem.setChassisSpeeds(
-                new ChassisSpeeds(balanceController.calculate(driveSubsystem.getPitch()), 0, 0), false);
+                new ChassisSpeeds(0, balanceController.calculate(driveSubsystem.getPitch()), 0), false);
     }
 
     @Override
