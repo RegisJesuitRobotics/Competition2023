@@ -23,7 +23,6 @@ import frc.robot.utils.Alert.AlertType;
 import frc.robot.utils.ListenableSendableChooser;
 import frc.robot.utils.RaiderMathUtils;
 import frc.robot.utils.VectorRateLimiter;
-
 import java.util.Map.Entry;
 import java.util.function.DoubleSupplier;
 
@@ -73,8 +72,9 @@ public class RobotContainer {
         TunableDouble maxTranslationSpeedPercent = new TunableDouble("/speed/maxTranslation", 0.9, true);
         TunableDouble maxMaxAngularSpeedPercent = new TunableDouble("/speed/maxAngular", 0.5, true);
 
-        DoubleSupplier maxTranslationalSpeedSuppler =
-                () -> maxTranslationSpeedPercent.get() * DriveTrainConstants.MAX_VELOCITY_METERS_SECOND * (driverController.leftBumper().getAsBoolean() ? 0.5 : 1);
+        DoubleSupplier maxTranslationalSpeedSuppler = () -> maxTranslationSpeedPercent.get()
+                * DriveTrainConstants.MAX_VELOCITY_METERS_SECOND
+                * (driverController.leftBumper().getAsBoolean() ? 0.5 : 1);
         DoubleSupplier maxAngularSpeedSupplier =
                 () -> maxMaxAngularSpeedPercent.get() * DriveTrainConstants.MAX_ANGULAR_VELOCITY_RADIANS_SECOND;
 
