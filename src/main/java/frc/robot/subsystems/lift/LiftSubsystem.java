@@ -18,7 +18,7 @@ public class LiftSubsystem extends SubsystemBase {
             new CANSparkMax(LiftConstants.TOP_RIGHT_MOTOR_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
 
     private final CANSparkMax bottomRightMotor =
-            new CANSparkMax(LiftConstants.BOTOM_RIGHT_MOTOR_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
+            new CANSparkMax(LiftConstants.BOTTOM_RIGHT_MOTOR_PORT, CANSparkMaxLowLevel.MotorType.kBrushless);
 
     private LiftSubsystem() {
         // TODO: Set the default command, if any, for this subsystem by calling setDefaultCommand(command)

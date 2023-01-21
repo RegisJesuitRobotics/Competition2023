@@ -130,13 +130,13 @@ public final class Constants {
 
     public static class LiftConstants {
         // TODO: update motor ports
-        public static int TOP_LEFT_MOTOR_PORT = 0;
+        public static final int TOP_LEFT_MOTOR_PORT = 0;
 
-        public static int BOTTOM_LEFT_MOTOR_PORT = 0;
+        public static final int BOTTOM_LEFT_MOTOR_PORT = 0;
 
-        public static int TOP_RIGHT_MOTOR_PORT = 0;
+        public static final int TOP_RIGHT_MOTOR_PORT = 0;
 
-        public static int BOTOM_RIGHT_MOTOR_PORT = 0;
+        public static final int BOTTOM_RIGHT_MOTOR_PORT = 0;
     }
 
     public static class MiscConstants {
