@@ -11,4 +11,9 @@ public class QuasistaticCharacterizationMode implements CharacterizationMode {
     public double getVoltage(double time) {
         return voltsPerSecond * time;
     }
+
+    @Override
+    public String getTestMetaData() {
+        return "quasistatic" + (voltsPerSecond > 0.0 ? "forward" : "backward");
+    }
 }

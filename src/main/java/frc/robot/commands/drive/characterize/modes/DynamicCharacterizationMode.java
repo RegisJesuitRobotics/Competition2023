@@ -11,4 +11,9 @@ public class DynamicCharacterizationMode implements CharacterizationMode {
     public double getVoltage(double time) {
         return voltage;
     }
+
+    @Override
+    public String getTestMetaData() {
+        return "dynamic-" + (voltage > 0.0 ? "forward" : "backward");
+    }
 }

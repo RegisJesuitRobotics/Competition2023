@@ -2,7 +2,6 @@ package frc.robot.commands.drive.auto;
 
 import com.pathplanner.lib.PathPlanner;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.Constants;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.MiscConstants;
 import frc.robot.commands.drive.GreaseGearsCommand;

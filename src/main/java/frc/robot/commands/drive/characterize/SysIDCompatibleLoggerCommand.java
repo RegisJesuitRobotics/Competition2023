@@ -2,7 +2,6 @@ package frc.robot.commands.drive.characterize;
 
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
@@ -10,17 +9,16 @@ import frc.robot.commands.drive.characterize.modes.CharacterizationMode;
 import frc.robot.commands.drive.characterize.modes.DynamicCharacterizationMode;
 import frc.robot.commands.drive.characterize.modes.QuasistaticCharacterizationMode;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
-
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Vector;
 
 public class SysIDCompatibleLoggerCommand extends CommandBase {
     private final SwerveDriveSubsystem driveSubsystem;
+    private final List<Double> dataBuffer = new ArrayList<>();
+
+    private double acknowledgementNumber = 0;
     private CharacterizationMode currentCharacterizationMode;
     private double startTime;
-    private List<Double> dataBuffer = new ArrayList<>();
 
     public SysIDCompatibleLoggerCommand(SwerveDriveSubsystem driveSubsystem) {
         this.driveSubsystem = driveSubsystem;
@@ -30,6 +28,8 @@ public class SysIDCompatibleLoggerCommand extends CommandBase {
 
     @Override
     public void initialize() {
+        acknowledgementNumber = SmartDashboard.getNumber("SysIdAckNumber", 0.0);
+        SmartDashboard.putString("SysIdTelemetry", "");
         double voltageCommand = SmartDashboard.getNumber("SysIdVoltageCommand", 0.0);
         String type = SmartDashboard.getString("SysIdType", "Quasistatic");
 
@@ -59,7 +59,8 @@ public class SysIDCompatibleLoggerCommand extends CommandBase {
         SwerveModulePosition[] positions = driveSubsystem.getModulePositions();
         SwerveModuleState[] states = driveSubsystem.getActualStates();
 
-        // Order from: https://github.com/wpilibsuite/sysid/blob/320b0e82f3b2a6dcad43e069898734f10891183f/sysid-library/src/main/cpp/logging/SysIdDrivetrainLogger.cpp#L27
+        // Order from:
+        // https://github.com/wpilibsuite/sysid/blob/320b0e82f3b2a6dcad43e069898734f10891183f/sysid-library/src/main/cpp/logging/SysIdDrivetrainLogger.cpp#L27
         dataBuffer.add(timestamp);
         dataBuffer.add(voltages[0]);
         dataBuffer.add(voltages[1]);
@@ -75,7 +76,11 @@ public class SysIDCompatibleLoggerCommand extends CommandBase {
     public void end(boolean interrupted) {
         driveSubsystem.stopMovement();
 
-        // TODO: Output data
+        String dataArrayString = dataBuffer.toString();
+        String fullData = currentCharacterizationMode.getTestMetaData()
+                + dataArrayString.substring(1, dataArrayString.length() - 1);
+        SmartDashboard.putString("SysIdTelemetry", fullData);
+        SmartDashboard.putNumber("SysIdAckNumber", ++acknowledgementNumber);
     }
 
     @Override
