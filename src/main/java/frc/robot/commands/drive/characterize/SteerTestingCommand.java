@@ -9,7 +9,7 @@ import frc.robot.telemetry.tunable.TunableDouble;
 
 public class SteerTestingCommand extends CommandBase {
     private final SwerveDriveSubsystem driveSubsystem;
-    private final TunableDouble desiredSteer = new TunableDouble("char/desiredSteerTesting", 0.0, true);
+    private final TunableDouble desiredSteer = new TunableDouble("/char/desiredSteerTesting", 0.0, true);
 
     public SteerTestingCommand(SwerveDriveSubsystem driveSubsystem) {
         this.driveSubsystem = driveSubsystem;

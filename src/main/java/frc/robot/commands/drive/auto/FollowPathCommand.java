@@ -62,6 +62,7 @@ public class FollowPathCommand extends CommandBase {
         if (MiscConstants.TUNING_MODE) {
             PathPlannerServer.sendActivePath(currentPath.getStates());
         }
+        driveSubsystem.getField2d().getObject("traj").setTrajectory(currentPath);
         timer.reset();
         timer.start();
     }
