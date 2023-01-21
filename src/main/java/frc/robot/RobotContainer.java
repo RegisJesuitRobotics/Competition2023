@@ -1,6 +1,7 @@
 package frc.robot;
 
 import com.pathplanner.lib.server.PathPlannerServer;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
@@ -14,12 +15,14 @@ import frc.robot.commands.drive.LockModulesCommand;
 import frc.robot.commands.drive.auto.Autos;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
 import frc.robot.hid.CommandXboxPlaystationController;
+import frc.robot.subsystems.lift.LiftSubsystem;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.tunable.TunableDouble;
 import frc.robot.utils.Alert;
 import frc.robot.utils.Alert.AlertType;
 import frc.robot.utils.ListenableSendableChooser;
 import frc.robot.utils.RaiderMathUtils;
+import frc.robot.utils.VectorRateLimiter;
 import java.awt.*;
 import java.util.Map.Entry;
 import java.util.function.DoubleSupplier;
@@ -32,6 +35,7 @@ import java.util.function.DoubleSupplier;
  */
 public class RobotContainer {
     private final SwerveDriveSubsystem driveSubsystem = new SwerveDriveSubsystem();
+    private final LiftSubsystem liftSubsystem = new LiftSubsystem();
 
     private final CommandXboxPlaystationController driverController = new CommandXboxPlaystationController(0);
     private final TeleopControlsStateManager teleopControlsStateManager = new TeleopControlsStateManager();
@@ -68,25 +72,38 @@ public class RobotContainer {
 
     private void configureButtonBindings() {
         TunableDouble maxTranslationSpeedPercent = new TunableDouble("speed/maxTranslation", 0.9, true);
-        TunableDouble maxMaxAngularSpeedPercent = new TunableDouble("speed/maxAngular", 0.9, true);
+        TunableDouble maxMaxAngularSpeedPercent = new TunableDouble("speed/maxAngular", 0.75, true);
 
         DoubleSupplier maxTranslationalSpeedSuppler =
                 () -> maxTranslationSpeedPercent.get() * DriveTrainConstants.MAX_VELOCITY_METERS_SECOND;
         DoubleSupplier maxAngularSpeedSupplier =
                 () -> maxMaxAngularSpeedPercent.get() * DriveTrainConstants.MAX_ANGULAR_VELOCITY_RADIANS_SECOND;
 
+        SlewRateLimiter rotationLimiter =
+                new SlewRateLimiter(DriveTrainConstants.ANGULAR_RATE_LIMIT_RADIANS_SECOND_SQUARED);
+        VectorRateLimiter vectorRateLimiter =
+                new VectorRateLimiter(DriveTrainConstants.TRANSLATION_RATE_LIMIT_METERS_SECOND_SQUARED);
         driveCommandChooser.setDefaultOption(
                 "Hybrid (Default to Field Relative & absolute control but use robot centric when holding button)",
                 new SwerveDriveCommand(
-                        () -> new Translation2d(
+                        () -> vectorRateLimiter.calculate(new Translation2d(
                                         RaiderMathUtils.deadZoneAndSquareJoystick(-driverController.getLeftY()),
                                         RaiderMathUtils.deadZoneAndSquareJoystick(-driverController.getLeftX()))
-                                .times(maxTranslationalSpeedSuppler.getAsDouble()),
-                        () -> RaiderMathUtils.deadZoneAndSquareJoystick(-driverController.getRightX())
-                                * maxAngularSpeedSupplier.getAsDouble(),
-                        //                        driverController.leftBumper().negate(),
-                        () -> false,
-                        () -> Math.atan2(driverController.getRightY(), driverController.getRightX()),
+                                .times(maxTranslationalSpeedSuppler.getAsDouble())),
+                        () -> rotationLimiter.calculate(
+                                RaiderMathUtils.deadZoneAndSquareJoystick(-driverController.getRightX())
+                                        * maxAngularSpeedSupplier.getAsDouble()),
+                        driverController
+                                .triangle()
+                                .or(driverController.circle())
+                                .or(driverController.x())
+                                .or(driverController.square()),
+                        () -> {
+                            if (driverController.square().getAsBoolean()) return Math.PI / 2;
+                            if (driverController.x().getAsBoolean()) return Math.PI;
+                            if (driverController.circle().getAsBoolean()) return -Math.PI / 2;
+                            return 0.0;
+                        },
                         driverController.rightBumper().negate(),
                         driveSubsystem));
 
@@ -114,7 +131,7 @@ public class RobotContainer {
                         .withName("Drive Style Checker"));
 
         driverController
-                .circle()
+                .options()
                 .onTrue(Commands.runOnce(driveSubsystem::resetOdometry)
                         .ignoringDisable(true)
                         .withName("Reset Odometry"));
