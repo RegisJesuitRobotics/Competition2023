@@ -49,10 +49,10 @@ public final class Constants {
         public static final double ACCEPTABLE_STEER_ERROR_RADIANS = Units.degreesToRadians(0.20);
 
         // Left right distance between center of wheels
-        public static final double TRACKWIDTH_METERS = Units.inchesToMeters(24.75);
+        public static final double TRACKWIDTH_METERS = Units.inchesToMeters(28.616);
 
         // Front back distance between center of wheels
-        public static final double WHEELBASE_METERS = Units.inchesToMeters(24.75);
+        public static final double WHEELBASE_METERS = Units.inchesToMeters(20.75);
 
         public static final Translation2d[] MODULE_TRANSLATIONS = new Translation2d[] {
             new Translation2d(TRACKWIDTH_METERS / 2.0, WHEELBASE_METERS / 2.0),
