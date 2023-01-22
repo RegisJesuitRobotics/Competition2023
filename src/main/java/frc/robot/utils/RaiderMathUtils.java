@@ -80,8 +80,8 @@ public class RaiderMathUtils {
         return Math.signum(value) * Math.pow(Math.abs(value), pow);
     }
 
-    public static double deadZoneAndSquareJoystick(double value) {
-        return signCopyPow(MathUtil.applyDeadband(value, 0.03), 2);
+    public static double deadZoneAndCubeJoystick(double value) {
+        return signCopyPow(MathUtil.applyDeadband(value, 0.03), 3);
     }
 
     public static ChassisSpeeds correctForSwerveSkew(ChassisSpeeds speeds) {
