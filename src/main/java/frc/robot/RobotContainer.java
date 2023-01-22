@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.DriveTrainConstants;
 import frc.robot.Constants.MiscConstants;
+import frc.robot.Constants.TeleopConstants;
 import frc.robot.commands.drive.LockModulesCommand;
 import frc.robot.commands.drive.auto.Autos;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
@@ -23,7 +24,6 @@ import frc.robot.utils.Alert.AlertType;
 import frc.robot.utils.ListenableSendableChooser;
 import frc.robot.utils.RaiderMathUtils;
 import frc.robot.utils.VectorRateLimiter;
-import java.awt.*;
 import java.util.Map.Entry;
 import java.util.function.DoubleSupplier;
 
@@ -71,27 +71,28 @@ public class RobotContainer {
     }
 
     private void configureButtonBindings() {
-        TunableDouble maxTranslationSpeedPercent = new TunableDouble("speed/maxTranslation", 0.9, true);
-        TunableDouble maxMaxAngularSpeedPercent = new TunableDouble("speed/maxAngular", 0.75, true);
+        TunableDouble maxTranslationSpeedPercent = new TunableDouble("/speed/maxTranslation", 0.9, true);
+        TunableDouble maxMaxAngularSpeedPercent = new TunableDouble("/speed/maxAngular", 0.5, true);
 
-        DoubleSupplier maxTranslationalSpeedSuppler =
-                () -> maxTranslationSpeedPercent.get() * DriveTrainConstants.MAX_VELOCITY_METERS_SECOND;
+        DoubleSupplier maxTranslationalSpeedSuppler = () -> maxTranslationSpeedPercent.get()
+                * DriveTrainConstants.MAX_VELOCITY_METERS_SECOND
+                * (driverController.leftBumper().getAsBoolean() ? 0.5 : 1);
         DoubleSupplier maxAngularSpeedSupplier =
                 () -> maxMaxAngularSpeedPercent.get() * DriveTrainConstants.MAX_ANGULAR_VELOCITY_RADIANS_SECOND;
 
         SlewRateLimiter rotationLimiter =
-                new SlewRateLimiter(DriveTrainConstants.ANGULAR_RATE_LIMIT_RADIANS_SECOND_SQUARED);
+                new SlewRateLimiter(TeleopConstants.ANGULAR_RATE_LIMIT_RADIANS_SECOND_SQUARED);
         VectorRateLimiter vectorRateLimiter =
-                new VectorRateLimiter(DriveTrainConstants.TRANSLATION_RATE_LIMIT_METERS_SECOND_SQUARED);
+                new VectorRateLimiter(TeleopConstants.TRANSLATION_RATE_LIMIT_METERS_SECOND_SQUARED);
         driveCommandChooser.setDefaultOption(
                 "Hybrid (Default to Field Relative & absolute control but use robot centric when holding button)",
                 new SwerveDriveCommand(
                         () -> vectorRateLimiter.calculate(new Translation2d(
-                                        RaiderMathUtils.deadZoneAndSquareJoystick(-driverController.getLeftY()),
-                                        RaiderMathUtils.deadZoneAndSquareJoystick(-driverController.getLeftX()))
+                                        RaiderMathUtils.deadZoneAndCubeJoystick(-driverController.getLeftY()),
+                                        RaiderMathUtils.deadZoneAndCubeJoystick(-driverController.getLeftX()))
                                 .times(maxTranslationalSpeedSuppler.getAsDouble())),
                         () -> rotationLimiter.calculate(
-                                RaiderMathUtils.deadZoneAndSquareJoystick(-driverController.getRightX())
+                                RaiderMathUtils.deadZoneAndCubeJoystick(-driverController.getRightX())
                                         * maxAngularSpeedSupplier.getAsDouble()),
                         driverController
                                 .triangle()
@@ -111,10 +112,10 @@ public class RobotContainer {
                 "Robot Orientated",
                 new SwerveDriveCommand(
                         () -> new Translation2d(
-                                        RaiderMathUtils.deadZoneAndSquareJoystick(-driverController.getLeftY()),
-                                        RaiderMathUtils.deadZoneAndSquareJoystick(-driverController.getLeftX()))
+                                        RaiderMathUtils.deadZoneAndCubeJoystick(-driverController.getLeftY()),
+                                        RaiderMathUtils.deadZoneAndCubeJoystick(-driverController.getLeftX()))
                                 .times(maxTranslationalSpeedSuppler.getAsDouble()),
-                        () -> RaiderMathUtils.deadZoneAndSquareJoystick(-driverController.getRightX())
+                        () -> RaiderMathUtils.deadZoneAndCubeJoystick(-driverController.getRightX())
                                 * maxAngularSpeedSupplier.getAsDouble(),
                         () -> false,
                         () -> 0.0,
