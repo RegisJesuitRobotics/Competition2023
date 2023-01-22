@@ -128,6 +128,10 @@ public final class Constants {
                         DriveTrainConstants.MAX_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED,
                         MiscConstants.TUNING_MODE);
 
+        public static final double MAX_AUTO_BALANCE_VELOCITY = 1.0;
+        public static final PathConstraints AUTO_BALANCE_PATH_CONSTRAINTS =
+                new PathConstraints(MAX_AUTO_BALANCE_VELOCITY, 0.5);
+
         public static final double MAX_PATH_ACCELERATION_METERS_PER_SECOND_SQUARED =
                 DriveTrainConstants.MAX_VELOCITY_METERS_SECOND / 1.5;
         public static final PathConstraints PATH_CONSTRAINTS = new PathConstraints(
@@ -138,15 +142,6 @@ public final class Constants {
         private TeleopConstants() {}
 
         public static final boolean OPEN_LOOP_DRIVETRAIN = false;
-    }
-
-    public static class FieldConstants {
-        private FieldConstants() {}
-
-        // TODO Validate
-        public static final Translation2d[] CHARGE_STATION_CORNERS = new Translation2d[4];
-        // TODO
-        public static final Translation2d CENTER_OF_CHARGE_STATION = new Translation2d();
     }
 
     public static class MiscConstants {

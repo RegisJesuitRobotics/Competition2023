@@ -2,6 +2,7 @@ package frc.robot.commands.drive.auto;
 
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.auto.BaseAutoBuilder;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
@@ -17,6 +18,9 @@ public class RaiderSwerveAutoBuilder extends BaseAutoBuilder {
 
     @Override
     public CommandBase followPath(PathPlannerTrajectory trajectory) {
+        if (useAllianceColor) {
+            trajectory = PathPlannerTrajectory.transformTrajectoryForAlliance(trajectory, DriverStation.getAlliance());
+        }
         return new FollowPathCommand(trajectory, driveSubsystem);
     }
 }

@@ -1,6 +1,6 @@
-package frc.robot.commands.drive.auto;
+package frc.robot.commands.drive.auto.balance;
 
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants.AutoConstants;
@@ -10,14 +10,13 @@ import frc.robot.telemetry.tunable.TunableTelemetryPIDController;
 public class CorrectBalanceCommand extends CommandBase {
     private final SwerveDriveSubsystem driveSubsystem;
 
-    // TODO: Possibly use a profiled PID controller
     private final TunableTelemetryPIDController balanceController =
             new TunableTelemetryPIDController("/drive/balanceController", AutoConstants.AUTO_BALANCE_PID_GAINS);
 
     public CorrectBalanceCommand(SwerveDriveSubsystem driveSubsystem) {
         this.driveSubsystem = driveSubsystem;
 
-        balanceController.setTolerance(2.0);
+        balanceController.setTolerance(1.5);
 
         addRequirements(driveSubsystem);
     }
@@ -30,8 +29,11 @@ public class CorrectBalanceCommand extends CommandBase {
 
     @Override
     public void execute() {
-        driveSubsystem.setChassisSpeeds(
-                new ChassisSpeeds(0, balanceController.calculate(driveSubsystem.getPitch()), 0), false);
+        double desiredVelocity = MathUtil.clamp(
+                balanceController.calculate(driveSubsystem.getPitch()),
+                -AutoConstants.MAX_AUTO_BALANCE_VELOCITY,
+                AutoConstants.MAX_AUTO_BALANCE_VELOCITY);
+        driveSubsystem.setChassisSpeeds(new ChassisSpeeds(0, desiredVelocity, 0), false);
     }
 
     @Override
