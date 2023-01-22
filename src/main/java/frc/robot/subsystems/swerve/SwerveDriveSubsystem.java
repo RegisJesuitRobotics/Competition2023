@@ -48,7 +48,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     private final DoubleTelemetryEntry gyroEntry = new DoubleTelemetryEntry("/drive/gyroDegrees", true);
     private final ChassisSpeedsEntry chassisSpeedsEntry =
             new ChassisSpeedsEntry("/drive/speeds", MiscConstants.TUNING_MODE);
-    private final Pose2dEntry odometryEntry = new Pose2dEntry("/drive/estimatedPose", false);
+    private final Pose2dEntry odometryEntry = new Pose2dEntry("/drive/estimatedPose", MiscConstants.TUNING_MODE);
     private final DoubleArrayTelemetryEntry advantageScopeSwerveDesiredStates =
             new DoubleArrayTelemetryEntry("/drive/desiredStates", MiscConstants.TUNING_MODE);
     private final DoubleArrayTelemetryEntry advantageScopeSwerveActualStates =
@@ -337,6 +337,9 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         Robot.endWNode();
     }
 
+    double[] advantageScopeDesiredStatesArray = new double[modules.length * 2];
+    double[] advantageScopeActualStatesArray = new double[modules.length * 2];
+
     private void logValues() {
         gyroEntry.append(getGyroRotation().getDegrees());
 
@@ -352,8 +355,14 @@ public class SwerveDriveSubsystem extends SubsystemBase {
                             new Transform2d(MODULE_TRANSLATIONS[i], modules[i].getActualState().angle)));
         }
 
-        for (SwerveModule module : modules) {
+        for (int i = 0; i < modules.length; i++) {
+            SwerveModule module = modules[i];
             module.logValues();
+
+            advantageScopeDesiredStatesArray[i * 2] = desiredStates[i].speedMetersPerSecond;
+            advantageScopeDesiredStatesArray[i * 2 + 1] = desiredStates[i].angle.getRadians();
+            advantageScopeActualStatesArray[i * 2] = module.getActualState().speedMetersPerSecond;
+            advantageScopeActualStatesArray[i * 2 + 1] = module.getActualState().angle.getRadians();
         }
 
         navXNotConnectedFaultAlert.set(!gyro.isConnected());
