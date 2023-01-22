@@ -28,10 +28,12 @@ public class SysIDCompatibleLoggerCommand extends CommandBase {
 
     @Override
     public void initialize() {
+        dataBuffer.clear();
+
         acknowledgementNumber = SmartDashboard.getNumber("SysIdAckNumber", 0.0);
         SmartDashboard.putString("SysIdTelemetry", "");
         double voltageCommand = SmartDashboard.getNumber("SysIdVoltageCommand", 0.0);
-        String type = SmartDashboard.getString("SysIdType", "Quasistatic");
+        String type = SmartDashboard.getString("SysIdTestType", "Quasistatic");
 
         if (type.equals("Quasistatic")) {
             currentCharacterizationMode = new QuasistaticCharacterizationMode(voltageCommand);
@@ -77,7 +79,7 @@ public class SysIDCompatibleLoggerCommand extends CommandBase {
         driveSubsystem.stopMovement();
 
         String dataArrayString = dataBuffer.toString();
-        String fullData = currentCharacterizationMode.getTestMetaData()
+        String fullData = currentCharacterizationMode.getTestMetaData() + ";"
                 + dataArrayString.substring(1, dataArrayString.length() - 1);
         SmartDashboard.putString("SysIdTelemetry", fullData);
         SmartDashboard.putNumber("SysIdAckNumber", ++acknowledgementNumber);

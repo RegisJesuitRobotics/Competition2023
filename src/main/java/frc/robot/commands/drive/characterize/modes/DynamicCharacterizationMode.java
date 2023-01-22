@@ -14,6 +14,6 @@ public class DynamicCharacterizationMode implements CharacterizationMode {
 
     @Override
     public String getTestMetaData() {
-        return "dynamic-" + (voltage > 0.0 ? "forward" : "backward");
+        return "fast-" + (voltage > 0.0 ? "forward" : "backward");
     }
 }
