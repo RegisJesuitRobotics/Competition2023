@@ -137,6 +137,13 @@ public final class Constants {
         public static final int TOP_RIGHT_MOTOR_PORT = 0;
 
         public static final int BOTTOM_RIGHT_MOTOR_PORT = 0;
+
+        public static final double HORIZONTAL_BAR_LENGTH = Units.inchesToMeters(32.0);
+        public static final double VERTICAL_BAR_HEIGHT_FROM_FLOOR = Units.inchesToMeters(40.724);
+        public static final double HORIZONTAL_BAR_TO_CLAW = Units.inchesToMeters(5.274);
+
+        public static final Translation2d TOP_HORIZONTAL_TO_BOTTOM_HORIZONTAL =
+                new Translation2d(Units.inchesToMeters(1.0), Units.inchesToMeters(-5.0));
     }
 
     public static class TeleopConstants {
