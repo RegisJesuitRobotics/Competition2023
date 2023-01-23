@@ -5,6 +5,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.Constants.DriveTrainConstants;
 import frc.robot.commands.drive.characterize.modes.CharacterizationMode;
 import frc.robot.commands.drive.characterize.modes.DynamicCharacterizationMode;
 import frc.robot.commands.drive.characterize.modes.QuasistaticCharacterizationMode;
@@ -12,7 +13,9 @@ import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SysIDCompatibleLoggerCommand extends CommandBase {
+public class DriveTrainSysIDCompatibleLoggerCommand extends CommandBase {
+    private static final double METER_TO_ROTATION_FACTOR = 1.0 / DriveTrainConstants.WHEEL_DIAMETER_METERS * Math.PI;
+
     private final SwerveDriveSubsystem driveSubsystem;
     private final List<Double> dataBuffer = new ArrayList<>();
 
@@ -20,7 +23,7 @@ public class SysIDCompatibleLoggerCommand extends CommandBase {
     private CharacterizationMode currentCharacterizationMode;
     private double startTime;
 
-    public SysIDCompatibleLoggerCommand(SwerveDriveSubsystem driveSubsystem) {
+    public DriveTrainSysIDCompatibleLoggerCommand(SwerveDriveSubsystem driveSubsystem) {
         this.driveSubsystem = driveSubsystem;
 
         addRequirements(driveSubsystem);
@@ -66,10 +69,10 @@ public class SysIDCompatibleLoggerCommand extends CommandBase {
         dataBuffer.add(timestamp);
         dataBuffer.add(voltages[0]);
         dataBuffer.add(voltages[1]);
-        dataBuffer.add(positions[0].distanceMeters);
-        dataBuffer.add(positions[1].distanceMeters);
-        dataBuffer.add(states[0].speedMetersPerSecond);
-        dataBuffer.add(states[1].speedMetersPerSecond);
+        dataBuffer.add(positions[0].distanceMeters * METER_TO_ROTATION_FACTOR);
+        dataBuffer.add(positions[1].distanceMeters * METER_TO_ROTATION_FACTOR);
+        dataBuffer.add(states[0].speedMetersPerSecond * METER_TO_ROTATION_FACTOR);
+        dataBuffer.add(states[1].speedMetersPerSecond * METER_TO_ROTATION_FACTOR);
         dataBuffer.add(driveSubsystem.getRawGyroAngle());
         dataBuffer.add(driveSubsystem.getRawGyroRate());
     }

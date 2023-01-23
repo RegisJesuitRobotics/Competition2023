@@ -28,7 +28,7 @@ public class Autos {
             addAuto("SteerTesting", new SteerTestingCommand(driveSubsystem));
             addAuto("DriveTestingCommand", new DriveTestingCommand(1.0, true, driveSubsystem));
             addAuto("GreaseGears", new GreaseGearsCommand(driveSubsystem));
-            addAuto("SysIDLogger", new SysIDCompatibleLoggerCommand(driveSubsystem));
+            addAuto("SysIDLogger", new DriveTrainSysIDCompatibleLoggerCommand(driveSubsystem));
         }
     }
 
