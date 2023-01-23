@@ -142,7 +142,7 @@ public final class Constants {
         public static final int[] USED_CONTROLLER_PORTS = {0};
         public static final boolean TUNING_MODE = true;
 
-        public static final ModuleType POWER_MODULE_TYPE = ModuleType.kRev;
-        public static final int POWER_MODULE_ID = 1;
+        public static final ModuleType POWER_MODULE_TYPE = ModuleType.kCTRE;
+        public static final int POWER_MODULE_ID = 0;
     }
 }
