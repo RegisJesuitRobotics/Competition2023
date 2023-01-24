@@ -411,7 +411,7 @@ public abstract class TreeIterativeRobotBase extends RobotBase {
             watchdog.printEpochs(overRunEntry::append);
             didLastLoopOverrun = true;
         } else {
-           didLastLoopOverrun = false;
+            didLastLoopOverrun = false;
         }
     }
 }
