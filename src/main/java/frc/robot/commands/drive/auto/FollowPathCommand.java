@@ -17,13 +17,15 @@ import frc.robot.Constants.MiscConstants;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.types.rich.Pose2dEntry;
 import frc.robot.telemetry.types.rich.TrajectoryEntry;
-
 import java.util.function.Supplier;
 
 public class FollowPathCommand extends CommandBase {
-    private static final Pose2dEntry desiredPoseEntry = new Pose2dEntry("/followPath/desiredPose", MiscConstants.TUNING_MODE);
-    private static final Pose2dEntry nextPoseEntry = new Pose2dEntry("/followPath/currentPose", MiscConstants.TUNING_MODE);
-    private static final TrajectoryEntry trajectoryEntry = new TrajectoryEntry("/followPath/trajectory", MiscConstants.TUNING_MODE);
+    private static final Pose2dEntry desiredPoseEntry =
+            new Pose2dEntry("/followPath/desiredPose", MiscConstants.TUNING_MODE);
+    private static final Pose2dEntry nextPoseEntry =
+            new Pose2dEntry("/followPath/currentPose", MiscConstants.TUNING_MODE);
+    private static final TrajectoryEntry trajectoryEntry =
+            new TrajectoryEntry("/followPath/trajectory", MiscConstants.TUNING_MODE);
 
     private final SwerveDriveSubsystem driveSubsystem;
     private final Supplier<PathPlannerTrajectory> pathSupplier;

@@ -18,11 +18,11 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.MiscConstants;
 import frc.robot.Robot;
-import frc.robot.telemetry.types.DoubleArrayTelemetryEntry;
 import frc.robot.telemetry.types.DoubleTelemetryEntry;
 import frc.robot.telemetry.types.EventTelemetryEntry;
 import frc.robot.telemetry.types.rich.ChassisSpeedsEntry;
 import frc.robot.telemetry.types.rich.Pose2dEntry;
+import frc.robot.telemetry.types.rich.SwerveModuleStateArrayEntry;
 import frc.robot.utils.Alert;
 import frc.robot.utils.Alert.AlertType;
 import frc.robot.utils.RaiderMathUtils;
@@ -49,10 +49,10 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     private final ChassisSpeedsEntry chassisSpeedsEntry =
             new ChassisSpeedsEntry("/drive/speeds", MiscConstants.TUNING_MODE);
     private final Pose2dEntry odometryEntry = new Pose2dEntry("/drive/estimatedPose", MiscConstants.TUNING_MODE);
-    private final DoubleArrayTelemetryEntry advantageScopeSwerveDesiredStates =
-            new DoubleArrayTelemetryEntry("/drive/desiredStates", MiscConstants.TUNING_MODE);
-    private final DoubleArrayTelemetryEntry advantageScopeSwerveActualStates =
-            new DoubleArrayTelemetryEntry("/drive/actualStates", MiscConstants.TUNING_MODE);
+    private final SwerveModuleStateArrayEntry advantageScopeSwerveDesiredStates =
+            new SwerveModuleStateArrayEntry("/drive/desiredStates", MiscConstants.TUNING_MODE);
+    private final SwerveModuleStateArrayEntry advantageScopeSwerveActualStates =
+            new SwerveModuleStateArrayEntry("/drive/actualStates", MiscConstants.TUNING_MODE);
 
     private final EventTelemetryEntry driveEventLogger = new EventTelemetryEntry("/drive/events");
 
@@ -337,9 +337,6 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         Robot.endWNode();
     }
 
-    double[] advantageScopeDesiredStatesArray = new double[modules.length * 2];
-    double[] advantageScopeActualStatesArray = new double[modules.length * 2];
-
     private void logValues() {
         gyroEntry.append(getGyroRotation().getDegrees());
 
@@ -358,12 +355,10 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         for (int i = 0; i < modules.length; i++) {
             SwerveModule module = modules[i];
             module.logValues();
-
-            advantageScopeDesiredStatesArray[i * 2] = desiredStates[i].speedMetersPerSecond;
-            advantageScopeDesiredStatesArray[i * 2 + 1] = desiredStates[i].angle.getRadians();
-            advantageScopeActualStatesArray[i * 2] = module.getActualState().speedMetersPerSecond;
-            advantageScopeActualStatesArray[i * 2 + 1] = module.getActualState().angle.getRadians();
         }
+
+        advantageScopeSwerveDesiredStates.append(desiredStates);
+        advantageScopeSwerveActualStates.append(getActualStates());
 
         navXNotConnectedFaultAlert.set(!gyro.isConnected());
         navXCalibratingAlert.set(gyro.isCalibrating());

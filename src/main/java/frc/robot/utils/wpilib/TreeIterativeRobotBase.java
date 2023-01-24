@@ -13,7 +13,16 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.telemetry.types.EventTelemetryEntry;
 import java.util.ConcurrentModificationException;
+
+/*
+Changes made to this file:
+- Added TreeWatchdog
+- Removed printLoopOverrunMessage method
+- Added overRunEntry
+- Overrun callback
+ */
 
 /**
  * IterativeRobotBase implements a specific type of robot program framework, extending the RobotBase
@@ -70,6 +79,8 @@ public abstract class TreeIterativeRobotBase extends RobotBase {
     private Mode lastMode = Mode.None;
     private final double period;
     protected final TreeWatchdog watchdog;
+    private final EventTelemetryEntry overRunEntry = new EventTelemetryEntry("/robot/loopOverrun");
+    protected boolean didLastLoopOverrun = false;
     private boolean ntFlushEnabled = true;
     private boolean lwEnabledInTest = true;
 
@@ -80,7 +91,7 @@ public abstract class TreeIterativeRobotBase extends RobotBase {
      */
     protected TreeIterativeRobotBase(double period) {
         this.period = period;
-        watchdog = new TreeWatchdog(period, this::printLoopOverrunMessage);
+        watchdog = new TreeWatchdog(period, () -> {});
     }
 
     /** Provide an alternate "main loop" via startCompetition(). */
@@ -397,11 +408,10 @@ public abstract class TreeIterativeRobotBase extends RobotBase {
 
         // Warn on loop time overruns
         if (watchdog.isExpired()) {
-            watchdog.printEpochs();
+            watchdog.printEpochs(overRunEntry::append);
+            didLastLoopOverrun = true;
+        } else {
+           didLastLoopOverrun = false;
         }
-    }
-
-    private void printLoopOverrunMessage() {
-        DriverStation.reportWarning("Loop time of " + period + "s overrun\n", false);
     }
 }

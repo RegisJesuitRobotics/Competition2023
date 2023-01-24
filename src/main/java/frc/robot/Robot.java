@@ -1,20 +1,19 @@
 package frc.robot;
 
+import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
-import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
-import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
-import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
-import edu.wpi.first.wpilibj.util.Color;
-import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.MiscConstants;
 import frc.robot.telemetry.CommandSchedulerLogger;
 import frc.robot.telemetry.MiscRobotTelemetryAndAlerts;
+import frc.robot.telemetry.OverrunAlertManager;
 import frc.robot.telemetry.SendableTelemetryManager;
 import frc.robot.telemetry.wrappers.TelemetryPowerDistribution;
+import frc.robot.utils.Alert;
+import frc.robot.utils.Alert.AlertType;
 import frc.robot.utils.wpilib.TreeTimedRobot;
 
 /**
@@ -42,6 +41,7 @@ public class Robot extends TreeTimedRobot {
 
     private TelemetryPowerDistribution telemetryPowerDistribution;
     private MiscRobotTelemetryAndAlerts miscRobotTelemetryAndAlerts;
+    private OverrunAlertManager overrunAlertManager;
 
     public Robot() {
         startTime = Timer.getFPGATimestamp();
@@ -55,7 +55,7 @@ public class Robot extends TreeTimedRobot {
      */
     @Override
     public void robotInit() {
-        System.out.println("*****START*****");
+        DataLogManager.log("*****START*****");
 
         LiveWindow.disableAllTelemetry();
         DriverStation.silenceJoystickConnectionWarning(true);
@@ -73,6 +73,7 @@ public class Robot extends TreeTimedRobot {
         telemetryPowerDistribution =
                 new TelemetryPowerDistribution(MiscConstants.POWER_MODULE_ID, MiscConstants.POWER_MODULE_TYPE);
         miscRobotTelemetryAndAlerts = new MiscRobotTelemetryAndAlerts();
+        overrunAlertManager = new OverrunAlertManager();
 
         Notifier otherLoggingThread = new Notifier(() -> {
             telemetryPowerDistribution.logValues();
@@ -83,7 +84,7 @@ public class Robot extends TreeTimedRobot {
 
         robotContainer = new RobotContainer();
 
-        System.out.println("Boot took " + (Timer.getFPGATimestamp() - startTime) + " seconds");
+        DataLogManager.log("RobotInit took " + (Timer.getFPGATimestamp() - startTime) + " seconds");
     }
 
     /**
@@ -95,6 +96,8 @@ public class Robot extends TreeTimedRobot {
      */
     @Override
     public void robotPeriodic() {
+        overrunAlertManager.update(super.didLastLoopOverrun);
+
         watchdog.addNode("commandScheduler");
         CommandScheduler.getInstance().run();
         watchdog.endCurrentNode();

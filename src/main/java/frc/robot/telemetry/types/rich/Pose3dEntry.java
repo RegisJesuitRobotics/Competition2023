@@ -12,6 +12,7 @@ public class Pose3dEntry implements TelemetryEntry {
     }
 
     double[] pose = new double[7];
+
     public void append(Pose3d value) {
         pose[0] = value.getTranslation().getX();
         pose[1] = value.getTranslation().getY();

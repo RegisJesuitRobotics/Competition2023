@@ -20,7 +20,8 @@ public class TrajectoryEntry implements TelemetryEntry {
         for (int i = 0; i < trajectory.getStates().size(); i++) {
             value[i * 3] = trajectory.getStates().get(i).poseMeters.getX();
             value[i * 3 + 1] = trajectory.getStates().get(i).poseMeters.getY();
-            value[i * 3 + 2] = trajectory.getStates().get(i).poseMeters.getRotation().getRadians();
+            value[i * 3 + 2] =
+                    trajectory.getStates().get(i).poseMeters.getRotation().getRadians();
         }
 
         trajectoryEntry.append(value);
