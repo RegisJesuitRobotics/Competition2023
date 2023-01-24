@@ -13,7 +13,7 @@ public class OverrunAlertManager {
     }
 
     public void update(boolean didLastLoopOverrun) {
-        // Over 25% of the last 100 loops were overruns
-        highLoopOverrunAlert.set(loopOverrunFilter.calculate(didLastLoopOverrun ? 1.0 : 0.0) > 0.25);
+        // Over 10% of the last 100 loops were overruns
+        highLoopOverrunAlert.set(loopOverrunFilter.calculate(didLastLoopOverrun ? 1.0 : 0.0) >= 0.10);
     }
 }
