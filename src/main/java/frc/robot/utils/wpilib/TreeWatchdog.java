@@ -11,6 +11,7 @@ import frc.robot.utils.TreeTracer;
 import java.io.Closeable;
 import java.util.PriorityQueue;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 
 /**
  * A class that's a wrapper around a watchdog timer.
@@ -164,6 +165,10 @@ public class TreeWatchdog implements Closeable, Comparable<TreeWatchdog> {
      */
     public void printEpochs() {
         tracer.printEpochs();
+    }
+
+    public void printEpochs(Consumer<String> output) {
+        tracer.printEpochs(output);
     }
 
     /**
