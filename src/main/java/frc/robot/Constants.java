@@ -38,13 +38,13 @@ public final class Constants {
 
         // For talons PID full output is 1023 except for all FF gains
         public static final TunablePIDGains DRIVE_VELOCITY_PID_GAINS =
-                new TunablePIDGains("/gains/drive", 0.1, 0.0, 0.0, MiscConstants.TUNING_MODE);
+                new TunablePIDGains("/gains/drive", 0.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
 
         public static final TunableFFGains DRIVE_VELOCITY_FF_GAINS =
-                new TunableFFGains("/gains/drive", 0.3346, 2.2549, 0.5731, MiscConstants.TUNING_MODE);
+                new TunableFFGains("/gains/drive", 0.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
 
         public static final TunablePIDGains STEER_POSITION_PID_GAINS =
-                new TunablePIDGains("/gains/steer", 0.3, 0.0, 0.1, MiscConstants.TUNING_MODE);
+                new TunablePIDGains("/gains/steer", 0.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
 
         public static final double ACCEPTABLE_STEER_ERROR_RADIANS = Units.degreesToRadians(0.20);
 
@@ -92,16 +92,16 @@ public final class Constants {
                         ACCEPTABLE_STEER_ERROR_RADIANS);
 
         public static final SwerveModuleConfiguration FRONT_LEFT_MODULE_CONFIGURATION = new SwerveModuleConfiguration(
-                1, 5, 9, true, true, -1.22565065, false, SHARED_SWERVE_MODULE_CONFIGURATION);
+                1, 5, 9, true, true, 0.0, false, SHARED_SWERVE_MODULE_CONFIGURATION);
 
         public static final SwerveModuleConfiguration FRONT_RIGHT_MODULE_CONFIGURATION = new SwerveModuleConfiguration(
-                2, 6, 10, true, true, 1.30388367, false, SHARED_SWERVE_MODULE_CONFIGURATION);
+                2, 6, 10, true, true, 0.0, false, SHARED_SWERVE_MODULE_CONFIGURATION);
 
         public static final SwerveModuleConfiguration BACK_LEFT_MODULE_CONFIGURATION = new SwerveModuleConfiguration(
-                3, 7, 11, true, true, 1.37751475, false, SHARED_SWERVE_MODULE_CONFIGURATION);
+                3, 7, 11, true, true, 0.0, false, SHARED_SWERVE_MODULE_CONFIGURATION);
 
         public static final SwerveModuleConfiguration BACK_RIGHT_MODULE_CONFIGURATION = new SwerveModuleConfiguration(
-                4, 8, 12, true, true, -2.73662173, false, SHARED_SWERVE_MODULE_CONFIGURATION);
+                4, 8, 12, true, true, 0.0, false, SHARED_SWERVE_MODULE_CONFIGURATION);
     }
 
     public static class AutoConstants {
