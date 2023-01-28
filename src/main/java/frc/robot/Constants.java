@@ -91,17 +91,17 @@ public final class Constants {
                         STEER_POSITION_PID_GAINS,
                         ACCEPTABLE_STEER_ERROR_RADIANS);
 
-        public static final SwerveModuleConfiguration FRONT_LEFT_MODULE_CONFIGURATION = new SwerveModuleConfiguration(
-                1, 5, 9, true, true, 0.0, false, SHARED_SWERVE_MODULE_CONFIGURATION);
+        public static final SwerveModuleConfiguration FRONT_LEFT_MODULE_CONFIGURATION =
+                new SwerveModuleConfiguration(1, 5, 9, true, true, 0.0, false, SHARED_SWERVE_MODULE_CONFIGURATION);
 
-        public static final SwerveModuleConfiguration FRONT_RIGHT_MODULE_CONFIGURATION = new SwerveModuleConfiguration(
-                2, 6, 10, true, true, 0.0, false, SHARED_SWERVE_MODULE_CONFIGURATION);
+        public static final SwerveModuleConfiguration FRONT_RIGHT_MODULE_CONFIGURATION =
+                new SwerveModuleConfiguration(2, 6, 10, true, true, 0.0, false, SHARED_SWERVE_MODULE_CONFIGURATION);
 
-        public static final SwerveModuleConfiguration BACK_LEFT_MODULE_CONFIGURATION = new SwerveModuleConfiguration(
-                3, 7, 11, true, true, 0.0, false, SHARED_SWERVE_MODULE_CONFIGURATION);
+        public static final SwerveModuleConfiguration BACK_LEFT_MODULE_CONFIGURATION =
+                new SwerveModuleConfiguration(3, 7, 11, true, true, 0.0, false, SHARED_SWERVE_MODULE_CONFIGURATION);
 
-        public static final SwerveModuleConfiguration BACK_RIGHT_MODULE_CONFIGURATION = new SwerveModuleConfiguration(
-                4, 8, 12, true, true, 0.0, false, SHARED_SWERVE_MODULE_CONFIGURATION);
+        public static final SwerveModuleConfiguration BACK_RIGHT_MODULE_CONFIGURATION =
+                new SwerveModuleConfiguration(4, 8, 12, true, true, 0.0, false, SHARED_SWERVE_MODULE_CONFIGURATION);
     }
 
     public static class AutoConstants {
