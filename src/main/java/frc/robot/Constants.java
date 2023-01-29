@@ -72,7 +72,7 @@ public final class Constants {
         public static final double MAX_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED =
                 MAX_ANGULAR_VELOCITY_RADIANS_SECOND / 2.0;
 
-        public static final String CAN_BUS = "rio";
+        public static final String CAN_BUS = "canivore";
         private static final SharedSwerveModuleConfiguration SHARED_SWERVE_MODULE_CONFIGURATION =
                 new SharedSwerveModuleConfiguration(
                         CAN_BUS,
@@ -141,7 +141,7 @@ public final class Constants {
         public static final int[] USED_CONTROLLER_PORTS = {0};
         public static final boolean TUNING_MODE = true;
 
-        public static final ModuleType POWER_MODULE_TYPE = ModuleType.kCTRE;
-        public static final int POWER_MODULE_ID = 0;
+        public static final ModuleType POWER_MODULE_TYPE = ModuleType.kRev;
+        public static final int POWER_MODULE_ID = 1;
     }
 }
