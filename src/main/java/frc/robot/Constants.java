@@ -1,13 +1,15 @@
 package frc.robot;
 
 import com.pathplanner.lib.PathConstraints;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
-import frc.robot.telemetry.tunable.TunableFFGains;
-import frc.robot.telemetry.tunable.TunablePIDGains;
-import frc.robot.telemetry.tunable.TunableTrapezoidalProfileGains;
+import frc.robot.telemetry.tunable.gains.TunableArmFFGains;
+import frc.robot.telemetry.tunable.gains.TunableFFGains;
+import frc.robot.telemetry.tunable.gains.TunablePIDGains;
+import frc.robot.telemetry.tunable.gains.TunableTrapezoidalProfileGains;
 import frc.robot.utils.SwerveModuleConfiguration;
 import frc.robot.utils.SwerveModuleConfiguration.SharedSwerveModuleConfiguration;
 
@@ -126,13 +128,11 @@ public final class Constants {
 
     public static class LiftConstants {
         // TODO: update motor ports
-        public static final int TOP_LEFT_MOTOR_PORT = 0;
+        public static final int LEFT_MOTOR_PORT = 0;
+        public static final int RIGHT_MOTOR_PORT = 0;
 
-        public static final int BOTTOM_LEFT_MOTOR_PORT = 0;
-
-        public static final int TOP_RIGHT_MOTOR_PORT = 0;
-
-        public static final int BOTTOM_RIGHT_MOTOR_PORT = 0;
+        public static final boolean INVERT_MOTOR = false;
+        public static final boolean INVERT_FOLLOWER_FROM_LEADER = true;
 
         public static final double HORIZONTAL_BAR_LENGTH = Units.inchesToMeters(32.0);
         public static final double VERTICAL_BAR_HEIGHT_FROM_FLOOR = Units.inchesToMeters(40.724);
@@ -140,6 +140,23 @@ public final class Constants {
 
         public static final Translation2d TOP_HORIZONTAL_TO_BOTTOM_HORIZONTAL =
                 new Translation2d(Units.inchesToMeters(1.0), Units.inchesToMeters(-5.0));
+
+        // TODO: Update this
+        public static final double GEAR_REDUCTION = 70.0 / 2.0;
+
+        // TODO: Update this
+        public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(0.0);
+        public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(75.0);
+
+        public static final TunablePIDGains PID_GAINS =
+                new TunablePIDGains("/gains/lifter", 0.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
+        public static final TunableTrapezoidalProfileGains TRAPEZOIDAL_PROFILE_GAINS =
+                new TunableTrapezoidalProfileGains("/gains/lifter", 0.0, 0.0, MiscConstants.TUNING_MODE);
+        public static final TunableArmFFGains FF_GAINS =
+                new TunableArmFFGains("/gains/lifter", 0.0, 0.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
+
+        public static final int STALL_CURRENT_LIMIT = -1;
+        public static final int FREE_CURRENT_LIMIT = -1;
     }
 
     public static class TeleopConstants {
@@ -161,5 +178,7 @@ public final class Constants {
 
         public static final ModuleType POWER_MODULE_TYPE = ModuleType.kCTRE;
         public static final int POWER_MODULE_ID = 0;
+
+        public static final double CONFIGURATION_TIMEOUT_SECONDS = 5.0;
     }
 }

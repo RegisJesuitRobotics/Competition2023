@@ -18,7 +18,7 @@ import frc.robot.commands.drive.teleop.SwerveDriveCommand;
 import frc.robot.hid.CommandXboxPlaystationController;
 import frc.robot.subsystems.lift.LiftSubsystem;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
-import frc.robot.telemetry.tunable.TunableDouble;
+import frc.robot.telemetry.tunable.gains.TunableDouble;
 import frc.robot.utils.Alert;
 import frc.robot.utils.Alert.AlertType;
 import frc.robot.utils.ListenableSendableChooser;

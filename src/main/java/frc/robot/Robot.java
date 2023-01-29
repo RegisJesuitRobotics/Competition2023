@@ -2,7 +2,6 @@ package frc.robot;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.*;
-import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.MiscConstants;
@@ -11,6 +10,7 @@ import frc.robot.telemetry.MiscRobotTelemetryAndAlerts;
 import frc.robot.telemetry.OverrunAlertManager;
 import frc.robot.telemetry.SendableTelemetryManager;
 import frc.robot.telemetry.wrappers.TelemetryPowerDistribution;
+import frc.robot.utils.SparkMaxFlashManager;
 import frc.robot.utils.wpilib.TreeTimedRobot;
 
 /**
@@ -54,7 +54,6 @@ public class Robot extends TreeTimedRobot {
     public void robotInit() {
         DataLogManager.log("*****START*****");
 
-        LiveWindow.disableAllTelemetry();
         DriverStation.silenceJoystickConnectionWarning(true);
         DataLogManager.logNetworkTables(false);
         DataLogManager.start();
@@ -79,6 +78,7 @@ public class Robot extends TreeTimedRobot {
         otherLoggingThread.setName("Other Logging");
         otherLoggingThread.startPeriodic(0.1);
 
+        SparkMaxFlashManager.init();
         robotContainer = new RobotContainer();
 
         DataLogManager.log("RobotInit took " + (Timer.getFPGATimestamp() - startTime) + " seconds");
