@@ -50,6 +50,8 @@ public class Waypoint {
         this.holonomicRotation = null;
     }
 
+
+
     /**
      * Constructs a Waypoint based on a pose.
      *

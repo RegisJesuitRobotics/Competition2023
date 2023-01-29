@@ -14,6 +14,7 @@ import frc.robot.Constants.MiscConstants;
 import frc.robot.Constants.TeleopConstants;
 import frc.robot.commands.drive.LockModulesCommand;
 import frc.robot.commands.drive.auto.Autos;
+import frc.robot.commands.drive.auto.FollowPathCommand;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
 import frc.robot.hid.CommandXboxPlaystationController;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
@@ -25,6 +26,7 @@ import frc.robot.utils.RaiderMathUtils;
 import frc.robot.utils.VectorRateLimiter;
 import java.util.Map.Entry;
 import java.util.function.DoubleSupplier;
+import frc.robot.ConfigurablePaths;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -37,6 +39,8 @@ public class RobotContainer {
 
     private final CommandXboxPlaystationController driverController = new CommandXboxPlaystationController(0);
     private final TeleopControlsStateManager teleopControlsStateManager = new TeleopControlsStateManager();
+
+    private final ConfigurablePaths pathGenerator = new ConfigurablePaths();
 
     private final ListenableSendableChooser<Command> driveCommandChooser = new ListenableSendableChooser<>();
     private final ListenableSendableChooser<Command> autoCommandChooser = new ListenableSendableChooser<>();
@@ -157,6 +161,6 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        return autoCommandChooser.getSelected();
+        return new FollowPathCommand(pathGenerator.generatePath(), driveSubsystem);
     }
 }
