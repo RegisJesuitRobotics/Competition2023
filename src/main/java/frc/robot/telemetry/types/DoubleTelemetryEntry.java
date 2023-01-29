@@ -5,7 +5,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.util.datalog.DoubleLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
 
-public class DoubleTelemetryEntry extends TelemetryEntry {
+public class DoubleTelemetryEntry extends PrimitiveTelemetryEntry {
     private final DoubleLogEntry logEntry;
     private final DoublePublisher networkPublisher;
     private double lastValue;
@@ -35,6 +35,14 @@ public class DoubleTelemetryEntry extends TelemetryEntry {
                 networkPublisher.set(value);
             }
             lastValue = value;
+        }
+    }
+
+    @Override
+    public void close() {
+        logEntry.finish();
+        if (networkPublisher != null) {
+            networkPublisher.close();
         }
     }
 }
