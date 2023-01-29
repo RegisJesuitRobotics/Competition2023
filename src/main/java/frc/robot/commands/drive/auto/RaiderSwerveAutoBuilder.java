@@ -5,7 +5,10 @@ import com.pathplanner.lib.auto.BaseAutoBuilder;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
+import frc.robot.utils.trajectory.HolonomicTrajectory;
+
 import java.util.HashMap;
+import java.util.function.Supplier;
 
 public class RaiderSwerveAutoBuilder extends BaseAutoBuilder {
     private final SwerveDriveSubsystem driveSubsystem;
@@ -17,6 +20,6 @@ public class RaiderSwerveAutoBuilder extends BaseAutoBuilder {
 
     @Override
     public CommandBase followPath(PathPlannerTrajectory trajectory) {
-        return new FollowPathCommand(trajectory, driveSubsystem);
+        return new FollowPathCommand((Supplier<HolonomicTrajectory>) trajectory, driveSubsystem);
     }
 }

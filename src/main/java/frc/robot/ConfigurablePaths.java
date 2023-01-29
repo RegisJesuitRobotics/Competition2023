@@ -6,7 +6,6 @@ import static frc.robot.Constants.DriveTrainConstants.MAX_VELOCITY_METERS_SECOND
 import static frc.robot.FieldConstants.Community.*;
 import static frc.robot.FieldConstants.Grids.*;
 import static frc.robot.FieldConstants.StagingLocations.*;
-
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import frc.robot.utils.ListenableSendableChooser;
@@ -17,21 +16,21 @@ import java.util.*;
 
 public class ConfigurablePaths {
 
-    private ListenableSendableChooser startPositionChooser = new ListenableSendableChooser();
-    private ListenableSendableChooser aroundCharger = new ListenableSendableChooser();
-    private ListenableSendableChooser firstPiece = new ListenableSendableChooser();
-    private ListenableSendableChooser firstTarget = new ListenableSendableChooser();
-    private ListenableSendableChooser secondPiece = new ListenableSendableChooser();
-    private ListenableSendableChooser secondTarget = new ListenableSendableChooser();
-    private ListenableSendableChooser balance = new ListenableSendableChooser();
+    private final ListenableSendableChooser<String> startPositionChooser = new ListenableSendableChooser<>();
+    private final ListenableSendableChooser<String> aroundCharger = new ListenableSendableChooser<>();
+    private final ListenableSendableChooser<String> firstPiece = new ListenableSendableChooser<>();
+    private final ListenableSendableChooser<String> firstTarget = new ListenableSendableChooser<>();
+    private final ListenableSendableChooser<String> secondPiece = new ListenableSendableChooser<>();
+    private final ListenableSendableChooser<String> secondTarget = new ListenableSendableChooser<>();
+    private final ListenableSendableChooser<String> balance = new ListenableSendableChooser<>();
 
-    private Map<String, Waypoint> startMap = new HashMap<>();
-    private Map<String, Waypoint> chargerMap = new HashMap<>();
-    private Map<String, Waypoint> firstPieceMap = new HashMap<>();
-    private Map<String, Waypoint> firstTargetMap = new HashMap<>();
-    private Map<String, Waypoint> secondPieceMap = new HashMap<>();
-    private Map<String, Waypoint> secondTargetMap = new HashMap<>();
-    private Map<String, Waypoint> balanceMap = new HashMap<>();
+    private final Map<String, Waypoint> startMap = new HashMap<>();
+    private final Map<String, Waypoint> chargerMap = new HashMap<>();
+    private final Map<String, Waypoint> firstPieceMap = new HashMap<>();
+    private final Map<String, Waypoint> firstTargetMap = new HashMap<>();
+    private final Map<String, Waypoint> secondPieceMap = new HashMap<>();
+    private final Map<String, Waypoint> secondTargetMap = new HashMap<>();
+    private final Map<String, Waypoint> balanceMap = new HashMap<>();
 
     public ConfigurablePaths() {
         createChooserOptions();
@@ -47,26 +46,26 @@ public class ConfigurablePaths {
 
     private void createChooserOptions() {
         for (int i = 1; i <= 3; i++) {
-            startPositionChooser.addOption(String.valueOf(i), i);
+            startPositionChooser.addOption(String.valueOf(i), String.valueOf(i));
         }
 
         aroundCharger.addOption("left", "left");
         aroundCharger.addOption("right", "right");
 
         for (int i = 1; i <= 4; i++) {
-            firstPiece.addOption(String.valueOf(i), i);
+            firstPiece.addOption(String.valueOf(i), String.valueOf(i));
         }
 
         for (int i = 1; i <= 5; i++) {
-            firstTarget.addOption(String.valueOf(i), i);
+            firstTarget.addOption(String.valueOf(i), String.valueOf(i));
         }
 
         for (int i = 1; i <= 4; i++) {
-            secondPiece.addOption(String.valueOf(i), i);
+            secondPiece.addOption(String.valueOf(i), String.valueOf(i));
         }
 
         for (int i = 1; i <= 5; i++) {
-            secondTarget.addOption(String.valueOf(i), i);
+            secondTarget.addOption(String.valueOf(i), String.valueOf(i));
         }
 
         balance.addOption("true", "true");
