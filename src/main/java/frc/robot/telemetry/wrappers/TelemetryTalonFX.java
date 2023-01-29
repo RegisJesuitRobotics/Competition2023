@@ -25,6 +25,7 @@ public class TelemetryTalonFX extends TalonFX {
 
         IntegerTelemetryEntry firmwareVersionEntry = new IntegerTelemetryEntry(logTable + "firmwareVersion", false);
         firmwareVersionEntry.append(super.getFirmwareVersion());
+        firmwareVersionEntry.close();
     }
 
     public TelemetryTalonFX(int deviceNumber, String logTable) {
