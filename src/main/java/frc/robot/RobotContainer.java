@@ -26,7 +26,6 @@ import frc.robot.utils.RaiderMathUtils;
 import frc.robot.utils.VectorRateLimiter;
 import java.util.Map.Entry;
 import java.util.function.DoubleSupplier;
-import frc.robot.ConfigurablePaths;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a

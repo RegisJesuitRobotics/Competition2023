@@ -50,8 +50,7 @@ public class HolonomicTrajectoryGenerator {
      */
     public static HolonomicTrajectory generate(TrajectoryConfig config, List<Waypoint> waypoints) {
         if (waypoints.size() < 2) {
-            throw new InvalidParameterException(
-                    "Please include at least 2 waypoints to generate a trajectory.");
+            throw new InvalidParameterException("Please include at least 2 waypoints to generate a trajectory.");
         }
 
         Trajectory driveTrajectory;
@@ -60,9 +59,7 @@ public class HolonomicTrajectoryGenerator {
         List<Translation2d> driveTranslations =
                 waypoints.stream().map(Waypoint::getTranslation).toList();
         List<Optional<Rotation2d>> driveRotations =
-                waypoints.stream()
-                        .map(Waypoint::getDriveRotation)
-                        .collect(Collectors.toList());
+                waypoints.stream().map(Waypoint::getDriveRotation).collect(Collectors.toList());
         driveRotations.remove(0);
         driveRotations.remove(driveRotations.size() - 1);
 
@@ -72,25 +69,22 @@ public class HolonomicTrajectoryGenerator {
         } else {
             driveRotations.add(
                     0,
-                    Optional.of(
-                            waypoints
-                                    .get(1)
-                                    .getTranslation()
-                                    .minus(waypoints.get(0).getTranslation())
-                                    .getAngle()));
+                    Optional.of(waypoints
+                            .get(1)
+                            .getTranslation()
+                            .minus(waypoints.get(0).getTranslation())
+                            .getAngle()));
         }
 
         // Add last drive waypoint
         if (waypoints.get(waypoints.size() - 1).getDriveRotation().isPresent()) {
             driveRotations.add(waypoints.get(waypoints.size() - 1).getDriveRotation());
         } else {
-            driveRotations.add(
-                    Optional.of(
-                            waypoints
-                                    .get(waypoints.size() - 1)
-                                    .getTranslation()
-                                    .minus(waypoints.get(waypoints.size() - 2).getTranslation())
-                                    .getAngle()));
+            driveRotations.add(Optional.of(waypoints
+                    .get(waypoints.size() - 1)
+                    .getTranslation()
+                    .minus(waypoints.get(waypoints.size() - 2).getTranslation())
+                    .getAngle()));
         }
 
         // Generate drive trajectory
@@ -120,11 +114,10 @@ public class HolonomicTrajectoryGenerator {
                 // Prepare sub-trajectory config
                 TrajectoryConfig subConfig = copyConfig(config);
                 if (!firstSubTrajectory) {
-                    subConfig.setStartVelocity(
-                            driveTrajectory
-                                    .getStates()
-                                    .get(driveTrajectory.getStates().size() - 1)
-                                    .velocityMetersPerSecond);
+                    subConfig.setStartVelocity(driveTrajectory
+                            .getStates()
+                            .get(driveTrajectory.getStates().size() - 1)
+                            .velocityMetersPerSecond);
                 }
                 if (!lastWaypoint) {
                     subConfig.setEndVelocity(subConfig.getMaxVelocity());
@@ -135,27 +128,25 @@ public class HolonomicTrajectoryGenerator {
                 if (nextQuintic) {
                     List<Pose2d> quinticWaypoints = new ArrayList<>();
                     for (int i = subTrajectoryStart; i < subTrajectoryEnd + 1; i++) {
-                        quinticWaypoints.add(new Pose2d(driveTranslations.get(i), driveRotations.get(i).get()));
+                        quinticWaypoints.add(new Pose2d(
+                                driveTranslations.get(i), driveRotations.get(i).get()));
                     }
-                    driveTrajectory =
-                            driveTrajectory.concatenate(
-                                    TrajectoryGenerator.generateTrajectory(quinticWaypoints, subConfig));
+                    driveTrajectory = driveTrajectory.concatenate(
+                            TrajectoryGenerator.generateTrajectory(quinticWaypoints, subConfig));
                 } else {
                     List<Translation2d> cubicInteriorWaypoints = new ArrayList<>();
                     for (int i = subTrajectoryStart + 1; i < subTrajectoryEnd; i++) {
                         cubicInteriorWaypoints.add(driveTranslations.get(i));
                     }
-                    driveTrajectory =
-                            driveTrajectory.concatenate(
-                                    TrajectoryGenerator.generateTrajectory(
-                                            new Pose2d(
-                                                    driveTranslations.get(subTrajectoryStart),
-                                                    driveRotations.get(subTrajectoryStart).get()),
-                                            cubicInteriorWaypoints,
-                                            new Pose2d(
-                                                    driveTranslations.get(subTrajectoryEnd),
-                                                    driveRotations.get(subTrajectoryEnd).get()),
-                                            subConfig));
+                    driveTrajectory = driveTrajectory.concatenate(TrajectoryGenerator.generateTrajectory(
+                            new Pose2d(
+                                    driveTranslations.get(subTrajectoryStart),
+                                    driveRotations.get(subTrajectoryStart).get()),
+                            cubicInteriorWaypoints,
+                            new Pose2d(
+                                    driveTranslations.get(subTrajectoryEnd),
+                                    driveRotations.get(subTrajectoryEnd).get()),
+                            subConfig));
                 }
 
                 // Break if complete
@@ -194,15 +185,15 @@ public class HolonomicTrajectoryGenerator {
 
             if (waypoints.get(waypointIndex).getHolonomicRotation().isPresent()) {
                 holonomicWaypoints.put(
-                        timestamp, waypoints.get(waypointIndex).getHolonomicRotation().get());
+                        timestamp,
+                        waypoints.get(waypointIndex).getHolonomicRotation().get());
             }
         }
         return new HolonomicTrajectory(driveTrajectory, new RotationSequence(holonomicWaypoints));
     }
 
     private static TrajectoryConfig copyConfig(TrajectoryConfig config) {
-        TrajectoryConfig newConfig =
-                new TrajectoryConfig(config.getMaxVelocity(), config.getMaxAcceleration());
+        TrajectoryConfig newConfig = new TrajectoryConfig(config.getMaxVelocity(), config.getMaxAcceleration());
         newConfig.addConstraints(config.getConstraints());
         newConfig.setStartVelocity(config.getStartVelocity());
         newConfig.setEndVelocity(config.getEndVelocity());

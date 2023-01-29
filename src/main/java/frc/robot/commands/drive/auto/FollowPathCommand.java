@@ -12,7 +12,6 @@ import frc.robot.Constants.AutoConstants;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.utils.trajectory.CustomHolonomicDriveController;
 import frc.robot.utils.trajectory.HolonomicTrajectory;
-
 import java.util.function.Supplier;
 
 public class FollowPathCommand extends CommandBase {

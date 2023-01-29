@@ -32,8 +32,7 @@ public class Waypoint {
      * @param driveRotation Drive velocity rotation (optional, can be null)
      * @param holonomicRotation Holonomic rotation (optional, can be null)
      */
-    public Waypoint(
-            Translation2d translation, Rotation2d driveRotation, Rotation2d holonomicRotation) {
+    public Waypoint(Translation2d translation, Rotation2d driveRotation, Rotation2d holonomicRotation) {
         this.translation = requireNonNullParam(translation, "translation", "Waypoint");
         this.driveRotation = driveRotation;
         this.holonomicRotation = holonomicRotation;
@@ -49,8 +48,6 @@ public class Waypoint {
         this.driveRotation = null;
         this.holonomicRotation = null;
     }
-
-
 
     /**
      * Constructs a Waypoint based on a pose.

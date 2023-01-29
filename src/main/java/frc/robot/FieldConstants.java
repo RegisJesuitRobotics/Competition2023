@@ -41,12 +41,12 @@ public final class FieldConstants {
         public static final double midY = leftY - Units.inchesToMeters(59.39) + tapeWidth;
         public static final double rightY = 0.0;
         public static final Translation2d[] regionCorners = new Translation2d[] {
-                new Translation2d(innerX, rightY),
-                new Translation2d(innerX, leftY),
-                new Translation2d(midX, leftY),
-                new Translation2d(midX, midY),
-                new Translation2d(outerX, midY),
-                new Translation2d(outerX, rightY),
+            new Translation2d(innerX, rightY),
+            new Translation2d(innerX, leftY),
+            new Translation2d(midX, leftY),
+            new Translation2d(midX, midY),
+            new Translation2d(outerX, midY),
+            new Translation2d(outerX, rightY),
         };
 
         // Charging station dimensions
@@ -57,20 +57,20 @@ public final class FieldConstants {
         public static final double chargingStationLeftY = midY - tapeWidth;
         public static final double chargingStationRightY = chargingStationLeftY - chargingStationWidth;
         public static final Translation2d[] chargingStationCorners = new Translation2d[] {
-                new Translation2d(chargingStationInnerX, chargingStationRightY),
-                new Translation2d(chargingStationInnerX, chargingStationLeftY),
-                new Translation2d(chargingStationOuterX, chargingStationRightY),
-                new Translation2d(chargingStationOuterX, chargingStationLeftY)
+            new Translation2d(chargingStationInnerX, chargingStationRightY),
+            new Translation2d(chargingStationInnerX, chargingStationLeftY),
+            new Translation2d(chargingStationOuterX, chargingStationRightY),
+            new Translation2d(chargingStationOuterX, chargingStationLeftY)
         };
 
         // Cable bump
         public static final double cableBumpInnerX = innerX + Grids.outerX + Units.inchesToMeters(95.25);
         public static final double cableBumpOuterX = cableBumpInnerX + Units.inchesToMeters(7);
         public static final Translation2d[] cableBumpCorners = new Translation2d[] {
-                new Translation2d(cableBumpInnerX, 0.0),
-                new Translation2d(cableBumpInnerX, chargingStationRightY),
-                new Translation2d(cableBumpOuterX, 0.0),
-                new Translation2d(cableBumpOuterX, chargingStationRightY)
+            new Translation2d(cableBumpInnerX, 0.0),
+            new Translation2d(cableBumpInnerX, chargingStationRightY),
+            new Translation2d(cableBumpOuterX, 0.0),
+            new Translation2d(cableBumpOuterX, chargingStationRightY)
         };
     }
 
@@ -123,15 +123,15 @@ public final class FieldConstants {
                 nodeFirstY - Units.inchesToMeters(3.0) - (Units.inchesToMeters(25.75) / 2.0);
 
         public static final Translation2d[] complexLowTranslations = new Translation2d[] {
-                new Translation2d(complexLowXCones, nodeFirstY - complexLowOuterYOffset),
-                new Translation2d(complexLowXCubes, nodeFirstY + nodeSeparationY * 1),
-                new Translation2d(complexLowXCones, nodeFirstY + nodeSeparationY * 2),
-                new Translation2d(complexLowXCones, nodeFirstY + nodeSeparationY * 3),
-                new Translation2d(complexLowXCubes, nodeFirstY + nodeSeparationY * 4),
-                new Translation2d(complexLowXCones, nodeFirstY + nodeSeparationY * 5),
-                new Translation2d(complexLowXCones, nodeFirstY + nodeSeparationY * 6),
-                new Translation2d(complexLowXCubes, nodeFirstY + nodeSeparationY * 7),
-                new Translation2d(complexLowXCones, nodeFirstY + nodeSeparationY * 8 + complexLowOuterYOffset),
+            new Translation2d(complexLowXCones, nodeFirstY - complexLowOuterYOffset),
+            new Translation2d(complexLowXCubes, nodeFirstY + nodeSeparationY * 1),
+            new Translation2d(complexLowXCones, nodeFirstY + nodeSeparationY * 2),
+            new Translation2d(complexLowXCones, nodeFirstY + nodeSeparationY * 3),
+            new Translation2d(complexLowXCubes, nodeFirstY + nodeSeparationY * 4),
+            new Translation2d(complexLowXCones, nodeFirstY + nodeSeparationY * 5),
+            new Translation2d(complexLowXCones, nodeFirstY + nodeSeparationY * 6),
+            new Translation2d(complexLowXCubes, nodeFirstY + nodeSeparationY * 7),
+            new Translation2d(complexLowXCones, nodeFirstY + nodeSeparationY * 8 + complexLowOuterYOffset),
         };
     }
 
@@ -146,12 +146,12 @@ public final class FieldConstants {
         public static final double midY = leftY - Units.inchesToMeters(50.5);
         public static final double rightY = leftY - width;
         public static final Translation2d[] regionCorners = new Translation2d[] {
-                new Translation2d(midX, rightY), // Start at lower left next to border with opponent community
-                new Translation2d(midX, midY),
-                new Translation2d(outerX, midY),
-                new Translation2d(outerX, leftY),
-                new Translation2d(innerX, leftY),
-                new Translation2d(innerX, rightY),
+            new Translation2d(midX, rightY), // Start at lower left next to border with opponent community
+            new Translation2d(midX, midY),
+            new Translation2d(outerX, midY),
+            new Translation2d(outerX, leftY),
+            new Translation2d(innerX, leftY),
+            new Translation2d(innerX, rightY),
         };
 
         // Double substation dimensions

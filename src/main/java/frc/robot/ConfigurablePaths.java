@@ -1,22 +1,21 @@
 package frc.robot;
 
-import edu.wpi.first.math.geometry.Pose2d;
+import static frc.robot.Constants.DriveTrainConstants.MAX_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED;
+// TODO:MAX_ACCELERATION
+import static frc.robot.Constants.DriveTrainConstants.MAX_VELOCITY_METERS_SECOND;
+import static frc.robot.FieldConstants.Community.*;
+import static frc.robot.FieldConstants.Grids.*;
+import static frc.robot.FieldConstants.StagingLocations.*;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import frc.robot.utils.ListenableSendableChooser;
 import frc.robot.utils.trajectory.HolonomicTrajectory;
 import frc.robot.utils.trajectory.HolonomicTrajectoryGenerator;
 import frc.robot.utils.trajectory.Waypoint;
-import static frc.robot.FieldConstants.Community.*;
-import static frc.robot.FieldConstants.StagingLocations.*;
-import static frc.robot.FieldConstants.Grids.*;
-import static frc.robot.Constants.DriveTrainConstants.MAX_VELOCITY_METERS_SECOND;
-import static frc.robot.Constants.DriveTrainConstants.MAX_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED;
-//TODO:MAX_ACCELERATION
-
 import java.util.*;
 
-public class ConfigurablePaths{
+public class ConfigurablePaths {
 
     private ListenableSendableChooser startPositionChooser = new ListenableSendableChooser();
     private ListenableSendableChooser aroundCharger = new ListenableSendableChooser();
@@ -26,7 +25,6 @@ public class ConfigurablePaths{
     private ListenableSendableChooser secondTarget = new ListenableSendableChooser();
     private ListenableSendableChooser balance = new ListenableSendableChooser();
 
-
     private Map<String, Waypoint> startMap = new HashMap<>();
     private Map<String, Waypoint> chargerMap = new HashMap<>();
     private Map<String, Waypoint> firstPieceMap = new HashMap<>();
@@ -35,87 +33,87 @@ public class ConfigurablePaths{
     private Map<String, Waypoint> secondTargetMap = new HashMap<>();
     private Map<String, Waypoint> balanceMap = new HashMap<>();
 
-
-
-
-
-
     public ConfigurablePaths() {
         createChooserOptions();
         addMapValues();
     }
 
- public HolonomicTrajectory generatePath(){
-     TrajectoryConfig trajectoryConfig = new TrajectoryConfig(MAX_VELOCITY_METERS_SECOND, MAX_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED);
+    public HolonomicTrajectory generatePath() {
+        TrajectoryConfig trajectoryConfig =
+                new TrajectoryConfig(MAX_VELOCITY_METERS_SECOND, MAX_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED);
 
-     return HolonomicTrajectoryGenerator.generate(trajectoryConfig, generateWaypoints());
- }
+        return HolonomicTrajectoryGenerator.generate(trajectoryConfig, generateWaypoints());
+    }
 
- private void createChooserOptions(){
-     for (int i = 1; i<=3; i++){
-         startPositionChooser.addOption(String.valueOf(i), i);
-     }
+    private void createChooserOptions() {
+        for (int i = 1; i <= 3; i++) {
+            startPositionChooser.addOption(String.valueOf(i), i);
+        }
 
-         aroundCharger.addOption("left", "left");
-         aroundCharger.addOption("right","right");
+        aroundCharger.addOption("left", "left");
+        aroundCharger.addOption("right", "right");
 
-     for (int i = 1; i<=4; i++){
-         firstPiece.addOption(String.valueOf(i), i);
-     }
+        for (int i = 1; i <= 4; i++) {
+            firstPiece.addOption(String.valueOf(i), i);
+        }
 
-     for  (int i = 1; i<=5; i++){
-         firstTarget.addOption(String.valueOf(i), i);
-     }
+        for (int i = 1; i <= 5; i++) {
+            firstTarget.addOption(String.valueOf(i), i);
+        }
 
-     for (int i = 1; i<=4; i++){
-         secondPiece.addOption(String.valueOf(i), i);
-     }
+        for (int i = 1; i <= 4; i++) {
+            secondPiece.addOption(String.valueOf(i), i);
+        }
 
-     for (int i=1; i<=5; i++){
-         secondTarget.addOption(String.valueOf(i), i);
-     }
+        for (int i = 1; i <= 5; i++) {
+            secondTarget.addOption(String.valueOf(i), i);
+        }
 
-     balance.addOption("true", "true");
-     balance.addOption("false", "false");
- }
+        balance.addOption("true", "true");
+        balance.addOption("false", "false");
+    }
 
-
-
- private List<Waypoint> generateWaypoints(){
-     List<Waypoint> waypoints = new ArrayList<>();
-     waypoints.add(startMap.get(startPositionChooser.getSelected()));
-     waypoints.add(chargerMap.get(aroundCharger.getSelected()));
-     waypoints.add(firstPieceMap.get(firstPiece.getSelected()));
-     waypoints.add(chargerMap.get(aroundCharger.getSelected()));
-     waypoints.add(firstTargetMap.get(firstPiece.getSelected()));
-     waypoints.add(firstPieceMap.get(secondPiece.getSelected()));
-     waypoints.add(firstTargetMap.get(secondPiece.getSelected()));
-     waypoints.add(balanceMap.get(balance.getSelected()));
+    private List<Waypoint> generateWaypoints() {
+        List<Waypoint> waypoints = new ArrayList<>();
+        waypoints.add(startMap.get(startPositionChooser.getSelected()));
+        waypoints.add(chargerMap.get(aroundCharger.getSelected()));
+        waypoints.add(firstPieceMap.get(firstPiece.getSelected()));
+        waypoints.add(chargerMap.get(aroundCharger.getSelected()));
+        waypoints.add(firstTargetMap.get(firstPiece.getSelected()));
+        waypoints.add(firstPieceMap.get(secondPiece.getSelected()));
+        waypoints.add(firstTargetMap.get(secondPiece.getSelected()));
+        waypoints.add(balanceMap.get(balance.getSelected()));
 
         return waypoints;
- }
- private void addMapValues(){
-        //TODO: finish these
+    }
 
-        for (int i=0; i<3; i++){
-            startMap.put(String.valueOf(i+1), new Waypoint(regionCorners[i], new Rotation2d(0), null));
+    private void addMapValues() {
+        // TODO: finish these
+
+        for (int i = 0; i < 3; i++) {
+            startMap.put(String.valueOf(i + 1), new Waypoint(regionCorners[i], new Rotation2d(0), null));
         }
 
-        for (int i=0; i<4; i++){
-            firstPieceMap.put(String.valueOf(i+1), new Waypoint(translations[i], new Rotation2d(0), null));
+        for (int i = 0; i < 4; i++) {
+            firstPieceMap.put(String.valueOf(i + 1), new Waypoint(translations[i], new Rotation2d(0), null));
         }
 
-        for (int i=0; i<9; i+=3){
-            firstTargetMap.put(String.valueOf(i+1), new Waypoint(lowTranslations[i], new Rotation2d(0), null));
+        for (int i = 0; i < 9; i += 3) {
+            firstTargetMap.put(String.valueOf(i + 1), new Waypoint(lowTranslations[i], new Rotation2d(0), null));
         }
         firstTargetMap.put("nothing", new Waypoint(null, null, null));
 
         chargerMap.put("left", new Waypoint(chargingStationCorners[3], new Rotation2d(0), null));
         chargerMap.put("right", new Waypoint(chargingStationCorners[2], new Rotation2d(0), null));
 
-        balanceMap.put("true", new Waypoint(((chargingStationCorners[0].plus(chargingStationCorners[1]).div(2))), new Rotation2d(0), null));
+        balanceMap.put(
+                "true",
+                new Waypoint(
+                        ((chargingStationCorners[0]
+                                .plus(chargingStationCorners[1])
+                                .div(2))),
+                        new Rotation2d(0),
+                        null));
         balanceMap.put("false", new Waypoint(null, null, null));
- }
+    }
 }
-
-

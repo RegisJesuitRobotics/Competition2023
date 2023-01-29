@@ -11,7 +11,6 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.trajectory.Trajectory;
 
 /**
  * This holonomic drive controller can be used to follow trajectories using a holonomic drivetrain
@@ -123,8 +122,7 @@ public class CustomHolonomicDriveController {
      * @param state The state
      * @return The next output of the holonomic drive controller.
      */
-    public ChassisSpeeds calculate(
-            Pose2d currentPose, HolonomicTrajectory.State state) {
+    public ChassisSpeeds calculate(Pose2d currentPose, HolonomicTrajectory.State state) {
         return calculate(
                 currentPose,
                 state.poseState().poseMeters,

@@ -50,17 +50,13 @@ public class RotationSequence {
                             / Math.pow(nextPoint.getKey() - lastPoint.getKey(), 2);
 
             if (timeSeconds < (nextPoint.getKey() + lastPoint.getKey()) / 2) { // Accelerating
-                positionRadians =
-                        lastPoint.getValue().getRadians()
-                                + ((accelerationRadiansPerSec2 / 2)
-                                * Math.pow(timeSeconds - lastPoint.getKey(), 2));
+                positionRadians = lastPoint.getValue().getRadians()
+                        + ((accelerationRadiansPerSec2 / 2) * Math.pow(timeSeconds - lastPoint.getKey(), 2));
                 velocityRadiansPerSec = (timeSeconds - lastPoint.getKey()) * accelerationRadiansPerSec2;
 
             } else { // Decelerating
-                positionRadians =
-                        nextPoint.getValue().getRadians()
-                                - ((accelerationRadiansPerSec2 / 2)
-                                * Math.pow(timeSeconds - nextPoint.getKey(), 2));
+                positionRadians = nextPoint.getValue().getRadians()
+                        - ((accelerationRadiansPerSec2 / 2) * Math.pow(timeSeconds - nextPoint.getKey(), 2));
                 velocityRadiansPerSec = (nextPoint.getKey() - timeSeconds) * accelerationRadiansPerSec2;
             }
         }
