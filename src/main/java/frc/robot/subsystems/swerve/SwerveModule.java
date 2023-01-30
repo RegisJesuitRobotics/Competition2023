@@ -30,6 +30,7 @@ import frc.robot.telemetry.types.IntegerTelemetryEntry;
 import frc.robot.telemetry.wrappers.TelemetryTalonFX;
 import frc.robot.utils.Alert;
 import frc.robot.utils.Alert.AlertType;
+import frc.robot.utils.ConfigTimeout;
 import frc.robot.utils.RaiderMathUtils;
 import frc.robot.utils.SwerveModuleConfiguration;
 
@@ -163,7 +164,7 @@ public class SwerveModule {
     }
 
     private void configDriveMotor(SwerveModuleConfiguration config) {
-        double startTime = Timer.getFPGATimestamp();
+        ConfigTimeout configTimeout = new ConfigTimeout(MiscConstants.CONFIGURATION_TIMEOUT_SECONDS);
         boolean faultInitializing;
         do {
             faultInitializing = checkCTREError(driveMotor.configFactoryDefault(CAN_TIMEOUT_MS));
@@ -193,8 +194,7 @@ public class SwerveModule {
             driveMotor.setNeutralMode(NeutralMode.Brake);
 
             // Clear the reset of it starting up
-        } while (faultInitializing
-                && Timer.getFPGATimestamp() - startTime <= MiscConstants.CONFIGURATION_TIMEOUT_SECONDS);
+        } while (faultInitializing && configTimeout.hasNotTimedOut());
 
         driveMotor.hasResetOccurred();
         driveMotorFaultAlert.set(faultInitializing);
@@ -202,7 +202,7 @@ public class SwerveModule {
     }
 
     private void configSteerMotor(SwerveModuleConfiguration config) {
-        double startTime = Timer.getFPGATimestamp();
+        ConfigTimeout configTimeout = new ConfigTimeout(MiscConstants.CONFIGURATION_TIMEOUT_SECONDS);
         boolean faultInitializing;
         do {
             faultInitializing = checkCTREError(steerMotor.configFactoryDefault());
@@ -238,8 +238,7 @@ public class SwerveModule {
 
             steerMotor.setNeutralMode(NeutralMode.Brake);
 
-        } while (faultInitializing
-                && Timer.getFPGATimestamp() - startTime <= MiscConstants.CONFIGURATION_TIMEOUT_SECONDS);
+        } while (faultInitializing && configTimeout.hasNotTimedOut());
 
         // Clear the reset of it starting up
         steerMotor.hasResetOccurred();
@@ -255,7 +254,7 @@ public class SwerveModule {
     }
 
     private void configSteerEncoder(SwerveModuleConfiguration config) {
-        double startTime = Timer.getFPGATimestamp();
+        ConfigTimeout configTimeout = new ConfigTimeout(MiscConstants.CONFIGURATION_TIMEOUT_SECONDS);
         CANCoderConfiguration encoderConfiguration = new CANCoderConfiguration();
 
         encoderConfiguration.absoluteSensorRange = AbsoluteSensorRange.Unsigned_0_to_360;
@@ -271,8 +270,7 @@ public class SwerveModule {
             // often
             faultInitializing |= checkCTREError(absoluteSteerEncoder.setStatusFramePeriod(
                     CANCoderStatusFrame.SensorData, CANCODER_PERIOD_MS, CAN_TIMEOUT_MS));
-        } while (faultInitializing
-                && Timer.getFPGATimestamp() - startTime <= MiscConstants.CONFIGURATION_TIMEOUT_SECONDS);
+        } while (faultInitializing && configTimeout.hasNotTimedOut());
 
         steerEncoderFaultAlert.set(faultInitializing);
         moduleEventEntry.append("Steer encoder initialized" + (faultInitializing ? " with faults" : ""));

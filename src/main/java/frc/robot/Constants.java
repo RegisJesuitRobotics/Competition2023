@@ -108,6 +108,8 @@ public final class Constants {
     }
 
     public static class AutoConstants {
+        private AutoConstants() {}
+
         public static final TunablePIDGains PATH_TRANSLATION_POSITION_GAINS =
                 new TunablePIDGains("/gains/pathXY", 2.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
         public static final TunablePIDGains PATH_ANGULAR_POSITION_PID_GAINS =
@@ -127,11 +129,13 @@ public final class Constants {
     }
 
     public static class LiftConstants {
+        private LiftConstants() {}
+
         // TODO: update motor ports
         public static final int LEFT_MOTOR_PORT = 0;
         public static final int RIGHT_MOTOR_PORT = 0;
 
-        public static final boolean INVERT_MOTOR = false;
+        public static final boolean INVERT_LEADER = false;
         public static final boolean INVERT_FOLLOWER_FROM_LEADER = true;
 
         public static final double HORIZONTAL_BAR_LENGTH = Units.inchesToMeters(32.0);
@@ -157,6 +161,29 @@ public final class Constants {
 
         public static final int STALL_CURRENT_LIMIT = -1;
         public static final int FREE_CURRENT_LIMIT = -1;
+    }
+
+    public static class ExtensionConstants {
+        private ExtensionConstants() {}
+
+        public static final int LEFT_MOTOR_PORT = 0;
+        public static final int RIGHT_MOTOR_PORT = 0;
+
+        public static final boolean INVERT_LEADER = false;
+        public static final boolean INVERT_FOLLOWER_FROM_LEADER = true;
+
+        public static final int STALL_CURRENT_LIMIT = -1;
+        public static final int FREE_CURRENT_LIMIT = -1;
+
+        public static final double GEAR_REDUCTION = 1.0 / 1.0;
+        public static final double ROLLER_DIAMETER = Units.inchesToMeters(-1.0);
+
+        public static final TunablePIDGains PID_GAINS =
+                new TunablePIDGains("/gains/extension", 0.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
+        public static final TunableTrapezoidalProfileGains TRAPEZOIDAL_PROFILE_GAINS =
+                new TunableTrapezoidalProfileGains("/gains/extension", 0.0, 0.0, MiscConstants.TUNING_MODE);
+        public static final TunableFFGains FF_GAINS =
+                new TunableFFGains("/gains/extension", 0.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
     }
 
     public static class TeleopConstants {

@@ -9,7 +9,6 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.MiscConstants;
 import frc.robot.Robot;
@@ -19,6 +18,7 @@ import frc.robot.telemetry.types.EventTelemetryEntry;
 import frc.robot.telemetry.wrappers.TelemetryCANSparkMax;
 import frc.robot.utils.Alert;
 import frc.robot.utils.Alert.AlertType;
+import frc.robot.utils.ConfigTimeout;
 
 public class LiftSubsystem extends SubsystemBase {
     private final TelemetryCANSparkMax leftMotor =
@@ -45,20 +45,24 @@ public class LiftSubsystem extends SubsystemBase {
     }
 
     private void configMotors() {
-        double startTime = Timer.getFPGATimestamp();
+        ConfigTimeout configTimeout = new ConfigTimeout(MiscConstants.CONFIGURATION_TIMEOUT_SECONDS);
         boolean faultInitializing = false;
 
         do {
-            leftMotor.setInverted(INVERT_MOTOR);
+            faultInitializing |= checkRevError(leftMotor.restoreFactoryDefaults());
+            faultInitializing |= checkRevError(rightMotor.restoreFactoryDefaults());
+
+            leftMotor.setInverted(INVERT_LEADER);
             faultInitializing |= checkRevError(rightMotor.follow(leftMotor, INVERT_FOLLOWER_FROM_LEADER));
 
-            faultInitializing |= checkRevError(encoder.setPositionConversionFactor((Math.PI * 2) / GEAR_REDUCTION));
+            double conversionFactor = (Math.PI * 2) / GEAR_REDUCTION;
+            faultInitializing |= checkRevError(encoder.setPositionConversionFactor(conversionFactor));
+            faultInitializing |= checkRevError(encoder.setVelocityConversionFactor(conversionFactor));
 
             faultInitializing |= checkRevError(leftMotor.setSmartCurrentLimit(STALL_CURRENT_LIMIT, FREE_CURRENT_LIMIT));
             faultInitializing |=
                     checkRevError(rightMotor.setSmartCurrentLimit(STALL_CURRENT_LIMIT, FREE_CURRENT_LIMIT));
-        } while (Timer.getFPGATimestamp() - startTime < MiscConstants.CONFIGURATION_TIMEOUT_SECONDS
-                && faultInitializing);
+        } while (configTimeout.hasNotTimedOut() && faultInitializing);
 
         if (faultInitializing) {
             eventEntry.append("Motors timed out initializing");
