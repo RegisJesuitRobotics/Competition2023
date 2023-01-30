@@ -400,6 +400,10 @@ public class SwerveModule {
         return new SwerveModulePosition(getDriveMotorPositionMeters(), getSteerAngle());
     }
 
+    public double getActualDriveVoltage() {
+        return driveMotor.getMotorOutputVoltage();
+    }
+
     /**
      * Set the desired state for this swerve module
      *
