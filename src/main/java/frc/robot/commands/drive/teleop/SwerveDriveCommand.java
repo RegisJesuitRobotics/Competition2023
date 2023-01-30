@@ -5,7 +5,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants.AutoConstants;
-import frc.robot.Constants.DriveTrainConstants;
 import frc.robot.Constants.TeleopConstants;
 import frc.robot.Robot;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
@@ -23,7 +22,7 @@ public class SwerveDriveCommand extends CommandBase {
     private final BooleanSupplier isFieldRelativeSupplier;
 
     private final TunableTelemetryProfiledPIDController snapPIDController = new TunableTelemetryProfiledPIDController(
-            "drive/snapController",
+            "/drive/snapController",
             AutoConstants.SNAP_ANGULAR_POSITION_PID_GAINS,
             AutoConstants.SNAP_ANGULAR_POSITION_TRAPEZOIDAL_GAINS);
     private final SwerveDriveSubsystem driveSubsystem;
@@ -43,6 +42,7 @@ public class SwerveDriveCommand extends CommandBase {
         this.snapAngleSupplier = snapAngleSupplier;
         this.isFieldRelativeSupplier = isFieldRelativeSupplier;
 
+        snapPIDController.enableContinuousInput(-Math.PI, Math.PI);
         this.driveSubsystem = driveSubsystem;
         addRequirements(driveSubsystem);
     }
@@ -83,8 +83,8 @@ public class SwerveDriveCommand extends CommandBase {
 
         if (RaiderMathUtils.isChassisSpeedsZero(
                 chassisSpeeds,
-                DriveTrainConstants.TELEOP_MINIMUM_VELOCITY_METERS_SECOND,
-                DriveTrainConstants.TELEOP_MINIMUM_ANGULAR_VELOCITY_RADIANS_SECOND)) {
+                TeleopConstants.MINIMUM_VELOCITY_METERS_SECOND,
+                TeleopConstants.MINIMUM_ANGULAR_VELOCITY_RADIANS_SECOND)) {
             driveSubsystem.stopMovement();
         } else {
             driveSubsystem.setChassisSpeeds(chassisSpeeds, TeleopConstants.OPEN_LOOP_DRIVETRAIN);

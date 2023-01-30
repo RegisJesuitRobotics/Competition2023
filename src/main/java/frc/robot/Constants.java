@@ -7,6 +7,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import frc.robot.telemetry.tunable.TunableFFGains;
 import frc.robot.telemetry.tunable.TunablePIDGains;
 import frc.robot.telemetry.tunable.TunableTrapezoidalProfileGains;
@@ -54,13 +55,13 @@ public final class Constants {
 
         // For talons PID full output is 1023 except for all FF gains
         public static final TunablePIDGains DRIVE_VELOCITY_PID_GAINS =
-                new TunablePIDGains("gains/drive", 0.1, 0.0, 0.0, MiscConstants.TUNING_MODE);
+                new TunablePIDGains("/gains/drive", 0.1, 0.0, 0.0, MiscConstants.TUNING_MODE);
 
         public static final TunableFFGains DRIVE_VELOCITY_FF_GAINS =
-                new TunableFFGains("gains/drive", 0.3346, 2.2549, 0.5731, MiscConstants.TUNING_MODE);
+                new TunableFFGains("/gains/drive", 0.3346, 2.2549, 0.5731, MiscConstants.TUNING_MODE);
 
         public static final TunablePIDGains STEER_POSITION_PID_GAINS =
-                new TunablePIDGains("gains/steer", 0.3, 0.0, 0.1, MiscConstants.TUNING_MODE);
+                new TunablePIDGains("/gains/steer", 0.3, 0.0, 0.1, MiscConstants.TUNING_MODE);
 
         public static final double ACCEPTABLE_STEER_ERROR_RADIANS = Units.degreesToRadians(0.20);
 
@@ -83,14 +84,9 @@ public final class Constants {
         public static final double MAX_VELOCITY_METERS_SECOND =
                 (MOTOR_FREE_SPEED_RPM * WHEEL_DIAMETER_METERS * Math.PI) / (60.0 * DRIVE_GEAR_REDUCTION);
 
-        public static final double MAX_ANGULAR_VELOCITY_RADIANS_SECOND = Math.PI * 2;
+        public static final double MAX_ANGULAR_VELOCITY_RADIANS_SECOND = Math.PI * 4;
         public static final double MAX_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED =
-                MAX_ANGULAR_VELOCITY_RADIANS_SECOND;
-
-        public static final double TRANSLATION_RATE_LIMIT_METERS_SECOND_SQUARED = 10.0;
-        public static final double ANGULAR_RATE_LIMIT_RADIANS_SECOND_SQUARED = 10.0 * Math.PI;
-        public static final double TELEOP_MINIMUM_VELOCITY_METERS_SECOND = 0.10;
-        public static final double TELEOP_MINIMUM_ANGULAR_VELOCITY_RADIANS_SECOND = 0.10;
+                MAX_ANGULAR_VELOCITY_RADIANS_SECOND / 2.0;
 
         public static final String CAN_BUS = "rio";
         private static final SharedSwerveModuleConfiguration SHARED_SWERVE_MODULE_CONFIGURATION =
@@ -127,14 +123,14 @@ public final class Constants {
 
     public static class AutoConstants {
         public static final TunablePIDGains PATH_TRANSLATION_POSITION_GAINS =
-                new TunablePIDGains("gains/pathXY", 2.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
+                new TunablePIDGains("/gains/pathXY", 2.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
         public static final TunablePIDGains PATH_ANGULAR_POSITION_PID_GAINS =
-                new TunablePIDGains("gains/pathAngular", 1.5, 0.0, 0.0, MiscConstants.TUNING_MODE);
+                new TunablePIDGains("/gains/pathAngular", 1.5, 0.0, 0.0, MiscConstants.TUNING_MODE);
         public static final TunablePIDGains SNAP_ANGULAR_POSITION_PID_GAINS =
-                new TunablePIDGains("gains/snapAngular", 1.5, 0.0, 0.0, MiscConstants.TUNING_MODE);
+                new TunablePIDGains("/gains/snapAngular", 1.5, 0.0, 0.0, MiscConstants.TUNING_MODE);
         public static final TunableTrapezoidalProfileGains SNAP_ANGULAR_POSITION_TRAPEZOIDAL_GAINS =
                 new TunableTrapezoidalProfileGains(
-                        "gains/snapAngular",
+                        "/gains/snapAngular",
                         DriveTrainConstants.MAX_ANGULAR_VELOCITY_RADIANS_SECOND,
                         DriveTrainConstants.MAX_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED,
                         MiscConstants.TUNING_MODE);
@@ -148,12 +144,20 @@ public final class Constants {
         private TeleopConstants() {}
 
         public static final boolean OPEN_LOOP_DRIVETRAIN = false;
+        public static final double TRANSLATION_RATE_LIMIT_METERS_SECOND_SQUARED = 10.0;
+        public static final double ANGULAR_RATE_LIMIT_RADIANS_SECOND_SQUARED = 5.0 * Math.PI;
+        public static final double MINIMUM_VELOCITY_METERS_SECOND = 0.10;
+        public static final double MINIMUM_ANGULAR_VELOCITY_RADIANS_SECOND = 0.10;
     }
 
     public static class MiscConstants {
+
         private MiscConstants() {}
 
         public static final int[] USED_CONTROLLER_PORTS = {0};
         public static final boolean TUNING_MODE = true;
+
+        public static final ModuleType POWER_MODULE_TYPE = ModuleType.kCTRE;
+        public static final int POWER_MODULE_ID = 0;
     }
 }
