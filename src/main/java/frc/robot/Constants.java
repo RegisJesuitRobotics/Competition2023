@@ -4,6 +4,7 @@ import com.pathplanner.lib.PathConstraints;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import frc.robot.telemetry.tunable.TunableFFGains;
 import frc.robot.telemetry.tunable.TunablePIDGains;
 import frc.robot.telemetry.tunable.TunableTrapezoidalProfileGains;
@@ -151,9 +152,13 @@ public final class Constants {
     }
 
     public static class MiscConstants {
+
         private MiscConstants() {}
 
         public static final int[] USED_CONTROLLER_PORTS = {0};
         public static final boolean TUNING_MODE = true;
+
+        public static final ModuleType POWER_MODULE_TYPE = ModuleType.kCTRE;
+        public static final int POWER_MODULE_ID = 0;
     }
 }
