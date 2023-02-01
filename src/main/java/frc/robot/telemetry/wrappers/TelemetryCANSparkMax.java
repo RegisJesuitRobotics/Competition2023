@@ -4,7 +4,6 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.REVLibError;
 import frc.robot.telemetry.types.BooleanTelemetryEntry;
 import frc.robot.telemetry.types.DoubleTelemetryEntry;
-import frc.robot.telemetry.types.IntegerTelemetryEntry;
 import frc.robot.utils.SparkMaxFlashManager;
 
 public class TelemetryCANSparkMax extends CANSparkMax {
@@ -22,11 +21,6 @@ public class TelemetryCANSparkMax extends CANSparkMax {
         outputPercentEntry = new DoubleTelemetryEntry(telemetryPath + "outputPercent", true);
         temperatureEntry = new DoubleTelemetryEntry(telemetryPath + "temperature", false);
         inBrakeModeEntry = new BooleanTelemetryEntry(telemetryPath + "inBrakeMode", true);
-
-        IntegerTelemetryEntry firmwareVersionEntry =
-                new IntegerTelemetryEntry(telemetryPath + "firmwareVersion", false);
-        firmwareVersionEntry.append(super.getFirmwareVersion());
-        firmwareVersionEntry.close();
     }
 
     @Override

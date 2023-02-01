@@ -4,7 +4,6 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import frc.robot.telemetry.types.BooleanTelemetryEntry;
 import frc.robot.telemetry.types.DoubleTelemetryEntry;
-import frc.robot.telemetry.types.IntegerTelemetryEntry;
 
 public class TelemetryTalonFX extends TalonFX {
     private final DoubleTelemetryEntry outputAmpsEntry;
@@ -22,11 +21,6 @@ public class TelemetryTalonFX extends TalonFX {
         outputPercentEntry = new DoubleTelemetryEntry(telemetryPath + "outputPercent", true);
         temperatureEntry = new DoubleTelemetryEntry(telemetryPath + "temperature", false);
         inBrakeModeEntry = new BooleanTelemetryEntry(telemetryPath + "inBrakeMode", true);
-
-        IntegerTelemetryEntry firmwareVersionEntry =
-                new IntegerTelemetryEntry(telemetryPath + "firmwareVersion", false);
-        firmwareVersionEntry.append(super.getFirmwareVersion());
-        firmwareVersionEntry.close();
     }
 
     public TelemetryTalonFX(int deviceNumber, String logTable) {

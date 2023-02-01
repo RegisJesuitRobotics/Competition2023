@@ -20,6 +20,9 @@ import frc.robot.utils.Alert;
 import frc.robot.utils.Alert.AlertType;
 import frc.robot.utils.ConfigTimeout;
 
+/**
+ * <strong>Do not use this directly in commands, use {@link frc.robot.subsystems.LiftExtensionSuperStructure}</strong>
+ */
 public class LiftSubsystem extends SubsystemBase {
     private final TelemetryCANSparkMax leftMotor =
             new TelemetryCANSparkMax(LEFT_MOTOR_PORT, MotorType.kBrushless, "/lifter/leftMotor");
@@ -29,10 +32,11 @@ public class LiftSubsystem extends SubsystemBase {
 
     private final RelativeEncoder encoder = leftMotor.getEncoder();
 
-    private final TunableTelemetryProfiledPIDController trapezoidalPidController =
+    private final TunableTelemetryProfiledPIDController controller =
             new TunableTelemetryProfiledPIDController("/lifter/controller", PID_GAINS, TRAPEZOIDAL_PROFILE_GAINS);
-    private final LiftMechanism2d mechanism2d = new LiftMechanism2d();
     private ArmFeedforward feedforward = FF_GAINS.createFeedforward();
+
+    private final LiftMechanism2d mechanism2d = new LiftMechanism2d();
 
     private final Alert failedConfigurationAlert = new Alert("Lifter Arm Failed to Configure Motor", AlertType.ERROR);
     private final EventTelemetryEntry eventEntry = new EventTelemetryEntry("/lifter/events");
@@ -78,7 +82,7 @@ public class LiftSubsystem extends SubsystemBase {
      */
     public void setArmAngle(Rotation2d angle) {
         // Limited to physical constraints
-        trapezoidalPidController.setGoal(MathUtil.clamp(
+        controller.setGoal(MathUtil.clamp(
                 MathUtil.angleModulus(angle.getRadians()), MIN_ANGLE.getRadians(), MAX_ANGLE.getRadians()));
     }
 
@@ -89,27 +93,19 @@ public class LiftSubsystem extends SubsystemBase {
         return Rotation2d.fromDegrees(encoder.getPosition());
     }
 
-    /**
-     * Set the height of the claw relative to the floor
-     * @param heightMeters the height of the claw relative to the floor
-     */
-    public void setClawHeight(double heightMeters) {
-        double relativeHeight = VERTICAL_BAR_HEIGHT_FROM_FLOOR - (heightMeters + HORIZONTAL_BAR_TO_CLAW);
-        double angleRadians = Math.atan(relativeHeight / HORIZONTAL_BAR_LENGTH);
-        setArmAngle(Rotation2d.fromRadians(angleRadians));
-    }
-
     @Override
     public void periodic() {
         Robot.startWNode("LifterSubsystem#periodic");
 
-        double feedbackOutput = trapezoidalPidController.calculate(getArmAngle().getRadians());
+        double feedbackOutput = controller.calculate(getArmAngle().getRadians());
 
-        TrapezoidProfile.State currentSetpoint = trapezoidalPidController.getSetpoint();
+        TrapezoidProfile.State currentSetpoint = controller.getSetpoint();
         leftMotor.setVoltage(
                 feedbackOutput + feedforward.calculate(currentSetpoint.position, currentSetpoint.velocity));
 
+        Robot.startWNode("LogValues");
         logValues();
+        Robot.endWNode();
         Robot.endWNode();
     }
 

@@ -3,6 +3,8 @@ package frc.robot.utils;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
+import frc.robot.Robot;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -12,6 +14,10 @@ public class SparkMaxFlashManager {
     private static boolean shouldFlash;
 
     public static void init() {
+        if (Robot.isSimulation()) {
+            shouldFlash = true;
+            return;
+        }
         File shouldFlashFile = new File(Filesystem.getDeployDirectory(), "hasFlashed.txt");
         try (FileReader shouldFlashReader = new FileReader(shouldFlashFile)) {
             char[] date = new char[1];
