@@ -4,7 +4,6 @@ import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import frc.robot.Robot;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
