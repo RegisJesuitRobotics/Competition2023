@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DriveTrainSysIDCompatibleLoggerCommand extends CommandBase {
-    private static final double METER_TO_ROTATION_FACTOR = 1.0 / DriveTrainConstants.WHEEL_DIAMETER_METERS * Math.PI;
+    private static final double METER_TO_ROTATION_FACTOR = 1.0 / (DriveTrainConstants.WHEEL_DIAMETER_METERS * Math.PI);
 
     private final SwerveDriveSubsystem driveSubsystem;
     private final List<Double> dataBuffer = new ArrayList<>();

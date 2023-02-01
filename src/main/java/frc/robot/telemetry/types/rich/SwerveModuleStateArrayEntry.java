@@ -14,8 +14,8 @@ public class SwerveModuleStateArrayEntry implements TelemetryEntry {
     public void append(SwerveModuleState[] states) {
         double[] values = new double[states.length * 2];
         for (int i = 0; i < states.length; i++) {
-            values[i * 2] = states[i].speedMetersPerSecond;
-            values[i * 2 + 1] = states[i].angle.getRadians();
+            values[i * 2] = states[i].angle.getRadians();
+            values[i * 2 + 1] = states[i].speedMetersPerSecond;
         }
         logEntry.append(values);
     }
