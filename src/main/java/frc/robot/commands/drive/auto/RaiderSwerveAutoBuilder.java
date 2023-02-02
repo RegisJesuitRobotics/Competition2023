@@ -19,7 +19,7 @@ public class RaiderSwerveAutoBuilder extends BaseAutoBuilder {
     }
 
     @Override
-    public CommandBase followPath(PathPlannerTrajectory trajectory) {
-        return new FollowPathCommand((Supplier<HolonomicTrajectory>) trajectory, driveSubsystem);
+    public CommandBase followPath(PathPlannerTrajectory trajectory) {c
+        return new FollowPathCommand(trajectory, driveSubsystem);
     }
 }
