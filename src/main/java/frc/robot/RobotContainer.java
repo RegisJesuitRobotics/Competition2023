@@ -15,7 +15,9 @@ import frc.robot.Constants.TeleopConstants;
 import frc.robot.commands.drive.LockModulesCommand;
 import frc.robot.commands.drive.auto.Autos;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
+import frc.robot.commands.intake.*;
 import frc.robot.hid.CommandXboxPlaystationController;
+import frc.robot.subsystems.intake.*;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.tunable.TunableDouble;
 import frc.robot.utils.Alert;
@@ -41,6 +43,8 @@ public class RobotContainer {
     private final ListenableSendableChooser<Command> driveCommandChooser = new ListenableSendableChooser<>();
     private final ListenableSendableChooser<Command> autoCommandChooser = new ListenableSendableChooser<>();
     private final Alert noAutoSelectedAlert = new Alert("No Auto Routine Selected", AlertType.WARNING);
+
+    private final IntakeSubsystem intake = new IntakeSubsystem();
 
     public RobotContainer() {
         configureButtonBindings();
@@ -138,6 +142,8 @@ public class RobotContainer {
         driverController
                 .povUp()
                 .whileTrue(new LockModulesCommand(driveSubsystem).repeatedly().withName("Lock Modules"));
+
+        driverController.square().onTrue(new IntakeToggleCommand(intake));
     }
 
     private void evaluateDriveStyle(Command newCommand) {

@@ -131,13 +131,9 @@ public final class Constants {
 
     // TODO: change names when theres a cad for intake and change ports
     public static class IntakeConstants {
-        public static final int[] TOP_LEFT_SOLENOID_PORTS = {0, 0};
+        public static final int[] LEFT_SOLENOID_PORTS = {0, 0};
 
-        public static final int[] BOTTOM_LEFT_SOLENOID_PORTS = {0, 0};
-
-        public static final int[] TOP_RIGHT_SOLENOID_PORTS = {0, 0};
-
-        public static final int[] BOTTOM_RIGHT_SOLENOID_PORTS = {0, 0};
+        public static final int[] RIGHT_SOLENOID_PORTS = {0, 0};
     }
 
     public static class TeleopConstants {
