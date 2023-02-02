@@ -26,7 +26,8 @@ public class TunableDouble {
     public TunableDouble(String networkName, double defaultValue, boolean tuningMode) {
         this.networkEntry =
                 NetworkTableInstance.getDefault().getDoubleTopic(networkName).getEntry(defaultValue);
-        networkEntry.set(networkEntry.get());
+        // Make sure it gets reset on each deploy
+        networkEntry.set(defaultValue);
         this.telemetryEntry = new DoubleTelemetryEntry(networkName, false);
         this.defaultValue = defaultValue;
         this.tuningMode = tuningMode;
