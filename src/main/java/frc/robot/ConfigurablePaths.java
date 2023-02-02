@@ -1,16 +1,24 @@
 package frc.robot;
 
-import static frc.robot.Constants.DriveTrainConstants.MAX_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED;
 // TODO:MAX_ACCELERATION
+import static frc.robot.Constants.DriveTrainConstants.MAX_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED;
 import static frc.robot.Constants.DriveTrainConstants.MAX_VELOCITY_METERS_SECOND;
 import static frc.robot.FieldConstants.Community.*;
 import static frc.robot.FieldConstants.Grids.*;
 import static frc.robot.FieldConstants.StagingLocations.*;
+
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import frc.robot.commands.drive.auto.FollowPathCommand;
+import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.utils.ListenableSendableChooser;
-import frc.robot.utils.trajectory.HolonomicTrajectory;
+import frc.robot.utils.paths.WaypointCommand;
 import frc.robot.utils.trajectory.HolonomicTrajectoryGenerator;
+import frc.robot.utils.trajectory.IntermediateTrajectory;
 import frc.robot.utils.trajectory.Waypoint;
 import java.util.*;
 
@@ -32,16 +40,27 @@ public class ConfigurablePaths {
     private final Map<String, Waypoint> secondTargetMap = new HashMap<>();
     private final Map<String, Waypoint> balanceMap = new HashMap<>();
 
-    public ConfigurablePaths() {
+    private final double maxVelocitySecond = MAX_VELOCITY_METERS_SECOND;
+
+    private final double maxAcceleration = MAX_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED;
+
+    private SwerveDriveSubsystem driveSubsystem;
+
+    private TrajectoryConfig trajectoryConfig = new TrajectoryConfig(maxVelocitySecond, maxAcceleration);
+
+    private HolonomicTrajectoryGenerator generator = new HolonomicTrajectoryGenerator();
+
+    public ConfigurablePaths(SwerveDriveSubsystem driveSubsystem) {
+        this.driveSubsystem = driveSubsystem;
         createChooserOptions();
         addMapValues();
+        putDahsboardTables();
     }
 
-    public HolonomicTrajectory generatePath() {
-        TrajectoryConfig trajectoryConfig =
-                new TrajectoryConfig(MAX_VELOCITY_METERS_SECOND, MAX_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED);
-
-        return HolonomicTrajectoryGenerator.generate(trajectoryConfig, generateWaypoints());
+    private void putDahsboardTables() {
+        SmartDashboard.putData("/paths/start", startPositionChooser);
+        SmartDashboard.putData("/paths/firstPiece", firstPiece);
+        SmartDashboard.putData("/paths/firstTarget", firstTarget);
     }
 
     private void createChooserOptions() {
@@ -71,19 +90,46 @@ public class ConfigurablePaths {
         balance.addOption("true", "true");
         balance.addOption("false", "false");
     }
+    // TODO: add commands
+    private List<IntermediateTrajectory> generateWaypoints() {
+        List<IntermediateTrajectory> trajectories = new ArrayList<>();
+        List<WaypointCommand> waypoints = new ArrayList<>();
+        waypoints.add(new WaypointCommand(startMap.get(startPositionChooser.getSelected())));
+        waypoints.add(new WaypointCommand(chargerMap.get(aroundCharger.getSelected())));
+        waypoints.add(new WaypointCommand(firstPieceMap.get(firstPiece.getSelected()), new InstantCommand()));
+        waypoints.add(new WaypointCommand(chargerMap.get(aroundCharger.getSelected())));
+        waypoints.add(new WaypointCommand(firstTargetMap.get(firstPiece.getSelected()), new InstantCommand()));
+        waypoints.add(new WaypointCommand(chargerMap.get(aroundCharger.getSelected())));
+        waypoints.add(new WaypointCommand(firstPieceMap.get(secondPiece.getSelected()), new InstantCommand()));
+        waypoints.add(new WaypointCommand(chargerMap.get(aroundCharger.getSelected())));
+        waypoints.add(new WaypointCommand(firstTargetMap.get(secondPiece.getSelected()), new InstantCommand()));
+        // TODO: add charger translation
+        waypoints.add(new WaypointCommand(balanceMap.get(balance.getSelected()), new InstantCommand()));
 
-    private List<Waypoint> generateWaypoints() {
-        List<Waypoint> waypoints = new ArrayList<>();
-        waypoints.add(startMap.get(startPositionChooser.getSelected()));
-        waypoints.add(chargerMap.get(aroundCharger.getSelected()));
-        waypoints.add(firstPieceMap.get(firstPiece.getSelected()));
-        waypoints.add(chargerMap.get(aroundCharger.getSelected()));
-        waypoints.add(firstTargetMap.get(firstPiece.getSelected()));
-        waypoints.add(firstPieceMap.get(secondPiece.getSelected()));
-        waypoints.add(firstTargetMap.get(secondPiece.getSelected()));
-        waypoints.add(balanceMap.get(balance.getSelected()));
+        for (int i = 0; i < 7; i++) {
+            WaypointCommand first = waypoints.get(i);
+            WaypointCommand second = waypoints.get(i + 1);
 
-        return waypoints;
+            if (first.getWaypoint().getTranslation() != null
+                    && second.getWaypoint().getTranslation() != null) {
+                List<WaypointCommand> points = List.of(first, second);
+                if (i == 0 || waypoints.get(i - 1).getCommand() != null)
+                    trajectories.add(new IntermediateTrajectory(points, false));
+            }
+        }
+
+        return trajectories;
+    }
+
+    public SequentialCommandGroup generatePath() {
+        SequentialCommandGroup command = new SequentialCommandGroup();
+        List<IntermediateTrajectory> trajectories = generateWaypoints();
+        for (IntermediateTrajectory trajectory : trajectories) {
+            command.addCommands(new FollowPathCommand(
+                    generator.generate(trajectoryConfig, trajectory.getWaypoint()), driveSubsystem));
+            command.addCommands(trajectory.getCommand());
+        }
+        return command;
     }
 
     private void addMapValues() {
@@ -100,9 +146,9 @@ public class ConfigurablePaths {
         for (int i = 0; i < 9; i += 3) {
             firstTargetMap.put(String.valueOf(i + 1), new Waypoint(lowTranslations[i], new Rotation2d(0), null));
         }
-        firstTargetMap.put("nothing", new Waypoint(null, null, null));
+        firstTargetMap.put("nothing", null);
 
-        chargerMap.put("left", new Waypoint(chargingStationCorners[3], new Rotation2d(0), null));
+        chargerMap.put("left", Waypoint.fromHolonomicPose(new Pose2d(chargingStationCorners[3], new Rotation2d(0))));
         chargerMap.put("right", new Waypoint(chargingStationCorners[2], new Rotation2d(0), null));
 
         balanceMap.put(
@@ -113,6 +159,6 @@ public class ConfigurablePaths {
                                 .div(2))),
                         new Rotation2d(0),
                         null));
-        balanceMap.put("false", new Waypoint(null, null, null));
+        balanceMap.put("false", null);
     }
 }

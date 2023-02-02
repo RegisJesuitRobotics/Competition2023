@@ -14,7 +14,6 @@ import frc.robot.Constants.MiscConstants;
 import frc.robot.Constants.TeleopConstants;
 import frc.robot.commands.drive.LockModulesCommand;
 import frc.robot.commands.drive.auto.Autos;
-import frc.robot.commands.drive.auto.FollowPathCommand;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
 import frc.robot.hid.CommandXboxPlaystationController;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
@@ -39,7 +38,7 @@ public class RobotContainer {
     private final CommandXboxPlaystationController driverController = new CommandXboxPlaystationController(0);
     private final TeleopControlsStateManager teleopControlsStateManager = new TeleopControlsStateManager();
 
-    private final ConfigurablePaths pathGenerator = new ConfigurablePaths();
+    private final ConfigurablePaths pathGenerator = new ConfigurablePaths(driveSubsystem);
 
     private final ListenableSendableChooser<Command> driveCommandChooser = new ListenableSendableChooser<>();
     private final ListenableSendableChooser<Command> autoCommandChooser = new ListenableSendableChooser<>();
@@ -160,6 +159,6 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        return new FollowPathCommand(pathGenerator.generatePath(), driveSubsystem);
+        return pathGenerator.generatePath();
     }
 }
