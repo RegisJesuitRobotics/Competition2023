@@ -81,6 +81,7 @@ public class SwerveModule {
     private final double steerMotorConversionFactorPosition;
     private final double steerMotorConversionFactorVelocity;
     private final double nominalVoltage;
+    private final double openLoopMaxSpeed;
     private final double steerEncoderOffsetRadians;
 
     private final TunablePIDGains driveVelocityPIDGains;
@@ -151,6 +152,7 @@ public class SwerveModule {
         configSteerMotor(config);
 
         this.nominalVoltage = config.sharedConfiguration().nominalVoltage();
+        this.openLoopMaxSpeed = config.sharedConfiguration().openLoopMaxSpeed();
         this.steerEncoderOffsetRadians = config.offsetRadians();
 
         this.driveMotorFF = driveVelocityFFGains.createFeedforward();
@@ -503,13 +505,13 @@ public class SwerveModule {
         nextDriveVelocitySetpointEntry.append(nextTargetVelocityMetersPerSecond);
         openLoopEntry.append(openLoop);
 
-        double feedforwardValuePercent =
-                driveMotorFF.calculate(targetVelocityMetersPerSecond, nextTargetVelocityMetersPerSecond, Constants.DT)
-                        / nominalVoltage;
 
         if (openLoop) {
-            driveMotor.set(TalonFXControlMode.PercentOutput, feedforwardValuePercent);
+            driveMotor.set(TalonFXControlMode.PercentOutput, targetVelocityMetersPerSecond / openLoopMaxSpeed);
         } else {
+            double feedforwardValuePercent =
+                    driveMotorFF.calculate(targetVelocityMetersPerSecond, nextTargetVelocityMetersPerSecond, Constants.DT)
+                            / nominalVoltage;
             driveMotor.set(
                     TalonFXControlMode.Velocity,
                     targetVelocityMetersPerSecond / driveMotorConversionFactorVelocity,

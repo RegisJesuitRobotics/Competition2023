@@ -127,7 +127,7 @@ public final class Constants {
     public static class TeleopConstants {
         private TeleopConstants() {}
 
-        public static final boolean OPEN_LOOP_DRIVETRAIN = false;
+        public static final boolean OPEN_LOOP_DRIVETRAIN = true;
         public static final double TRANSLATION_RATE_LIMIT_METERS_SECOND_SQUARED = 10.0;
         public static final double ANGULAR_RATE_LIMIT_RADIANS_SECOND_SQUARED = 5.0 * Math.PI;
         public static final double MINIMUM_VELOCITY_METERS_SECOND = 0.10;

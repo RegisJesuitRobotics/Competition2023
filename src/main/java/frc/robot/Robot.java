@@ -72,6 +72,7 @@ public class Robot extends TreeTimedRobot {
         miscRobotTelemetryAndAlerts = new MiscRobotTelemetryAndAlerts();
         overrunAlertManager = new OverrunAlertManager();
 
+        //noinspection resource
         Notifier otherLoggingThread = new Notifier(() -> {
             telemetryPowerDistribution.logValues();
             miscRobotTelemetryAndAlerts.logValues();
