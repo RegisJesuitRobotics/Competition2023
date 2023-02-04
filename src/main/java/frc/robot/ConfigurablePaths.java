@@ -10,6 +10,8 @@ import static frc.robot.FieldConstants.StagingLocations.*;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
@@ -17,6 +19,7 @@ import frc.robot.commands.drive.auto.FollowPathCommand;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.utils.ListenableSendableChooser;
 import frc.robot.utils.paths.WaypointCommand;
+import frc.robot.utils.trajectory.HolonomicTrajectory;
 import frc.robot.utils.trajectory.HolonomicTrajectoryGenerator;
 import frc.robot.utils.trajectory.IntermediateTrajectory;
 import frc.robot.utils.trajectory.Waypoint;
@@ -59,8 +62,13 @@ public class ConfigurablePaths {
 
     private void putDahsboardTables() {
         SmartDashboard.putData("/paths/start", startPositionChooser);
+        SmartDashboard.putData("/paths/aroundCharger", aroundCharger);
         SmartDashboard.putData("/paths/firstPiece", firstPiece);
         SmartDashboard.putData("/paths/firstTarget", firstTarget);
+        SmartDashboard.putData("/paths/secondPiece", secondPiece);
+        SmartDashboard.putData("/paths/secondTarget", secondTarget);
+        SmartDashboard.putData("/paths/balance", balance);
+
     }
 
     private void createChooserOptions() {
@@ -109,7 +117,9 @@ public class ConfigurablePaths {
         for (int i = 0; i < 7; i++) {
             WaypointCommand first = waypoints.get(i);
             WaypointCommand second = waypoints.get(i + 1);
-
+            if (first.getWaypoint() == null || second.getWaypoint() == null){
+                break;
+            }
             if (first.getWaypoint().getTranslation() != null
                     && second.getWaypoint().getTranslation() != null) {
                 List<WaypointCommand> points = List.of(first, second);
@@ -124,20 +134,24 @@ public class ConfigurablePaths {
     public SequentialCommandGroup generatePath() {
         SequentialCommandGroup command = new SequentialCommandGroup();
         List<IntermediateTrajectory> trajectories = generateWaypoints();
-        for (IntermediateTrajectory trajectory : trajectories) {
-            command.addCommands(new FollowPathCommand(
-                    generator.generate(trajectoryConfig, trajectory.getWaypoint()), driveSubsystem));
-            command.addCommands(trajectory.getCommand());
+        Field2d field = driveSubsystem.getField2d();
+
+        for (int i = 0; i<trajectories.size(); i++){
+            FieldObject2d fieldObject2d =  field.getObject("field"+String.valueOf(i));
+            HolonomicTrajectory trajectory = HolonomicTrajectoryGenerator.generate(trajectoryConfig, trajectories.get(i).getWaypoint());
+            command.addCommands(new FollowPathCommand(trajectory, driveSubsystem));
+            fieldObject2d.setTrajectory(trajectory.trajectory());
+//            command.addCommands(trajectories.get(i).getCommand());
+
         }
         return command;
     }
 
     private void addMapValues() {
         // TODO: finish these
-
-        for (int i = 0; i < 3; i++) {
-            startMap.put(String.valueOf(i + 1), new Waypoint(regionCorners[i], new Rotation2d(0), null));
-        }
+        startMap.put("1", new Waypoint(regionCorners[0], new Rotation2d(0), null));
+        startMap.put("2", new Waypoint(regionCorners[0].plus(regionCorners[1]).div(2), new Rotation2d(0), null));
+        startMap.put("3", new Waypoint(regionCorners[1], new Rotation2d(0), null));
 
         for (int i = 0; i < 4; i++) {
             firstPieceMap.put(String.valueOf(i + 1), new Waypoint(translations[i], new Rotation2d(0), null));
