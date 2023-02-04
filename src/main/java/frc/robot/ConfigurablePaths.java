@@ -116,7 +116,7 @@ public class ConfigurablePaths {
         for (int i = 0; i < 7; i++) {
             WaypointCommand first = waypoints.get(i);
             WaypointCommand second = waypoints.get(i + 1);
-            if (first.getWaypoint() == null || second.getWaypoint() == null){
+            if (first.getWaypoint() == null || second.getWaypoint() == null) {
                 break;
             }
             if (first.getWaypoint().getTranslation() != null
@@ -135,12 +135,13 @@ public class ConfigurablePaths {
         List<IntermediateTrajectory> trajectories = generateWaypoints();
         Field2d field = driveSubsystem.getField2d();
 
-        for (int i = 0; i<trajectories.size(); i++){
-            FieldObject2d fieldObject2d =  field.getObject("field"+String.valueOf(i));
-            HolonomicTrajectory trajectory = HolonomicTrajectoryGenerator.generate(trajectoryConfig, trajectories.get(i).getWaypoint());
+        for (int i = 0; i < trajectories.size(); i++) {
+            FieldObject2d fieldObject2d = field.getObject("field" + String.valueOf(i));
+            HolonomicTrajectory trajectory = HolonomicTrajectoryGenerator.generate(
+                    trajectoryConfig, trajectories.get(i).getWaypoint());
             command.addCommands(new FollowPathCommand(trajectory, driveSubsystem));
             fieldObject2d.setTrajectory(trajectory.trajectory());
-//            command.addCommands(trajectories.get(i).getCommand());
+            //            command.addCommands(trajectories.get(i).getCommand());
         }
         return command;
     }
