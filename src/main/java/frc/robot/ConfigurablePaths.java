@@ -68,7 +68,6 @@ public class ConfigurablePaths {
         SmartDashboard.putData("/paths/secondPiece", secondPiece);
         SmartDashboard.putData("/paths/secondTarget", secondTarget);
         SmartDashboard.putData("/paths/balance", balance);
-
     }
 
     private void createChooserOptions() {
@@ -142,13 +141,13 @@ public class ConfigurablePaths {
             command.addCommands(new FollowPathCommand(trajectory, driveSubsystem));
             fieldObject2d.setTrajectory(trajectory.trajectory());
 //            command.addCommands(trajectories.get(i).getCommand());
-
         }
         return command;
     }
 
     private void addMapValues() {
         // TODO: finish these
+
         startMap.put("1", new Waypoint(regionCorners[0], new Rotation2d(0), null));
         startMap.put("2", new Waypoint(regionCorners[0].plus(regionCorners[1]).div(2), new Rotation2d(0), null));
         startMap.put("3", new Waypoint(regionCorners[1], new Rotation2d(0), null));
