@@ -505,13 +505,12 @@ public class SwerveModule {
         nextDriveVelocitySetpointEntry.append(nextTargetVelocityMetersPerSecond);
         openLoopEntry.append(openLoop);
 
-
         if (openLoop) {
             driveMotor.set(TalonFXControlMode.PercentOutput, targetVelocityMetersPerSecond / openLoopMaxSpeed);
         } else {
-            double feedforwardValuePercent =
-                    driveMotorFF.calculate(targetVelocityMetersPerSecond, nextTargetVelocityMetersPerSecond, Constants.DT)
-                            / nominalVoltage;
+            double feedforwardValuePercent = driveMotorFF.calculate(
+                            targetVelocityMetersPerSecond, nextTargetVelocityMetersPerSecond, Constants.DT)
+                    / nominalVoltage;
             driveMotor.set(
                     TalonFXControlMode.Velocity,
                     targetVelocityMetersPerSecond / driveMotorConversionFactorVelocity,
