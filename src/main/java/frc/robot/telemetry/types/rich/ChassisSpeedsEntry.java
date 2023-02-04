@@ -2,8 +2,9 @@ package frc.robot.telemetry.types.rich;
 
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import frc.robot.telemetry.types.DoubleTelemetryEntry;
+import frc.robot.telemetry.types.TelemetryEntry;
 
-public class ChassisSpeedsEntry {
+public class ChassisSpeedsEntry implements TelemetryEntry {
     private final DoubleTelemetryEntry xEntry;
     private final DoubleTelemetryEntry yEntry;
     private final DoubleTelemetryEntry omegaEntry;
@@ -19,5 +20,12 @@ public class ChassisSpeedsEntry {
         xEntry.append(speeds.vxMetersPerSecond);
         yEntry.append(speeds.vyMetersPerSecond);
         omegaEntry.append(speeds.omegaRadiansPerSecond);
+    }
+
+    @Override
+    public void close() {
+        xEntry.close();
+        yEntry.close();
+        omegaEntry.close();
     }
 }

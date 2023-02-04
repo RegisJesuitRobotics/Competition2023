@@ -5,7 +5,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.util.datalog.IntegerLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
 
-public class IntegerTelemetryEntry extends TelemetryEntry {
+public class IntegerTelemetryEntry extends PrimitiveTelemetryEntry {
     private final IntegerLogEntry logEntry;
     private final IntegerPublisher networkPublisher;
     private int lastValue;
@@ -35,6 +35,14 @@ public class IntegerTelemetryEntry extends TelemetryEntry {
                 networkPublisher.set(value);
             }
             lastValue = value;
+        }
+    }
+
+    @Override
+    public void close() {
+        logEntry.finish();
+        if (networkPublisher != null) {
+            networkPublisher.close();
         }
     }
 }

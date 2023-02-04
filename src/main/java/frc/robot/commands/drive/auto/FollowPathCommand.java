@@ -10,11 +10,20 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
+import frc.robot.telemetry.types.rich.Pose2dEntry;
+import frc.robot.telemetry.types.rich.TrajectoryEntry;
 import frc.robot.utils.trajectory.CustomHolonomicDriveController;
 import frc.robot.utils.trajectory.HolonomicTrajectory;
 import java.util.function.Supplier;
 
 public class FollowPathCommand extends CommandBase {
+    private static final Pose2dEntry desiredPoseEntry =
+            new Pose2dEntry("/followPath/desiredPose", MiscConstants.TUNING_MODE);
+    private static final Pose2dEntry nextPoseEntry =
+            new Pose2dEntry("/followPath/currentPose", MiscConstants.TUNING_MODE);
+    private static final TrajectoryEntry trajectoryEntry =
+            new TrajectoryEntry("/followPath/trajectory", MiscConstants.TUNING_MODE);
+
     private final SwerveDriveSubsystem driveSubsystem;
     private final Supplier<HolonomicTrajectory> pathSupplier;
     private HolonomicTrajectory currentPath;
@@ -56,8 +65,12 @@ public class FollowPathCommand extends CommandBase {
     @Override
     public void initialize() {
         currentPath = pathSupplier.get();
+        if (MiscConstants.TUNING_MODE) {
+            PathPlannerServer.sendActivePath(currentPath.getStates());
+        }
+        driveSubsystem.getField2d().getObject("traj").setTrajectory(currentPath);
+        trajectoryEntry.append(currentPath);
 
-        driveSubsystem.getField2d().getObject("traj").setTrajectory(currentPath.trajectory());
         timer.reset();
         timer.start();
     }
@@ -76,7 +89,11 @@ public class FollowPathCommand extends CommandBase {
         Pose2d assumedNextPose = currentPose.plus(new Transform2d(
                 new Translation2d(chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond).times(Constants.DT),
                 new Rotation2d(chassisSpeeds.omegaRadiansPerSecond).times(Constants.DT)));
+
+        nextPoseEntry.append(assumedNextPose);
         driveSubsystem.getField2d().getObject("followPathNext").setPose(assumedNextPose);
+
+        desiredPoseEntry.append(desiredPose);
         driveSubsystem.getField2d().getObject("followPathDesired").setPose(desiredPose);
 
         ChassisSpeeds nextChassisSpeeds = nextDriveController.calculate(assumedNextPose, nextDesiredState);
