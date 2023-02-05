@@ -91,6 +91,10 @@ public class Waypoint {
         return new Waypoint(pose.getTranslation(), driveRotation, pose.getRotation());
     }
 
+    public static Waypoint fromHolonomicPose(Translation2d pose, Rotation2d holonomicRotation) {
+        return new Waypoint(pose, null, holonomicRotation);
+    }
+
     /** Returns the translation component of the waypoint. */
     public Translation2d getTranslation() {
         return translation;

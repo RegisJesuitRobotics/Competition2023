@@ -1,6 +1,5 @@
 package frc.robot;
 
-import com.pathplanner.lib.server.PathPlannerServer;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -10,7 +9,6 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.DriveTrainConstants;
-import frc.robot.Constants.MiscConstants;
 import frc.robot.Constants.TeleopConstants;
 import frc.robot.commands.drive.LockModulesCommand;
 import frc.robot.commands.drive.auto.Autos;
@@ -38,8 +36,6 @@ public class RobotContainer {
     private final CommandXboxPlaystationController driverController = new CommandXboxPlaystationController(0);
     private final TeleopControlsStateManager teleopControlsStateManager = new TeleopControlsStateManager();
 
-    private final ConfigurablePaths pathGenerator = new ConfigurablePaths(driveSubsystem);
-
     private final ListenableSendableChooser<Command> driveCommandChooser = new ListenableSendableChooser<>();
     private final ListenableSendableChooser<Command> autoCommandChooser = new ListenableSendableChooser<>();
     private final Alert noAutoSelectedAlert = new Alert("No Auto Routine Selected", AlertType.WARNING);
@@ -52,10 +48,6 @@ public class RobotContainer {
     }
 
     private void configureAutos() {
-        if (MiscConstants.TUNING_MODE) {
-            PathPlannerServer.startServer(5811);
-        }
-
         autoCommandChooser.setDefaultOption("Nothing", null);
         Autos autos = new Autos(driveSubsystem);
         for (Entry<String, Command> auto : autos.getAutos().entrySet()) {
@@ -159,6 +151,6 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        return pathGenerator.generatePath();
+        return autoCommandChooser.getSelected();
     }
 }
