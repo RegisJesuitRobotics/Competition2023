@@ -72,6 +72,10 @@ public class RotationSequence {
         return new State(new Rotation2d(positionRadians), velocityRadiansPerSec);
     }
 
+    public TreeMap<Double, Rotation2d> getSequence() {
+        return sequence;
+    }
+
     /** Represents a state in a rotation sequence with a position and velocity. */
     public static class State {
         public Rotation2d position;

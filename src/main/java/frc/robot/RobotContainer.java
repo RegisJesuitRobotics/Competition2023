@@ -7,21 +7,26 @@ import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ProxyCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.DriveTrainConstants;
+import frc.robot.Constants.MiscConstants;
 import frc.robot.Constants.TeleopConstants;
+import frc.robot.commands.drive.GreaseGearsCommand;
 import frc.robot.commands.drive.LockModulesCommand;
-import frc.robot.commands.drive.auto.Autos;
+import frc.robot.commands.drive.characterize.DriveTestingCommand;
+import frc.robot.commands.drive.characterize.DriveTrainSysIDCompatibleLoggerCommand;
+import frc.robot.commands.drive.characterize.SteerTestingCommand;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
 import frc.robot.hid.CommandXboxPlaystationController;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
+import frc.robot.telemetry.SendableTelemetryManager;
 import frc.robot.telemetry.tunable.TunableDouble;
 import frc.robot.utils.Alert;
 import frc.robot.utils.Alert.AlertType;
 import frc.robot.utils.ListenableSendableChooser;
 import frc.robot.utils.RaiderMathUtils;
 import frc.robot.utils.VectorRateLimiter;
-import java.util.Map.Entry;
 import java.util.function.DoubleSupplier;
 
 /**
@@ -48,10 +53,15 @@ public class RobotContainer {
     }
 
     private void configureAutos() {
-        autoCommandChooser.setDefaultOption("Nothing", null);
-        Autos autos = new Autos(driveSubsystem);
-        for (Entry<String, Command> auto : autos.getAutos().entrySet()) {
-            autoCommandChooser.addOption(auto.getKey(), auto.getValue());
+        ConfigurablePaths paths = new ConfigurablePaths(driveSubsystem);
+        autoCommandChooser.setDefaultOption("GeneratedAuto", new ProxyCommand(paths::generatePath));
+        autoCommandChooser.addOption("Nothing", null);
+
+        if (MiscConstants.TUNING_MODE) {
+            autoCommandChooser.addOption("SysIDLogger", new DriveTrainSysIDCompatibleLoggerCommand(driveSubsystem));
+            autoCommandChooser.addOption("GreaseGears", new GreaseGearsCommand(driveSubsystem));
+            autoCommandChooser.addOption("DriveTestingCommand", new DriveTestingCommand(1.0, true, driveSubsystem));
+            autoCommandChooser.addOption("SteerTesting", new SteerTestingCommand(driveSubsystem));
         }
 
         new Trigger(autoCommandChooser::hasNewValue)
@@ -59,7 +69,7 @@ public class RobotContainer {
                         .ignoringDisable(true)
                         .withName("Auto Alert Checker"));
 
-        Shuffleboard.getTab("DriveTrainRaw").add("Auto Chooser", autoCommandChooser);
+        SendableTelemetryManager.getInstance().addSendable("/autoChooser/AutoChooser", autoCommandChooser);
     }
 
     private void configureButtonBindings() {

@@ -5,6 +5,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants;
@@ -45,7 +47,18 @@ public class FollowPathCommand extends CommandBase {
     private final Timer timer = new Timer();
 
     public FollowPathCommand(HolonomicTrajectory path, SwerveDriveSubsystem driveSubsystem) {
-        this(() -> path, driveSubsystem);
+        this(path, true, driveSubsystem);
+    }
+
+    public FollowPathCommand(HolonomicTrajectory path, boolean shouldFlipIfRed, SwerveDriveSubsystem driveSubsystem) {
+        this(
+                () -> {
+                    if (shouldFlipIfRed && DriverStation.getAlliance() == Alliance.Red) {
+                        return path.getFlipped();
+                    }
+                    return path;
+                },
+                driveSubsystem);
     }
 
     /**
