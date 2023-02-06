@@ -2,7 +2,7 @@ import java.text.SimpleDateFormat
 
 plugins {
     id "java"
-    id "edu.wpi.first.GradleRIO" version "2023.3.1"
+    id "edu.wpi.first.GradleRIO" version "2023.3.2"
     id 'com.diffplug.spotless' version '6.11.0'
 }
 
@@ -123,7 +123,7 @@ spotless {
     format 'xml', {
         target fileTree('.') {
             include '**/*.xml'
-            exclude '**/build/**', '**/build-*/**'
+            exclude '**/build/**', '**/build-*/**', "**/.idea/**"
         }
         eclipseWtp('xml')
         trimTrailingWhitespace()
