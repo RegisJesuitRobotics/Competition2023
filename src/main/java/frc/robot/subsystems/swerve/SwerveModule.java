@@ -128,10 +128,8 @@ public class SwerveModule {
 
         this.driveVelocityPIDGains = config.sharedConfiguration().driveVelocityPIDGains();
         this.driveVelocityFFGains = config.sharedConfiguration().driveVelocityFFGains();
-        ;
 
         this.steerPositionPIDGains = config.sharedConfiguration().steerPositionPIDGains();
-        ;
 
         // Drive motor
         this.driveMotor = new TelemetryTalonFX(
