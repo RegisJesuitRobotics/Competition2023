@@ -1,4 +1,4 @@
-package frc.robot.subsystems.camera;
+package frc.robot.subsystems.photon;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFieldLayout.OriginPosition;
@@ -18,11 +18,11 @@ import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 
-public class PhotonCameraWrapperSubsystem extends SubsystemBase {
+public class PhotonSubsystem extends SubsystemBase {
     private final List<PhotonPoseEstimator> poseEstimators = new ArrayList<>();
     private final List<Pose3dEntry> estimatedPoseEntries = new ArrayList<>();
 
-    public PhotonCameraWrapperSubsystem() {
+    public PhotonSubsystem() {
         AprilTagFieldLayout fieldLayout;
         try {
             fieldLayout = new AprilTagFieldLayout(
@@ -40,7 +40,7 @@ public class PhotonCameraWrapperSubsystem extends SubsystemBase {
                 VisionConstants.FRONT_CAMERA_LOCATION));
 
         for (int i = 0; i < poseEstimators.size(); i++) {
-            estimatedPoseEntries.add(new Pose3dEntry("/camera/estimatedPoses/" + i, MiscConstants.TUNING_MODE));
+            estimatedPoseEntries.add(new Pose3dEntry("/photon/estimatedPoses/" + i, MiscConstants.TUNING_MODE));
         }
     }
 

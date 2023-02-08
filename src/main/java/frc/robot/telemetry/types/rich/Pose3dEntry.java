@@ -14,13 +14,7 @@ public class Pose3dEntry implements TelemetryEntry {
     double[] pose = new double[7];
 
     public void append(Pose3d value) {
-        pose[0] = value.getTranslation().getX();
-        pose[1] = value.getTranslation().getY();
-        pose[2] = value.getTranslation().getZ();
-        pose[3] = value.getRotation().getQuaternion().getW();
-        pose[4] = value.getRotation().getQuaternion().getX();
-        pose[5] = value.getRotation().getQuaternion().getY();
-        pose[6] = value.getRotation().getQuaternion().getZ();
+        copyPose3dToArray(value, pose, 0);
 
         poseEntry.append(pose);
     }
@@ -28,5 +22,15 @@ public class Pose3dEntry implements TelemetryEntry {
     @Override
     public void close() {
         poseEntry.close();
+    }
+
+    public static void copyPose3dToArray(Pose3d pose, double[] array, int startingIndex) {
+        array[startingIndex] = pose.getTranslation().getX();
+        array[startingIndex + 1] = pose.getTranslation().getY();
+        array[startingIndex + 2] = pose.getTranslation().getZ();
+        array[startingIndex + 3] = pose.getRotation().getQuaternion().getW();
+        array[startingIndex + 4] = pose.getRotation().getQuaternion().getX();
+        array[startingIndex + 5] = pose.getRotation().getQuaternion().getY();
+        array[startingIndex + 6] = pose.getRotation().getQuaternion().getZ();
     }
 }

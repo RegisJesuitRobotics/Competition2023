@@ -16,7 +16,7 @@ import frc.robot.commands.drive.LockModulesCommand;
 import frc.robot.commands.drive.auto.Autos;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
 import frc.robot.hid.CommandXboxPlaystationController;
-import frc.robot.subsystems.camera.PhotonCameraWrapperSubsystem;
+import frc.robot.subsystems.photon.PhotonSubsystem;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.tunable.TunableDouble;
 import frc.robot.utils.Alert;
@@ -34,7 +34,7 @@ import java.util.function.DoubleSupplier;
  * subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
-    private final PhotonCameraWrapperSubsystem cameraWrapperSubsystem = new PhotonCameraWrapperSubsystem();
+    private final PhotonSubsystem cameraWrapperSubsystem = new PhotonSubsystem();
     private final SwerveDriveSubsystem driveSubsystem =
             new SwerveDriveSubsystem(cameraWrapperSubsystem::getEstimatedGlobalPose);
 
