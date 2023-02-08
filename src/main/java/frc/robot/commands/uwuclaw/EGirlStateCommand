@@ -1,0 +1,20 @@
+package frc.robot.commands.uwuclaw;
+
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import frc.robot.subsystems.claw.ClawSubsystem;
+import frc.robot.subsystems.claw.ClawSubsystem.uwuClawstate;
+
+public class EGirlStateCommand extends InstantCommand {
+    private final ClawSubsystem UWU;
+    private final uwuClawstate UWUclawstate;
+
+    public EGirlStateCommand(uwuClawstate UWUclawstate, ClawSubsystem UWU) {
+        this.UWUclawstate = UWUclawstate;
+        this.UWU = UWU;
+    }
+
+    @Override
+    public void initialize() {
+        UWU.setClawState(UWUclawstate);
+    }
+}
