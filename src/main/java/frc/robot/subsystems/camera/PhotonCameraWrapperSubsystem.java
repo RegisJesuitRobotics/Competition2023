@@ -1,10 +1,13 @@
 package frc.robot.subsystems.camera;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFieldLayout.OriginPosition;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.MiscConstants;
 import frc.robot.Constants.VisionConstants;
+import frc.robot.telemetry.types.rich.Pose3dEntry;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -16,37 +19,41 @@ import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 
 public class PhotonCameraWrapperSubsystem extends SubsystemBase {
-    private final List<PhotonPoseEstimator> poseEstimators = new ArrayList<PhotonPoseEstimator>();
+    private final List<PhotonPoseEstimator> poseEstimators = new ArrayList<>();
+    private final List<Pose3dEntry> estimatedPoseEntries = new ArrayList<>();
 
     public PhotonCameraWrapperSubsystem() {
         AprilTagFieldLayout fieldLayout;
         try {
             fieldLayout = new AprilTagFieldLayout(
                     (Path) AprilTagFieldLayout.loadFromResource(AprilTagFields.k2023ChargedUp.m_resourceFile));
+            // TODO: GET THIS TO USE FMS
+            fieldLayout.setOrigin(OriginPosition.kBlueAllianceWallRightSide);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
         poseEstimators.add(new PhotonPoseEstimator(
                 fieldLayout,
-                PoseStrategy.AVERAGE_BEST_TARGETS,
+                PoseStrategy.LOWEST_AMBIGUITY,
                 new PhotonCamera(VisionConstants.FRONT_CAMERA_NAME),
                 VisionConstants.FRONT_CAMERA_LOCATION));
-        poseEstimators.add(new PhotonPoseEstimator(
-                fieldLayout,
-                PoseStrategy.AVERAGE_BEST_TARGETS,
-                new PhotonCamera(VisionConstants.BACK_CAMERA_NAME),
-                VisionConstants.BACK_CAMERA_LOCATION));
+
+        for (int i = 0; i < poseEstimators.size(); i++) {
+            estimatedPoseEntries.add(new Pose3dEntry("/camera/estimatedPoses/" + i, MiscConstants.TUNING_MODE));
+        }
     }
 
     public List<EstimatedRobotPose> getEstimatedGlobalPose(Pose2d prevEstimatedRobotPose) {
-        for (PhotonPoseEstimator poseEstimator : poseEstimators) {
-            poseEstimator.setReferencePose(prevEstimatedRobotPose);
-        }
         List<EstimatedRobotPose> updatedPoses = new ArrayList<>();
-        for (PhotonPoseEstimator poseEstimator : poseEstimators) {
+        for (int i = 0; i < poseEstimators.size(); i++) {
+            PhotonPoseEstimator poseEstimator = poseEstimators.get(i);
+            poseEstimator.setReferencePose(prevEstimatedRobotPose);
             Optional<EstimatedRobotPose> estimatedRobotPose = poseEstimator.update();
-            estimatedRobotPose.ifPresent(updatedPoses::add);
+            if (estimatedRobotPose.isPresent()) {
+                updatedPoses.add(estimatedRobotPose.get());
+                estimatedPoseEntries.get(i).append(estimatedRobotPose.get().estimatedPose);
+            }
         }
         return updatedPoses;
     }
