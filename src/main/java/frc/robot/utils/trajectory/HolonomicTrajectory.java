@@ -33,7 +33,7 @@ public final class HolonomicTrajectory {
     }
 
     public HolonomicTrajectory getFlipped() {
-        final Translation2d fieldLength = new Translation2d(FieldConstants.fieldLength, 0.0);
+        final Translation2d negativeFieldLength = new Translation2d(-FieldConstants.fieldLength, 0.0);
 
         List<Trajectory.State> flippedTrajectoryStates = new ArrayList<>();
         TreeMap<Double, Rotation2d> flippedRotations = new TreeMap<>();
@@ -46,7 +46,10 @@ public final class HolonomicTrajectory {
                     state.velocityMetersPerSecond,
                     state.accelerationMetersPerSecondSq,
                     new Pose2d(
-                            fieldLength.minus(state.poseMeters.getTranslation()),
+                            new Translation2d(
+                                    FieldConstants.fieldLength
+                                            - state.poseMeters.getTranslation().getX(),
+                                    state.poseMeters.getTranslation().getY()),
                             new Rotation2d(
                                     -state.poseMeters.getRotation().getCos(),
                                     state.poseMeters.getRotation().getSin())),
