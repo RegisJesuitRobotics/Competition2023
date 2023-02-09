@@ -125,9 +125,9 @@ public final class Constants {
     }
 
     public static class ClawConstants {
-        public static final int[] LEFT_SOLENOID_PORTS = {0, 0};
+        public static final int[] TOP_SOLENOID_PORTS = {0, 0};
 
-        public static final int[] RIGHT_SOLENOID_PORTS = {0, 0};
+        public static final int[] BOTTOM_SOLENOID_PORTS = {0, 0};
     }
 
     // TODO: change names when theres a cad for intake and change ports

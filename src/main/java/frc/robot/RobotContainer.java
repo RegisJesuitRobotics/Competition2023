@@ -12,11 +12,11 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.DriveTrainConstants;
 import frc.robot.Constants.MiscConstants;
 import frc.robot.Constants.TeleopConstants;
+import frc.robot.commands.claw.ClawToggleCommand;
 import frc.robot.commands.drive.LockModulesCommand;
 import frc.robot.commands.drive.auto.Autos;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
 import frc.robot.commands.intake.IntakeToggleCommand;
-import frc.robot.commands.uwuclaw.EGirlToggleCommand;
 import frc.robot.hid.CommandXboxPlaystationController;
 import frc.robot.subsystems.claw.*;
 import frc.robot.subsystems.intake.*;
@@ -47,7 +47,7 @@ public class RobotContainer {
     private final Alert noAutoSelectedAlert = new Alert("No Auto Routine Selected", AlertType.WARNING);
 
     private final IntakeSubsystem intake = new IntakeSubsystem();
-    private final ClawSubsystem UWU = new ClawSubsystem();
+    private final ClawSubsystem clawSubsystem = new ClawSubsystem();
 
     public RobotContainer() {
         configureButtonBindings();
@@ -148,7 +148,7 @@ public class RobotContainer {
 
         driverController.leftBumper().onTrue(new IntakeToggleCommand(intake));
 
-        driverController.rightBumper().onTrue(new EGirlToggleCommand(UWU));
+        driverController.rightBumper().onTrue(new ClawToggleCommand(clawSubsystem));
     }
 
     private void evaluateDriveStyle(Command newCommand) {
