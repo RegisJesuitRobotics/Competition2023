@@ -1,7 +1,6 @@
 package frc.robot.subsystems.photon;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFieldLayout.OriginPosition;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -27,8 +26,6 @@ public class PhotonSubsystem extends SubsystemBase {
         try {
             fieldLayout = new AprilTagFieldLayout(
                     (Path) AprilTagFieldLayout.loadFromResource(AprilTagFields.k2023ChargedUp.m_resourceFile));
-            // TODO: GET THIS TO USE FMS
-            fieldLayout.setOrigin(OriginPosition.kBlueAllianceWallRightSide);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
