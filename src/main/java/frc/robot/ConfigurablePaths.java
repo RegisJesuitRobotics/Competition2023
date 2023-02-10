@@ -167,7 +167,7 @@ public class ConfigurablePaths {
                         Waypoint.fromHolonomicPose(
                                 Community.betweenChargingAndWall[0].plus(new Translation2d(1.0, 0.0)),
                                 Rotation2d.fromDegrees(90.0)))));
-        aroundCharger.setDefaultOption(
+        aroundCharger.addOption(
                 "Left",
                 new WaypointsCommandPair(List.of(
                         Waypoint.fromHolonomicPose(
