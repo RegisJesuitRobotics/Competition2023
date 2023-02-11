@@ -21,6 +21,11 @@ public class LiftExtensionSuperStructure extends SubsystemBase {
         extensionSubsystem.setDistance(remainingDistance);
     }
 
+    public void stopMovement() {
+        liftSubsystem.stopMovement();
+        extensionSubsystem.stopMovement();
+    }
+
     public Translation2d getClawPosition() {
         double liftAngleRadians = liftSubsystem.getArmAngle().getRadians();
 

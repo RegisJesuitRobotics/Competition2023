@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+import frc.robot.FieldConstants.Grids;
 import frc.robot.telemetry.tunable.gains.TunableArmFFGains;
 import frc.robot.telemetry.tunable.gains.TunableFFGains;
 import frc.robot.telemetry.tunable.gains.TunablePIDGains;
@@ -145,8 +146,7 @@ public final class Constants {
         public static final Translation2d TOP_HORIZONTAL_TO_BOTTOM_HORIZONTAL =
                 new Translation2d(Units.inchesToMeters(1.0), Units.inchesToMeters(-5.0));
 
-        // TODO: Update this
-        public static final double GEAR_REDUCTION = 70.0 / 2.0;
+        public static final double GEAR_REDUCTION = 5.0 * 5.0 * 5.0 * 5.0;
 
         // TODO: Update this
         public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(0.0);
@@ -175,8 +175,11 @@ public final class Constants {
         public static final int STALL_CURRENT_LIMIT = -1;
         public static final int FREE_CURRENT_LIMIT = -1;
 
-        public static final double GEAR_REDUCTION = 1.0 / 1.0;
-        public static final double ROLLER_DIAMETER = Units.inchesToMeters(-1.0);
+        public static final double GEAR_REDUCTION = 3.0 * 4.0 * 5.0;
+        public static final double ROLLER_DIAMETER_METERS = Units.inchesToMeters(-1.0);
+
+        // Offset from claw to center of robot when at "0"
+        public static final double X_OFFSET_METERS = Units.inchesToMeters(-1);
 
         public static final TunablePIDGains PID_GAINS =
                 new TunablePIDGains("/gains/extension", 0.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
@@ -196,6 +199,33 @@ public final class Constants {
         public static final double MINIMUM_ANGULAR_VELOCITY_RADIANS_SECOND = 0.10;
     }
 
+    public static class AutoScoreConstants {
+        private AutoScoreConstants() {}
+
+        private static final double BUMPER_OFFSET_FROM_LOW_EDGE = Units.inchesToMeters(5.0);
+        private static final double CONE_X_OFFSET = Units.inchesToMeters(0.0);
+        private static final double CUBE_X_OFFSET = Units.inchesToMeters(0.0);
+        private static final double CONE_Z_OFFSET = Units.inchesToMeters(4.0);
+        private static final double CUBE_Z_OFFSET = Units.inchesToMeters(3.0);
+        private static final double GROUND_OFFSET = Units.inchesToMeters(6.0);
+
+        public static final double ROBOT_SCORING_X =
+                Grids.outerX + BUMPER_OFFSET_FROM_LOW_EDGE + (MiscConstants.FULL_ROBOT_LENGTH_METERS / 2.0);
+
+        public static final Translation2d CUBE_HIGH =
+                new Translation2d(ROBOT_SCORING_X - Grids.highX + CONE_X_OFFSET, Grids.highConeZ + CONE_Z_OFFSET);
+        public static final Translation2d CUBE_MID =
+                new Translation2d(ROBOT_SCORING_X - Grids.midX + CONE_X_OFFSET, Grids.midConeZ + CONE_Z_OFFSET);
+        public static final Translation2d CUBE_LOW =
+                new Translation2d(ROBOT_SCORING_X - Grids.lowX + CONE_X_OFFSET, GROUND_OFFSET);
+        public static final Translation2d CONE_HIGH =
+                new Translation2d(ROBOT_SCORING_X - Grids.highX + CUBE_X_OFFSET, Grids.highCubeZ + CUBE_Z_OFFSET);
+        public static final Translation2d CONE_MID =
+                new Translation2d(ROBOT_SCORING_X - Grids.midX + CUBE_X_OFFSET, Grids.midCubeZ + CUBE_Z_OFFSET);
+        public static final Translation2d CONE_LOW =
+                new Translation2d(ROBOT_SCORING_X - Grids.lowX + CUBE_X_OFFSET, GROUND_OFFSET);
+    }
+
     public static class MiscConstants {
 
         private MiscConstants() {}
@@ -206,5 +236,10 @@ public final class Constants {
         public static final ModuleType POWER_MODULE_TYPE = ModuleType.kRev;
         public static final int POWER_MODULE_ID = 1;
         public static final double CONFIGURATION_TIMEOUT_SECONDS = 5.0;
+
+        public static final double BUMPER_WIDTH_METERS = 0.75 + 2.3;
+        // With bumpers
+        public static final double FULL_ROBOT_LENGTH_METERS = Units.inchesToMeters(26.0) + (BUMPER_WIDTH_METERS * 2);
+        public static final double FULL_ROBOT_WIDTH_METERS = Units.inchesToMeters(33.866) + (BUMPER_WIDTH_METERS * 2);
     }
 }

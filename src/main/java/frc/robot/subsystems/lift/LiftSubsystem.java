@@ -86,6 +86,10 @@ public class LiftSubsystem extends SubsystemBase {
                 MathUtil.angleModulus(angle.getRadians()), MIN_ANGLE.getRadians(), MAX_ANGLE.getRadians()));
     }
 
+    public void stopMovement() {
+        setArmAngle(getArmAngle());
+    }
+
     /**
      * @return the rotation from the default frame perimeter position
      */

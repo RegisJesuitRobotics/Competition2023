@@ -50,7 +50,7 @@ public class ExtensionSubsystem extends SubsystemBase {
             leftMotor.setInverted(INVERT_LEADER);
             faultInitializing |= checkRevError(rightMotor.follow(leftMotor, INVERT_FOLLOWER_FROM_LEADER));
 
-            double conversionFactor = (Math.PI * ROLLER_DIAMETER) / GEAR_REDUCTION;
+            double conversionFactor = (Math.PI * ROLLER_DIAMETER_METERS) / GEAR_REDUCTION;
             faultInitializing |= checkRevError(encoder.setPositionConversionFactor(conversionFactor));
             faultInitializing |= checkRevError(encoder.setVelocityConversionFactor(conversionFactor));
 
@@ -71,6 +71,10 @@ public class ExtensionSubsystem extends SubsystemBase {
 
     public double getDistance() {
         return encoder.getPosition();
+    }
+
+    public void stopMovement() {
+        setDistance(getDistance());
     }
 
     @Override

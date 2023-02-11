@@ -3,20 +3,24 @@ package frc.robot;
 import com.pathplanner.lib.server.PathPlannerServer;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Constants.AutoScoreConstants;
 import frc.robot.Constants.DriveTrainConstants;
 import frc.robot.Constants.MiscConstants;
 import frc.robot.Constants.TeleopConstants;
 import frc.robot.commands.drive.LockModulesCommand;
 import frc.robot.commands.drive.auto.Autos;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
+import frc.robot.commands.lift.PositionClawCommand;
 import frc.robot.hid.CommandXboxPlaystationController;
-import frc.robot.subsystems.lift.LiftSubsystem;
+import frc.robot.subsystems.LiftExtensionSuperStructure;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.tunable.gains.TunableDouble;
 import frc.robot.utils.Alert;
@@ -35,9 +39,10 @@ import java.util.function.DoubleSupplier;
  */
 public class RobotContainer {
     private final SwerveDriveSubsystem driveSubsystem = new SwerveDriveSubsystem();
-    private final LiftSubsystem liftSubsystem = new LiftSubsystem();
+    private final LiftExtensionSuperStructure liftExtensionSuperStructure = new LiftExtensionSuperStructure();
 
     private final CommandXboxPlaystationController driverController = new CommandXboxPlaystationController(0);
+    private final CommandXboxPlaystationController operatorController = new CommandXboxPlaystationController(1);
     private final TeleopControlsStateManager teleopControlsStateManager = new TeleopControlsStateManager();
 
     private final ListenableSendableChooser<Command> driveCommandChooser = new ListenableSendableChooser<>();
@@ -71,6 +76,35 @@ public class RobotContainer {
     }
 
     private void configureButtonBindings() {
+        configureDriveStyle();
+
+        driverController
+                .options()
+                .onTrue(Commands.runOnce(driveSubsystem::resetOdometry)
+                        .ignoringDisable(true)
+                        .withName("Reset Odometry"));
+
+        driverController
+                .povUp()
+                .whileTrue(new LockModulesCommand(driveSubsystem).repeatedly().withName("Lock Modules"));
+
+        operatorController
+                .triangle()
+                .whileTrue(new PositionClawCommand(AutoScoreConstants.CONE_HIGH, liftExtensionSuperStructure)
+                        .andThen(rumbleOperatorControllerCommand()));
+        operatorController
+                .circle()
+                .whileTrue(new PositionClawCommand(AutoScoreConstants.CONE_MID, liftExtensionSuperStructure)
+                        .andThen(rumbleOperatorControllerCommand()));
+        operatorController
+                .x()
+                .whileTrue(new PositionClawCommand(AutoScoreConstants.CONE_LOW, liftExtensionSuperStructure)
+                        .andThen(rumbleOperatorControllerCommand()));
+        // TODO: Substation
+        operatorController.square().whileTrue(new InstantCommand());
+    }
+
+    private void configureDriveStyle() {
         TunableDouble maxTranslationSpeedPercent = new TunableDouble("/speed/maxTranslation", 0.9, true);
         TunableDouble maxMaxAngularSpeedPercent = new TunableDouble("/speed/maxAngular", 0.5, true);
 
@@ -130,16 +164,22 @@ public class RobotContainer {
                 .onTrue(Commands.runOnce(() -> evaluateDriveStyle(driveCommandChooser.getSelected()))
                         .ignoringDisable(true)
                         .withName("Drive Style Checker"));
+    }
 
-        driverController
-                .options()
-                .onTrue(Commands.runOnce(driveSubsystem::resetOdometry)
-                        .ignoringDisable(true)
-                        .withName("Reset Odometry"));
+    private Command rumbleDriverControllerCommand() {
+        return Commands.runEnd(
+                        () -> driverController.getHID().setRumble(RumbleType.kBothRumble, 1.0),
+                        () -> driverController.getHID().setRumble(RumbleType.kBothRumble, 0.0))
+                .withTimeout(0.5)
+                .ignoringDisable(true);
+    }
 
-        driverController
-                .povUp()
-                .whileTrue(new LockModulesCommand(driveSubsystem).repeatedly().withName("Lock Modules"));
+    private Command rumbleOperatorControllerCommand() {
+        return Commands.runEnd(
+                        () -> operatorController.getHID().setRumble(RumbleType.kBothRumble, 1.0),
+                        () -> operatorController.getHID().setRumble(RumbleType.kBothRumble, 0.0))
+                .withTimeout(0.5)
+                .ignoringDisable(true);
     }
 
     private void evaluateDriveStyle(Command newCommand) {
