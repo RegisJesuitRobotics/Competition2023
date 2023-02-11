@@ -17,9 +17,12 @@ import frc.robot.commands.drive.auto.Autos;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
 import frc.robot.commands.intake.IntakeToggleCommand;
 import frc.robot.commands.uwuclaw.EGirlToggleCommand;
+import frc.robot.commands.flicker.*;
 import frc.robot.hid.CommandXboxPlaystationController;
 import frc.robot.subsystems.claw.*;
 import frc.robot.subsystems.intake.*;
+import frc.robot.subsystems.flicker.*;
+import frc.robot.subsystems.flicker.FlickerSubsystem.FlickerState;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.tunable.TunableDouble;
 import frc.robot.utils.Alert;
@@ -45,6 +48,7 @@ public class RobotContainer {
     private final ListenableSendableChooser<Command> driveCommandChooser = new ListenableSendableChooser<>();
     private final ListenableSendableChooser<Command> autoCommandChooser = new ListenableSendableChooser<>();
     private final Alert noAutoSelectedAlert = new Alert("No Auto Routine Selected", AlertType.WARNING);
+    private final FlickerSubsystem flicker = new FlickerSubsystem();
 
     private final IntakeSubsystem intake = new IntakeSubsystem();
     private final ClawSubsystem UWU = new ClawSubsystem();
@@ -149,6 +153,8 @@ public class RobotContainer {
         driverController.leftBumper().onTrue(new IntakeToggleCommand(intake));
 
         driverController.rightBumper().onTrue(new EGirlToggleCommand(UWU));
+
+        driverController.share().onTrue(new FlickerToggleCommand(flicker));
     }
 
     private void evaluateDriveStyle(Command newCommand) {
