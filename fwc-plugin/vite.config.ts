@@ -4,12 +4,12 @@ import { defineConfig } from "vite";
 export default defineConfig({
   build: {
     lib: {
-      name: "my-plugin",
+      name: "raider-plugin",
       entry: "src/plugin.ts",
       formats: ["es"],
       fileName: "index",
     },
-    outDir: "raider-plugin",
+    outDir: "fwc-plugin",
   },
   server: {
     open: "/",
