@@ -1,8 +1,11 @@
 package frc.robot;
 
 import com.pathplanner.lib.server.PathPlannerServer;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.networktables.DoubleEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
@@ -102,6 +105,19 @@ public class RobotContainer {
                         .andThen(rumbleOperatorControllerCommand()));
         // TODO: Substation
         operatorController.square().whileTrue(new InstantCommand());
+
+        DoubleEntry gridEntry = NetworkTableInstance.getDefault()
+                .getDoubleTopic("/toLog/autoScore/grid")
+                .getEntry(0.0);
+        gridEntry.set(0.0);
+        operatorController
+                .povLeft()
+                .onTrue(Commands.runOnce(() -> gridEntry.set(MathUtil.clamp(gridEntry.get() - 1, 0, 8)))
+                        .ignoringDisable(true));
+        operatorController
+                .povRight()
+                .onTrue(Commands.runOnce(() -> gridEntry.set(MathUtil.clamp(gridEntry.get() + 1, 0, 8)))
+                        .ignoringDisable(true));
     }
 
     private void configureDriveStyle() {
