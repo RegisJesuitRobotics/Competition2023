@@ -120,6 +120,13 @@ spotless {
         trimTrailingWhitespace()
         endWithNewline()
     }
+    typescript {
+        target fileTree('fwc-plugin') {
+            include '**/*.ts'
+            exclude 'node_modules/**'
+        }
+        prettier()
+    }
     format 'xml', {
         target fileTree('.') {
             include '**/*.xml'

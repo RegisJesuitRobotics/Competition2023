@@ -1,0 +1,31 @@
+{
+  "name": "raider-plugin",
+  "version": "0.0.0",
+  "description": "description",
+  "author": "ohowe",
+  "email": "ohowe@duck.com",
+  "type": "module",
+  "main": "dist/raider-plugin.js",
+  "exports": {
+    ".": "./dist/raider-plugin.js"
+  },
+  "types": "types/index.d.ts",
+  "files": [
+    "dist",
+    "types"
+  ],
+  "scripts": {
+    "start": "vite",
+    "build": "tsc && vite build"
+  },
+  "dependencies": {
+    "@frc-web-components/fwc": "^1.0.2",
+    "fa-icons": "^0.2.0",
+    "lit": "^2.2.7"
+  },
+  "devDependencies": {
+    "typescript": "^4.6.4",
+    "vite": "^3.0.0"
+  },
+  "license": "MIT"
+}
