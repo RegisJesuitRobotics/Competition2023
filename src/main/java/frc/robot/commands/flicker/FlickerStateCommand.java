@@ -10,7 +10,7 @@ public class FlickerStateCommand extends InstantCommand {
 
     public FlickerStateCommand(FlickerState flickerState, FlickerSubsystem flicker) {
         this.flickerState = flickerState;
-        
+
         this.flicker = flicker;
         addRequirements(flicker);
     }

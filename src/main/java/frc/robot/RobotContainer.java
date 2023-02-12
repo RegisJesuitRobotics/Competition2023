@@ -12,18 +12,14 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.DriveTrainConstants;
 import frc.robot.Constants.MiscConstants;
 import frc.robot.Constants.TeleopConstants;
-import frc.robot.commands.claw.ClawToggleCommand;
 import frc.robot.commands.drive.LockModulesCommand;
 import frc.robot.commands.drive.auto.Autos;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
 import frc.robot.commands.intake.IntakeToggleCommand;
-import frc.robot.commands.uwuclaw.EGirlToggleCommand;
-import frc.robot.commands.flicker.*;
 import frc.robot.hid.CommandXboxPlaystationController;
-import frc.robot.subsystems.claw.*;
-import frc.robot.subsystems.intake.*;
-import frc.robot.subsystems.flicker.*;
-import frc.robot.subsystems.flicker.FlickerSubsystem.FlickerState;
+import frc.robot.subsystems.claw.ClawSubsystem;
+import frc.robot.subsystems.flicker.FlickerSubsystem;
+import frc.robot.subsystems.intake.IntakeSubsystem;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.tunable.TunableDouble;
 import frc.robot.utils.Alert;
@@ -152,8 +148,6 @@ public class RobotContainer {
                 .whileTrue(new LockModulesCommand(driveSubsystem).repeatedly().withName("Lock Modules"));
 
         driverController.leftBumper().onTrue(new IntakeToggleCommand(intake));
-
-        driverController.rightBumper().onTrue(new EGirlToggleCommand(UWU));
     }
 
     private void evaluateDriveStyle(Command newCommand) {

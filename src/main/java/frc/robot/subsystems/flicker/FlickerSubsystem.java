@@ -21,6 +21,7 @@ public class FlickerSubsystem extends SubsystemBase {
             this.Anothervalue = Anothervalue;
         }
     }
+
     public boolean getState() {
         return FlickerBack;
     }
