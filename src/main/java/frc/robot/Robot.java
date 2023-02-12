@@ -1,6 +1,7 @@
 package frc.robot;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.util.datalog.DataLog;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -58,11 +59,13 @@ public class Robot extends TreeTimedRobot {
         DataLogManager.logNetworkTables(false);
         DataLogManager.start();
 
+        DataLog dataLog = DataLogManager.getLog();
         // Log all photon traffic and other things we specifically want to log
-        NetworkTableInstance.getDefault().startEntryDataLog(DataLogManager.getLog(), "/photonvision/", "photonvision/");
-        NetworkTableInstance.getDefault().startEntryDataLog(DataLogManager.getLog(), "/toLog/", "");
+        NetworkTableInstance.getDefault().startEntryDataLog(dataLog, "/photonvision/", "photonvision/");
+        NetworkTableInstance.getDefault().startEntryDataLog(dataLog, "/toLog/", "");
+        NetworkTableInstance.getDefault().startConnectionDataLog(dataLog, "NTConnection");
 
-        DriverStation.startDataLog(DataLogManager.getLog());
+        DriverStation.startDataLog(dataLog);
 
         CommandSchedulerLogger.getInstance().start();
 

@@ -1,7 +1,5 @@
 package frc.robot;
 
-import com.pathplanner.lib.PathConstraints;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
@@ -124,9 +122,9 @@ public final class Constants {
                         DriveTrainConstants.MAX_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED,
                         MiscConstants.TUNING_MODE);
         public static final double MAX_PATH_ACCELERATION_METERS_PER_SECOND_SQUARED =
-                DriveTrainConstants.MAX_VELOCITY_METERS_SECOND / 1.5;
-        public static final PathConstraints PATH_CONSTRAINTS = new PathConstraints(
-                DriveTrainConstants.MAX_VELOCITY_METERS_SECOND, MAX_PATH_ACCELERATION_METERS_PER_SECOND_SQUARED);
+                DriveTrainConstants.MAX_VELOCITY_METERS_SECOND / 2.0;
+        public static final double MAX_PATH_VELOCITY_METERS_SECOND =
+                DriveTrainConstants.MAX_VELOCITY_METERS_SECOND / 1.25;
     }
 
     public static class LiftConstants {
