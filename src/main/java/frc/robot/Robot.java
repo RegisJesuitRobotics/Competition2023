@@ -3,6 +3,7 @@ package frc.robot;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.util.datalog.DataLog;
 import edu.wpi.first.wpilibj.*;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -40,6 +41,7 @@ public class Robot extends TreeTimedRobot {
     private TelemetryPowerDistribution telemetryPowerDistribution;
     private MiscRobotTelemetryAndAlerts miscRobotTelemetryAndAlerts;
     private OverrunAlertManager overrunAlertManager;
+    private Alliance lastAlliance;
 
     public Robot() {
         startTime = Timer.getFPGATimestamp();
@@ -84,6 +86,8 @@ public class Robot extends TreeTimedRobot {
 
         robotContainer = new RobotContainer();
 
+        lastAlliance = DriverStation.getAlliance();
+
         DataLogManager.log("RobotInit took " + (Timer.getFPGATimestamp() - startTime) + " seconds");
     }
 
@@ -97,6 +101,11 @@ public class Robot extends TreeTimedRobot {
     @Override
     public void robotPeriodic() {
         overrunAlertManager.update(super.didLastLoopOverrun);
+
+        if (DriverStation.getAlliance() != lastAlliance) {
+            lastAlliance = DriverStation.getAlliance();
+            robotContainer.onAllianceChange(lastAlliance);
+        }
 
         watchdog.addNode("commandScheduler");
         CommandScheduler.getInstance().run();
