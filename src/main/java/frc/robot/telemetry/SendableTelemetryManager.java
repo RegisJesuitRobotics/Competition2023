@@ -2,6 +2,7 @@ package frc.robot.telemetry;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.util.sendable.SendableRegistry;
 import edu.wpi.first.wpilibj.smartdashboard.SendableBuilderImpl;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,8 +27,9 @@ public class SendableTelemetryManager {
     public void addSendable(String name, Sendable sendable) {
         SendableBuilderImpl sendableBuilder = new SendableBuilderImpl();
         sendableBuilder.setTable(NetworkTableInstance.getDefault().getTable("/toLog/" + name));
+        SendableRegistry.publish(sendable, sendableBuilder);
+        sendableBuilder.startListeners();
 
-        sendable.initSendable(sendableBuilder);
         sendables.add(sendableBuilder);
     }
 
