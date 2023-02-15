@@ -32,7 +32,7 @@ public class PhotonSubsystem extends SubsystemBase {
 
         poseEstimators.add(new PhotonPoseEstimator(
                 fieldLayout,
-                PoseStrategy.LOWEST_AMBIGUITY,
+                PoseStrategy.MULTI_TAG_PNP,
                 new PhotonCamera(VisionConstants.FRONT_CAMERA_NAME),
                 VisionConstants.FRONT_CAMERA_LOCATION));
 
