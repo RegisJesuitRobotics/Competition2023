@@ -132,12 +132,11 @@ public final class Constants {
     public static class LiftConstants {
         private LiftConstants() {}
 
-        // TODO: update motor ports
-        public static final int LEFT_MOTOR_PORT = 0;
-        public static final int RIGHT_MOTOR_PORT = 0;
+        public static final int LEFT_MOTOR_PORT = 1;
+        public static final int RIGHT_MOTOR_PORT = 2;
 
         public static final boolean INVERT_LEADER = false;
-        public static final boolean INVERT_FOLLOWER_FROM_LEADER = true;
+        public static final boolean INVERT_FOLLOWER_FROM_LEADER = false;
 
         public static final double HORIZONTAL_BAR_LENGTH = Units.inchesToMeters(32.0);
         public static final double VERTICAL_BAR_HEIGHT_FROM_FLOOR = Units.inchesToMeters(40.724);
@@ -150,33 +149,34 @@ public final class Constants {
 
         // TODO: Update this
         public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(0.0);
-        public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(75.0);
+        public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(165.0);
 
         public static final TunablePIDGains PID_GAINS =
-                new TunablePIDGains("/gains/lifter", 0.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
+                new TunablePIDGains("/gains/lifter", 4.7362, 0.0, 3.8901, MiscConstants.TUNING_MODE);
         public static final TunableTrapezoidalProfileGains TRAPEZOIDAL_PROFILE_GAINS =
-                new TunableTrapezoidalProfileGains("/gains/lifter", 0.0, 0.0, MiscConstants.TUNING_MODE);
+                new TunableTrapezoidalProfileGains(
+                        "/gains/lifter", Math.PI / 2, Math.PI / 2, MiscConstants.TUNING_MODE);
         public static final TunableArmFFGains FF_GAINS =
-                new TunableArmFFGains("/gains/lifter", 0.0, 0.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
+                new TunableArmFFGains("/gains/lifter", 0.12526, 0.15687, 10.508, 0.19378, MiscConstants.TUNING_MODE);
 
-        public static final int STALL_CURRENT_LIMIT = -1;
-        public static final int FREE_CURRENT_LIMIT = -1;
+        public static final int STALL_CURRENT_LIMIT = 10;
+        public static final int FREE_CURRENT_LIMIT = 50;
     }
 
     public static class ExtensionConstants {
         private ExtensionConstants() {}
 
-        public static final int LEFT_MOTOR_PORT = 0;
-        public static final int RIGHT_MOTOR_PORT = 0;
+        public static final int LEFT_MOTOR_PORT = 3;
+        public static final int RIGHT_MOTOR_PORT = 4;
 
         public static final boolean INVERT_LEADER = false;
         public static final boolean INVERT_FOLLOWER_FROM_LEADER = true;
 
-        public static final int STALL_CURRENT_LIMIT = -1;
-        public static final int FREE_CURRENT_LIMIT = -1;
+        public static final int STALL_CURRENT_LIMIT = 10;
+        public static final int FREE_CURRENT_LIMIT = 20;
 
         public static final double GEAR_REDUCTION = 3.0 * 4.0 * 5.0;
-        public static final double ROLLER_DIAMETER_METERS = Units.inchesToMeters(-1.0);
+        public static final double ROLLER_DIAMETER_METERS = Units.inchesToMeters(0.5);
 
         // Offset from claw to center of robot when at "0"
         public static final double X_OFFSET_METERS = Units.inchesToMeters(-1);
@@ -212,6 +212,11 @@ public final class Constants {
         public static final double ROBOT_SCORING_X =
                 Grids.outerX + BUMPER_OFFSET_FROM_LOW_EDGE + (MiscConstants.FULL_ROBOT_LENGTH_METERS / 2.0);
 
+        static {
+            System.out.println("ROBOT_SCORING_X: " + ROBOT_SCORING_X);
+            System.out.println("Grids.highX: " + Grids.highX);
+        }
+
         public static final Translation2d CUBE_HIGH =
                 new Translation2d(ROBOT_SCORING_X - Grids.highX + CONE_X_OFFSET, Grids.highConeZ + CONE_Z_OFFSET);
         public static final Translation2d CUBE_MID =
@@ -237,7 +242,7 @@ public final class Constants {
         public static final int POWER_MODULE_ID = 1;
         public static final double CONFIGURATION_TIMEOUT_SECONDS = 5.0;
 
-        public static final double BUMPER_WIDTH_METERS = 0.75 + 2.3;
+        public static final double BUMPER_WIDTH_METERS = Units.inchesToMeters(0.75 + 2.3);
         // With bumpers
         public static final double FULL_ROBOT_LENGTH_METERS = Units.inchesToMeters(26.0) + (BUMPER_WIDTH_METERS * 2);
         public static final double FULL_ROBOT_WIDTH_METERS = Units.inchesToMeters(33.866) + (BUMPER_WIDTH_METERS * 2);
