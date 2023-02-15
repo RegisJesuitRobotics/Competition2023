@@ -15,11 +15,9 @@ import frc.robot.Constants.TeleopConstants;
 import frc.robot.commands.drive.LockModulesCommand;
 import frc.robot.commands.drive.auto.Autos;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
-import frc.robot.commands.intake.IntakeToggleCommand;
 import frc.robot.hid.CommandXboxPlaystationController;
 import frc.robot.subsystems.claw.ClawSubsystem;
-import frc.robot.subsystems.flicker.FlickerSubsystem;
-import frc.robot.subsystems.intake.IntakeSubsystem;
+import frc.robot.subsystems.intake.FlipperSubsystem;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.tunable.TunableDouble;
 import frc.robot.utils.Alert;
@@ -38,6 +36,8 @@ import java.util.function.DoubleSupplier;
  */
 public class RobotContainer {
     private final SwerveDriveSubsystem driveSubsystem = new SwerveDriveSubsystem();
+    private final FlipperSubsystem flipper = new FlipperSubsystem();
+    private final ClawSubsystem clawSubsystem = new ClawSubsystem();
 
     private final CommandXboxPlaystationController driverController = new CommandXboxPlaystationController(0);
     private final TeleopControlsStateManager teleopControlsStateManager = new TeleopControlsStateManager();
@@ -45,10 +45,6 @@ public class RobotContainer {
     private final ListenableSendableChooser<Command> driveCommandChooser = new ListenableSendableChooser<>();
     private final ListenableSendableChooser<Command> autoCommandChooser = new ListenableSendableChooser<>();
     private final Alert noAutoSelectedAlert = new Alert("No Auto Routine Selected", AlertType.WARNING);
-    private final FlickerSubsystem flicker = new FlickerSubsystem();
-
-    private final IntakeSubsystem intake = new IntakeSubsystem();
-    private final ClawSubsystem clawSubsystem = new ClawSubsystem();
 
     public RobotContainer() {
         configureButtonBindings();
@@ -147,7 +143,9 @@ public class RobotContainer {
                 .povUp()
                 .whileTrue(new LockModulesCommand(driveSubsystem).repeatedly().withName("Lock Modules"));
 
-        driverController.leftBumper().onTrue(new IntakeToggleCommand(intake));
+        driverController.rightTrigger().onTrue(Commands.runOnce(flipper::toggleUpDownState, flipper));
+        driverController.leftTrigger().onTrue(Commands.runOnce(flipper::toggleInOutState, flipper));
+        driverController.share().onTrue(Commands.runOnce(clawSubsystem::toggleClawState, clawSubsystem));
     }
 
     private void evaluateDriveStyle(Command newCommand) {

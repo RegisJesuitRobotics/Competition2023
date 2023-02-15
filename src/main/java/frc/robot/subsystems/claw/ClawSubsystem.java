@@ -4,12 +4,13 @@ import static frc.robot.Constants.ClawConstants.*;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
-import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.MiscConstants;
+import frc.robot.Robot;
+import frc.robot.telemetry.types.IntegerTelemetryEntry;
+import frc.robot.utils.RaiderUtils;
 
 public class ClawSubsystem extends SubsystemBase {
-    private boolean clawOpen = true;
-
     public enum ClawState {
         OPEN(Value.kForward),
         CLOSE(Value.kReverse);
@@ -21,29 +22,35 @@ public class ClawSubsystem extends SubsystemBase {
         }
     }
 
-    private final DoubleSolenoid topSolenoid =
-            new DoubleSolenoid(PneumaticsModuleType.REVPH, TOP_SOLENOID_PORTS[0], TOP_SOLENOID_PORTS[1]);
+    private final DoubleSolenoid solenoid =
+            new DoubleSolenoid(MiscConstants.PNEUMATICS_MODULE_TYPE, SOLENOID_PORTS[0], SOLENOID_PORTS[1]);
 
-    private final DoubleSolenoid bottomSolenoid =
-            new DoubleSolenoid(PneumaticsModuleType.REVPH, BOTTOM_SOLENOID_PORTS[0], BOTTOM_SOLENOID_PORTS[1]);
+    private final IntegerTelemetryEntry solenoidEntry = new IntegerTelemetryEntry("/claw/solenoid", false);
 
     public ClawSubsystem() {}
 
     public void setClawState(ClawState clawstate) {
-        setClawState(clawstate.value);
-        clawOpen = clawstate == ClawState.CLOSE;
-    }
-
-    private void setClawState(Value value) {
-        topSolenoid.set(value);
-        bottomSolenoid.set(value);
+        solenoid.set(clawstate.value);
     }
 
     public void toggleClawState() {
-        if (clawOpen) {
+        // Even if it's off, go open
+        if (solenoid.get() == ClawState.CLOSE.value) {
             setClawState(ClawState.OPEN);
         } else {
             setClawState(ClawState.CLOSE);
         }
+    }
+
+    public void periodic() {
+        Robot.startWNode("ClawSubsystem");
+        Robot.startWNode("logValues");
+        logValues();
+        Robot.endWNode();
+        Robot.endWNode();
+    }
+
+    private void logValues() {
+        solenoidEntry.append(RaiderUtils.getSolenoidValueToInt(solenoid.get()));
     }
 }

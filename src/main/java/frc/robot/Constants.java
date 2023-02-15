@@ -4,6 +4,7 @@ import com.pathplanner.lib.PathConstraints;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import frc.robot.telemetry.tunable.TunableFFGains;
 import frc.robot.telemetry.tunable.TunablePIDGains;
@@ -125,16 +126,13 @@ public final class Constants {
     }
 
     public static class ClawConstants {
-        public static final int[] TOP_SOLENOID_PORTS = {0, 0};
-
-        public static final int[] BOTTOM_SOLENOID_PORTS = {0, 0};
+        public static final int[] SOLENOID_PORTS = {0, 0};
     }
 
     // TODO: change names when theres a cad for intake and change ports
     public static class IntakeConstants {
-        public static final int[] LEFT_SOLENOID_PORTS = {0, 0};
-
-        public static final int[] RIGHT_SOLENOID_PORTS = {0, 0};
+        public static final int[] UP_DOWN_SOLENOID_PORTS = {1, 2};
+        public static final int[] LEFT_RIGHT_SOLENOID_PORTS = {3, 4};
     }
 
     public static class TeleopConstants {
@@ -154,6 +152,7 @@ public final class Constants {
         public static final int[] USED_CONTROLLER_PORTS = {0};
         public static final boolean TUNING_MODE = true;
 
+        public static final PneumaticsModuleType PNEUMATICS_MODULE_TYPE = PneumaticsModuleType.REVPH;
         public static final ModuleType POWER_MODULE_TYPE = ModuleType.kRev;
         public static final int POWER_MODULE_ID = 1;
     }
