@@ -10,4 +10,13 @@ public class RaiderUtils {
             case kReverse -> 2;
         };
     }
+
+    public static boolean anyTrue(boolean[] array) {
+        for (boolean bool : array) {
+            if (bool) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
