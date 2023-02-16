@@ -70,6 +70,10 @@ public class Waypoint {
         return new Waypoint(pose.getTranslation(), pose.getRotation(), holonomicRotation);
     }
 
+    public static Waypoint fromDifferentialPose(Translation2d pose, Rotation2d driveRotation) {
+        return new Waypoint(pose, driveRotation, null);
+    }
+
     /**
      * Constructs a Waypoint based on a pose.
      *

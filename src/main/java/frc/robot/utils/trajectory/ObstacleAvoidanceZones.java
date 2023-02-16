@@ -1,11 +1,12 @@
 package frc.robot.utils.trajectory;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import frc.robot.Constants.MiscConstants;
 import frc.robot.FieldConstants;
 import frc.robot.FieldConstants.Community;
-import frc.robot.utils.AdjacencyMatrixGraphWithReversableList;
+import frc.robot.utils.AdjacencyMatrixGraph;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,53 +39,84 @@ public class ObstacleAvoidanceZones {
     private static final List<Rectangle> zones =
             List.of(innerCommunity, rightChargingStation, leftChargingStation, noMansLand);
 
-    private static final AdjacencyMatrixGraphWithReversableList<Rectangle, Translation2d> graph =
-            new AdjacencyMatrixGraphWithReversableList<>();
+    private static final AdjacencyMatrixGraph<Rectangle, List<Waypoint>> graph = new AdjacencyMatrixGraph<>();
 
     static {
         final double longerRobotSide =
                 Math.max(MiscConstants.FULL_ROBOT_WIDTH_METERS, MiscConstants.FULL_ROBOT_LENGTH_METERS);
         final double extraSpace = Units.inchesToMeters(3.0);
-        graph.addEdge(
+        final Rotation2d zero = Rotation2d.fromDegrees(0.0);
+        addAutoReverseEdges(
                 innerCommunity,
                 rightChargingStation,
                 List.of(
-                        new Translation2d(
-                                Community.chargingStationInnerX - (longerRobotSide / 2.0) - extraSpace,
-                                (Community.chargingStationRightY - Community.rightY) / 2.0),
-                        new Translation2d(
-                                Community.chargingStationInnerX + extraSpace,
-                                (Community.chargingStationRightY - Community.rightY) / 2.0)));
-        graph.addEdge(
+                        Waypoint.fromDifferentialPose(
+                                new Translation2d(
+                                        Community.chargingStationInnerX - (longerRobotSide / 2.0) - extraSpace,
+                                        (Community.chargingStationRightY - Community.rightY) / 2.0),
+                                zero),
+                        Waypoint.fromDifferentialPose(
+                                new Translation2d(
+                                        Community.chargingStationInnerX + extraSpace,
+                                        (Community.chargingStationRightY - Community.rightY) / 2.0),
+                                zero)));
+        addAutoReverseEdges(
                 innerCommunity,
                 leftChargingStation,
                 List.of(
-                        new Translation2d(
-                                Community.chargingStationInnerX - (longerRobotSide / 2.0) - extraSpace,
-                                (Community.chargingStationLeftY - Community.leftY) / 2.0),
-                        new Translation2d(
-                                Community.chargingStationInnerX + extraSpace,
-                                (Community.chargingStationLeftY - Community.leftY) / 2.0)));
-        graph.addEdge(
+                        Waypoint.fromDifferentialPose(
+                                new Translation2d(
+                                        Community.chargingStationInnerX - (longerRobotSide / 2.0) - extraSpace,
+                                        (Community.chargingStationLeftY - Community.leftY) / 2.0),
+                                zero),
+                        Waypoint.fromDifferentialPose(
+                                new Translation2d(
+                                        Community.chargingStationInnerX + extraSpace,
+                                        (Community.chargingStationLeftY - Community.leftY) / 2.0),
+                                zero)));
+        addAutoReverseEdges(
                 rightChargingStation,
                 noMansLand,
                 List.of(
-                        new Translation2d(
-                                Community.chargingStationOuterX - extraSpace,
-                                (Community.chargingStationRightY - Community.rightY) / 2.0),
-                        new Translation2d(
-                                Community.chargingStationOuterX + (longerRobotSide / 2.0) + extraSpace,
-                                (Community.chargingStationRightY - Community.rightY) / 2.0)));
-        graph.addEdge(
+                        Waypoint.fromDifferentialPose(
+                                new Translation2d(
+                                        Community.chargingStationOuterX - extraSpace,
+                                        (Community.chargingStationRightY - Community.rightY) / 2.0),
+                                zero),
+                        Waypoint.fromDifferentialPose(
+                                new Translation2d(
+                                        Community.chargingStationOuterX + (longerRobotSide / 2.0) + extraSpace,
+                                        (Community.chargingStationRightY - Community.rightY) / 2.0),
+                                zero)));
+        addAutoReverseEdges(
                 leftChargingStation,
                 noMansLand,
                 List.of(
-                        new Translation2d(
-                                Community.chargingStationOuterX - extraSpace,
-                                (Community.chargingStationLeftY - Community.leftY) / 2.0),
-                        new Translation2d(
-                                Community.chargingStationOuterX + (longerRobotSide / 2.0) + extraSpace,
-                                (Community.chargingStationLeftY - Community.leftY) / 2.0)));
+                        Waypoint.fromDifferentialPose(
+                                new Translation2d(
+                                        Community.chargingStationOuterX - extraSpace,
+                                        (Community.chargingStationLeftY - Community.leftY) / 2.0),
+                                zero),
+                        Waypoint.fromDifferentialPose(
+                                new Translation2d(
+                                        Community.chargingStationOuterX + (longerRobotSide / 2.0) + extraSpace,
+                                        (Community.chargingStationLeftY - Community.leftY) / 2.0),
+                                zero)));
+    }
+
+    private static void addAutoReverseEdges(Rectangle to, Rectangle from, List<Waypoint> waypoints) {
+        List<Waypoint> reversedWaypoints = new ArrayList<>();
+        for (int i = waypoints.size() - 1; i >= 0; i--) {
+            Waypoint waypoint = waypoints.get(i);
+            if (waypoint.getDriveRotation().isPresent()) {
+                waypoint = new Waypoint(
+                        waypoint.getTranslation(),
+                        waypoint.getDriveRotation().get().rotateBy(Rotation2d.fromDegrees(180.0)),
+                        waypoint.getHolonomicRotation().orElse(null));
+            }
+            reversedWaypoints.add(waypoint);
+        }
+        graph.addEdge(to, from, waypoints, reversedWaypoints);
     }
 
     private static Rectangle getZone(Translation2d point) {
@@ -107,17 +139,20 @@ public class ObstacleAvoidanceZones {
             if (currentZone != null && nextZone != null && currentZone != nextZone) {
                 List<List<Rectangle>> paths = graph.getPaths(currentZone, nextZone);
                 double minDistance = Double.MAX_VALUE;
-                List<Translation2d> bestPath = List.of();
+                List<Waypoint> bestPath = List.of();
                 for (List<Rectangle> path : paths) {
-                    List<Translation2d> pathPoints = new ArrayList<>();
-                    pathPoints.add(current.getTranslation());
+                    List<Waypoint> pathPoints = new ArrayList<>();
+                    pathPoints.add(current);
                     for (int j = 0; j < path.size() - 1; j++) {
                         pathPoints.addAll(graph.getEdge(path.get(j), path.get(j + 1)));
                     }
 
                     double distance = 0.0;
                     for (int j = 0; j < pathPoints.size() - 1; j++) {
-                        distance += pathPoints.get(j).getDistance(pathPoints.get(j + 1));
+                        distance += pathPoints
+                                .get(j)
+                                .getTranslation()
+                                .getDistance(pathPoints.get(j + 1).getTranslation());
                     }
                     if (distance < minDistance) {
                         minDistance = distance;
@@ -126,9 +161,8 @@ public class ObstacleAvoidanceZones {
                 }
                 // Don't re-add the first and last points
                 for (int j = 1; j < bestPath.size(); j++) {
-                    returnedList.add(i + j, new Waypoint(bestPath.get(j)));
+                    returnedList.add(i + j, bestPath.get(j));
                 }
-                System.out.println("SDF" + returnedList.size());
                 i += bestPath.size() - 1;
             }
         }
