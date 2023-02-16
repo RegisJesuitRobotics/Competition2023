@@ -7,6 +7,7 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -138,7 +139,8 @@ public class SwerveDriveSubsystem extends SubsystemBase {
      * @return the estimated position of the robot
      */
     public Pose2d getPose() {
-        return poseEstimator.getEstimatedPosition();
+        return new Pose2d(new Translation2d(11.23, 4.73), Rotation2d.fromDegrees(90.0));
+        //        return poseEstimator.getEstimatedPosition();
     }
 
     public ChassisSpeeds getCurrentChassisSpeeds() {

@@ -7,12 +7,15 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.AutoScoreConstants;
+import frc.robot.Constants.AutoScoreConstants.ScoreLevel;
 import frc.robot.Constants.DriveTrainConstants;
 import frc.robot.Constants.MiscConstants;
 import frc.robot.Constants.TeleopConstants;
+import frc.robot.commands.AutoScoreCommand;
 import frc.robot.commands.drive.GreaseGearsCommand;
 import frc.robot.commands.drive.LockModulesCommand;
 import frc.robot.commands.drive.characterize.DriveTestingCommand;
@@ -25,12 +28,10 @@ import frc.robot.subsystems.LiftExtensionSuperStructure;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.SendableTelemetryManager;
 import frc.robot.telemetry.tunable.gains.TunableDouble;
-import frc.robot.utils.Alert;
+import frc.robot.utils.*;
 import frc.robot.utils.Alert.AlertType;
-import frc.robot.utils.ListenableSendableChooser;
-import frc.robot.utils.RaiderMathUtils;
-import frc.robot.utils.VectorRateLimiter;
 import java.util.function.DoubleSupplier;
+import java.util.function.IntSupplier;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -50,8 +51,13 @@ public class RobotContainer {
     private final ListenableSendableChooser<Command> autoCommandChooser = new ListenableSendableChooser<>();
     private final Alert noAutoSelectedAlert = new Alert("No Auto Routine Selected", AlertType.WARNING);
 
+    private final IntegerEntry gridEntry = NetworkTableInstance.getDefault()
+            .getIntegerTopic("/toLog/autoScore/grid")
+            .getEntry(0);
+
     public RobotContainer() {
-        configureButtonBindings();
+        configureDriverBindings();
+        configureOperatorBindings();
         configureAutos();
 
         Shuffleboard.getTab("UtilsRaw").add(CommandScheduler.getInstance());
@@ -77,33 +83,72 @@ public class RobotContainer {
         SendableTelemetryManager.getInstance().addSendable("/autoChooser/AutoChooser", autoCommandChooser);
     }
 
-    private void configureButtonBindings() {
-        configureDriveStyle();
+    private void configureDriverBindings() {
+        configureDriving();
 
         driverController
                 .options()
                 .onTrue(Commands.runOnce(driveSubsystem::resetOdometry)
                         .ignoringDisable(true)
                         .withName("Reset Odometry"));
+        driverController.share().onTrue(new LockModulesCommand(driveSubsystem).repeatedly());
 
+        Trigger driverTakeControl = new Trigger(() ->
+                RaiderMathUtils.inAbsRange(driverController.getLeftX(), TeleopConstants.DRIVER_TAKE_CONTROL_THRESHOLD)
+                        || RaiderMathUtils.inAbsRange(
+                                driverController.getLeftY(), TeleopConstants.DRIVER_TAKE_CONTROL_THRESHOLD)
+                        || RaiderMathUtils.inAbsRange(
+                                driverController.getRightX(), TeleopConstants.DRIVER_TAKE_CONTROL_THRESHOLD)
+                        || RaiderMathUtils.inAbsRange(
+                                driverController.getRightY(), TeleopConstants.DRIVER_TAKE_CONTROL_THRESHOLD));
+
+        IntSupplier gridSupplier = () -> {
+            int grid = (int) gridEntry.get();
+            if (RaiderUtils.shouldFlip()) {
+                return 8 - grid;
+            }
+            return grid;
+        };
+
+        SmartDashboard.putData(
+                "TestHigh",
+                new AutoScoreCommand(ScoreLevel.HIGH, gridSupplier, driveSubsystem, liftExtensionSuperStructure));
+        driverController
+                .povUp()
+                .debounce(0.1)
+                .onTrue(new AutoScoreCommand(ScoreLevel.HIGH, gridSupplier, driveSubsystem, liftExtensionSuperStructure)
+                        .until(driverTakeControl.debounce(0.1)));
+        driverController
+                .povRight()
+                .debounce(0.1)
+                .onTrue(new AutoScoreCommand(ScoreLevel.MID, gridSupplier, driveSubsystem, liftExtensionSuperStructure)
+                        .until(driverTakeControl.debounce(0.1)));
+        driverController
+                .povDown()
+                .debounce(0.1)
+                .onTrue(new AutoScoreCommand(ScoreLevel.LOW, gridSupplier, driveSubsystem, liftExtensionSuperStructure)
+                        .until(driverTakeControl.debounce(0.1)));
+    }
+
+    private void configureOperatorBindings() {
         driverController
                 .povUp()
                 .whileTrue(new LockModulesCommand(driveSubsystem).repeatedly().withName("Lock Modules"));
 
         operatorController
-                .triangle()
+                .povUp()
                 .whileTrue(new PositionClawCommand(AutoScoreConstants.CONE_HIGH, liftExtensionSuperStructure)
                         .andThen(rumbleOperatorControllerCommand()));
         operatorController
-                .circle()
+                .povRight()
                 .whileTrue(new PositionClawCommand(AutoScoreConstants.CONE_MID, liftExtensionSuperStructure)
                         .andThen(rumbleOperatorControllerCommand()));
         operatorController
-                .x()
+                .povDown()
                 .whileTrue(new PositionClawCommand(AutoScoreConstants.CONE_LOW, liftExtensionSuperStructure)
                         .andThen(rumbleOperatorControllerCommand()));
         // TODO: Substation
-        operatorController.square().whileTrue(Commands.none());
+        operatorController.povLeft().whileTrue(Commands.none().andThen(rumbleOperatorControllerCommand()));
 
         operatorController
                 .leftBumper()
@@ -118,38 +163,35 @@ public class RobotContainer {
                         () -> liftExtensionSuperStructure.setLiftVoltage(0.0),
                         liftExtensionSuperStructure));
 
-        IntegerEntry gridEntry = NetworkTableInstance.getDefault()
-                .getIntegerTopic("/toLog/autoScore/grid")
-                .getEntry(0);
         gridEntry.set(0);
 
         // Decrement the grid entry
         operatorController
-                .povLeft()
+                .leftBumper()
                 .onTrue(Commands.runOnce(() -> gridEntry.set(RaiderMathUtils.longClamp(gridEntry.get() - 1, 0, 8)))
                         .ignoringDisable(true));
 
         // Increment the grid entry
         operatorController
-                .povRight()
+                .rightBumper()
                 .onTrue(Commands.runOnce(() -> gridEntry.set(RaiderMathUtils.longClamp(gridEntry.get() + 1, 0, 8)))
                         .ignoringDisable(true));
 
         operatorController
-                .leftBumper()
+                .triangle()
                 .whileTrue(new StartEndCommand(
                         () -> liftExtensionSuperStructure.setLiftVoltage(1.0),
                         () -> liftExtensionSuperStructure.setLiftVoltage(0.0),
                         liftExtensionSuperStructure));
         operatorController
-                .rightBumper()
+                .x()
                 .whileTrue(new StartEndCommand(
                         () -> liftExtensionSuperStructure.setLiftVoltage(-1.0),
                         () -> liftExtensionSuperStructure.setLiftVoltage(0.0),
                         liftExtensionSuperStructure));
     }
 
-    private void configureDriveStyle() {
+    private void configureDriving() {
         TunableDouble maxTranslationSpeedPercent = new TunableDouble("/speed/maxTranslation", 0.9, true);
         TunableDouble maxMaxAngularSpeedPercent = new TunableDouble("/speed/maxAngular", 0.5, true);
 

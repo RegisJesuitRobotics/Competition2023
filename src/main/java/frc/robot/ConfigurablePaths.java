@@ -1,11 +1,11 @@
 package frc.robot;
 
+import static frc.robot.Constants.AutoScoreConstants.scoreFromLocations;
 import static frc.robot.FieldConstants.*;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.ProxyCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
@@ -34,10 +34,6 @@ public class ConfigurablePaths {
     private final ListenableSendableChooser<WaypointsCommandPair> balance = new ListenableSendableChooser<>();
 
     private final SwerveDriveSubsystem driveSubsystem;
-
-    private final TrajectoryConfig trajectoryConfig = new TrajectoryConfig(
-            AutoConstants.MAX_PATH_VELOCITY_METERS_SECOND,
-            AutoConstants.MAX_PATH_ACCELERATION_METERS_PER_SECOND_SQUARED);
 
     public ConfigurablePaths(SwerveDriveSubsystem driveSubsystem) {
         this.driveSubsystem = driveSubsystem;
@@ -105,8 +101,8 @@ public class ConfigurablePaths {
             if (waypointsCommandPair.getCommand() != null) {
                 // If the first point has a command, then add it but don't generate a trajectory with one point
                 if (!firstRun) {
-                    HolonomicTrajectory holonomicTrajectory =
-                            HolonomicTrajectoryGenerator.generate(trajectoryConfig, currentTrajectoryPoints);
+                    HolonomicTrajectory holonomicTrajectory = HolonomicTrajectoryGenerator.generate(
+                            AutoConstants.TRAJECTORY_CONSTRAINTS, currentTrajectoryPoints);
                     field.getObject("traj" + currentTrajectoryIndex).setTrajectory(holonomicTrajectory.trajectory());
                     currentTrajectoryIndex++;
                     currentTrajectoryPoints.clear();
@@ -119,8 +115,8 @@ public class ConfigurablePaths {
         }
 
         if (currentTrajectoryPoints.size() > 0) {
-            HolonomicTrajectory holonomicTrajectory =
-                    HolonomicTrajectoryGenerator.generate(trajectoryConfig, currentTrajectoryPoints);
+            HolonomicTrajectory holonomicTrajectory = HolonomicTrajectoryGenerator.generate(
+                    AutoConstants.TRAJECTORY_CONSTRAINTS, currentTrajectoryPoints);
             field.getObject("traj" + currentTrajectoryIndex).setTrajectory(holonomicTrajectory.trajectory());
             currentTrajectoryPoints.clear();
         }
@@ -210,16 +206,6 @@ public class ConfigurablePaths {
                 "Far Left",
                 new WaypointsCommandPair(
                         Waypoint.fromHolonomicPose(gamePiecePickUpLocations[3]), new WaitCommand(0.75)));
-    }
-
-    static final Translation2d scoringOffset = new Translation2d(0.1, 0.0);
-    static final Pose2d[] scoreFromLocations = new Pose2d[Grids.highTranslations.length];
-
-    static {
-        for (int i = 0; i < scoreFromLocations.length; i++) {
-            scoreFromLocations[i] =
-                    new Pose2d(Grids.highTranslations[i].plus(scoringOffset), Rotation2d.fromDegrees(180.0));
-        }
     }
 
     private void addScoringOptions(ListenableSendableChooser<WaypointsCommandPair> sendableChooser) {

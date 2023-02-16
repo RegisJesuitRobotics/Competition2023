@@ -5,8 +5,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants;
@@ -15,6 +13,7 @@ import frc.robot.Constants.MiscConstants;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.types.rich.Pose2dEntry;
 import frc.robot.telemetry.types.rich.TrajectoryEntry;
+import frc.robot.utils.RaiderUtils;
 import frc.robot.utils.trajectory.CustomHolonomicDriveController;
 import frc.robot.utils.trajectory.HolonomicTrajectory;
 import java.util.function.Supplier;
@@ -53,7 +52,7 @@ public class FollowPathCommand extends CommandBase {
     public FollowPathCommand(HolonomicTrajectory path, boolean shouldFlipIfRed, SwerveDriveSubsystem driveSubsystem) {
         this(
                 () -> {
-                    if (shouldFlipIfRed && DriverStation.getAlliance() == Alliance.Red) {
+                    if (shouldFlipIfRed && RaiderUtils.shouldFlip()) {
                         return path.getFlipped();
                     }
                     return path;

@@ -1,11 +1,9 @@
 package frc.robot.utils.trajectory;
 
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.Trajectory.State;
-import frc.robot.FieldConstants;
+import frc.robot.utils.RaiderUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -33,8 +31,6 @@ public final class HolonomicTrajectory {
     }
 
     public HolonomicTrajectory getFlipped() {
-        final Translation2d negativeFieldLength = new Translation2d(-FieldConstants.fieldLength, 0.0);
-
         List<Trajectory.State> flippedTrajectoryStates = new ArrayList<>();
         TreeMap<Double, Rotation2d> flippedRotations = new TreeMap<>();
 
@@ -45,14 +41,7 @@ public final class HolonomicTrajectory {
                     state.timeSeconds,
                     state.velocityMetersPerSecond,
                     state.accelerationMetersPerSecondSq,
-                    new Pose2d(
-                            new Translation2d(
-                                    FieldConstants.fieldLength
-                                            - state.poseMeters.getTranslation().getX(),
-                                    state.poseMeters.getTranslation().getY()),
-                            new Rotation2d(
-                                    -state.poseMeters.getRotation().getCos(),
-                                    state.poseMeters.getRotation().getSin())),
+                    RaiderUtils.allianceFlip(state.poseMeters),
                     -state.curvatureRadPerMeter));
         }
 

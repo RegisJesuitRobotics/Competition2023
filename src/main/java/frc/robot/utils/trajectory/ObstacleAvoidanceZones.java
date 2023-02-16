@@ -53,12 +53,14 @@ public class ObstacleAvoidanceZones {
                         Waypoint.fromDifferentialPose(
                                 new Translation2d(
                                         Community.chargingStationInnerX - (longerRobotSide / 2.0) - extraSpace,
-                                        (Community.chargingStationRightY - Community.rightY) / 2.0),
+                                        ((Community.chargingStationRightY - Community.rightY) / 2.0)
+                                                + Community.rightY),
                                 zero),
                         Waypoint.fromDifferentialPose(
                                 new Translation2d(
                                         Community.chargingStationInnerX + extraSpace,
-                                        (Community.chargingStationRightY - Community.rightY) / 2.0),
+                                        ((Community.chargingStationRightY - Community.rightY) / 2.0)
+                                                + Community.rightY),
                                 zero)));
         addAutoReverseEdges(
                 innerCommunity,
@@ -67,12 +69,12 @@ public class ObstacleAvoidanceZones {
                         Waypoint.fromDifferentialPose(
                                 new Translation2d(
                                         Community.chargingStationInnerX - (longerRobotSide / 2.0) - extraSpace,
-                                        (Community.chargingStationLeftY - Community.leftY) / 2.0),
+                                        (Community.chargingStationLeftY - Community.leftY) / 2.0 + Community.leftY),
                                 zero),
                         Waypoint.fromDifferentialPose(
                                 new Translation2d(
                                         Community.chargingStationInnerX + extraSpace,
-                                        (Community.chargingStationLeftY - Community.leftY) / 2.0),
+                                        (Community.chargingStationLeftY - Community.leftY) / 2.0 + Community.leftY),
                                 zero)));
         addAutoReverseEdges(
                 rightChargingStation,
@@ -81,12 +83,14 @@ public class ObstacleAvoidanceZones {
                         Waypoint.fromDifferentialPose(
                                 new Translation2d(
                                         Community.chargingStationOuterX - extraSpace,
-                                        (Community.chargingStationRightY - Community.rightY) / 2.0),
+                                        ((Community.chargingStationRightY - Community.rightY) / 2.0)
+                                                + Community.rightY),
                                 zero),
                         Waypoint.fromDifferentialPose(
                                 new Translation2d(
                                         Community.chargingStationOuterX + (longerRobotSide / 2.0) + extraSpace,
-                                        (Community.chargingStationRightY - Community.rightY) / 2.0),
+                                        ((Community.chargingStationRightY - Community.rightY) / 2.0)
+                                                + Community.rightY),
                                 zero)));
         addAutoReverseEdges(
                 leftChargingStation,
@@ -95,12 +99,12 @@ public class ObstacleAvoidanceZones {
                         Waypoint.fromDifferentialPose(
                                 new Translation2d(
                                         Community.chargingStationOuterX - extraSpace,
-                                        (Community.chargingStationLeftY - Community.leftY) / 2.0),
+                                        (Community.chargingStationLeftY - Community.leftY) / 2.0 + Community.leftY),
                                 zero),
                         Waypoint.fromDifferentialPose(
                                 new Translation2d(
                                         Community.chargingStationOuterX + (longerRobotSide / 2.0) + extraSpace,
-                                        (Community.chargingStationLeftY - Community.leftY) / 2.0),
+                                        (Community.chargingStationLeftY - Community.leftY) / 2.0 + Community.leftY),
                                 zero)));
     }
 
@@ -131,7 +135,6 @@ public class ObstacleAvoidanceZones {
     public static List<Waypoint> addIntermediaryWaypoints(List<Waypoint> waypoints) {
         List<Waypoint> returnedList = new ArrayList<>(waypoints);
         for (int i = 0; i < returnedList.size() - 1; i++) {
-            System.out.println(i);
             Waypoint current = returnedList.get(i);
             Waypoint next = returnedList.get(i + 1);
             Rectangle currentZone = getZone(current.getTranslation());

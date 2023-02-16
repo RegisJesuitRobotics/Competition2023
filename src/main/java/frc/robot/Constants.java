@@ -1,8 +1,10 @@
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import frc.robot.FieldConstants.Grids;
@@ -126,6 +128,9 @@ public final class Constants {
                 DriveTrainConstants.MAX_VELOCITY_METERS_SECOND / 2.0;
         public static final double MAX_PATH_VELOCITY_METERS_SECOND =
                 DriveTrainConstants.MAX_VELOCITY_METERS_SECOND / 1.25;
+
+        public static final TrajectoryConfig TRAJECTORY_CONSTRAINTS =
+                new TrajectoryConfig(MAX_PATH_VELOCITY_METERS_SECOND, MAX_PATH_ACCELERATION_METERS_PER_SECOND_SQUARED);
     }
 
     public static class LiftConstants {
@@ -196,10 +201,23 @@ public final class Constants {
         public static final double ANGULAR_RATE_LIMIT_RADIANS_SECOND_SQUARED = 5.0 * Math.PI;
         public static final double MINIMUM_VELOCITY_METERS_SECOND = 0.10;
         public static final double MINIMUM_ANGULAR_VELOCITY_RADIANS_SECOND = 0.10;
+
+        public static final double DRIVER_TAKE_CONTROL_THRESHOLD = 0.2;
     }
 
     public static class AutoScoreConstants {
         private AutoScoreConstants() {}
+
+        public enum ScoreLevel {
+            LOW,
+            MID,
+            HIGH
+        }
+
+        public enum ScorePiece {
+            CUBE,
+            CONE
+        }
 
         private static final double BUMPER_OFFSET_FROM_LOW_EDGE = Units.inchesToMeters(5.0);
         private static final double CONE_X_OFFSET = Units.inchesToMeters(0.0);
@@ -210,11 +228,6 @@ public final class Constants {
 
         public static final double ROBOT_SCORING_X =
                 Grids.outerX + BUMPER_OFFSET_FROM_LOW_EDGE + (MiscConstants.FULL_ROBOT_LENGTH_METERS / 2.0);
-
-        static {
-            System.out.println("ROBOT_SCORING_X: " + ROBOT_SCORING_X);
-            System.out.println("Grids.highX: " + Grids.highX);
-        }
 
         public static final Translation2d CONE_HIGH =
                 new Translation2d(ROBOT_SCORING_X - Grids.highX + CONE_X_OFFSET, Grids.highConeZ + CONE_Z_OFFSET);
@@ -228,6 +241,16 @@ public final class Constants {
                 new Translation2d(ROBOT_SCORING_X - Grids.midX + CUBE_X_OFFSET, Grids.midCubeZ + CUBE_Z_OFFSET);
         public static final Translation2d CUBE_LOW =
                 new Translation2d(ROBOT_SCORING_X - Grids.lowX + CUBE_X_OFFSET, GROUND_OFFSET);
+
+        public static final Pose2d[] scoreFromLocations = new Pose2d[Grids.highTranslations.length];
+
+        static {
+            for (int i = 0; i < scoreFromLocations.length; i++) {
+                scoreFromLocations[i] = new Pose2d(
+                        new Translation2d(ROBOT_SCORING_X, Grids.lowTranslations[i].getY()),
+                        Rotation2d.fromDegrees(180.0));
+            }
+        }
     }
 
     public static class MiscConstants {
