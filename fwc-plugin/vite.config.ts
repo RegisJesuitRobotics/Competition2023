@@ -9,7 +9,7 @@ export default defineConfig({
       formats: ["es"],
       fileName: "index",
     },
-    outDir: "fwc-plugin",
+    outDir: "dist",
   },
   server: {
     open: "/",

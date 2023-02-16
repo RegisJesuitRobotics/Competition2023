@@ -7,11 +7,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.ProxyCommand;
+import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.AutoScoreConstants;
 import frc.robot.Constants.DriveTrainConstants;
@@ -107,7 +103,20 @@ public class RobotContainer {
                 .whileTrue(new PositionClawCommand(AutoScoreConstants.CONE_LOW, liftExtensionSuperStructure)
                         .andThen(rumbleOperatorControllerCommand()));
         // TODO: Substation
-        operatorController.square().whileTrue(new InstantCommand());
+        operatorController.square().whileTrue(Commands.none());
+
+        operatorController
+                .leftBumper()
+                .whileTrue(new StartEndCommand(
+                        () -> liftExtensionSuperStructure.setLiftVoltage(3.0),
+                        () -> liftExtensionSuperStructure.setLiftVoltage(0.0),
+                        liftExtensionSuperStructure));
+        operatorController
+                .rightBumper()
+                .whileTrue(new StartEndCommand(
+                        () -> liftExtensionSuperStructure.setLiftVoltage(-3.0),
+                        () -> liftExtensionSuperStructure.setLiftVoltage(0.0),
+                        liftExtensionSuperStructure));
 
         IntegerEntry gridEntry = NetworkTableInstance.getDefault()
                 .getIntegerTopic("/toLog/autoScore/grid")
@@ -125,6 +134,19 @@ public class RobotContainer {
                 .povRight()
                 .onTrue(Commands.runOnce(() -> gridEntry.set(RaiderMathUtils.longClamp(gridEntry.get() + 1, 0, 8)))
                         .ignoringDisable(true));
+
+        operatorController
+                .leftBumper()
+                .whileTrue(new StartEndCommand(
+                        () -> liftExtensionSuperStructure.setLiftVoltage(1.0),
+                        () -> liftExtensionSuperStructure.setLiftVoltage(0.0),
+                        liftExtensionSuperStructure));
+        operatorController
+                .rightBumper()
+                .whileTrue(new StartEndCommand(
+                        () -> liftExtensionSuperStructure.setLiftVoltage(-1.0),
+                        () -> liftExtensionSuperStructure.setLiftVoltage(0.0),
+                        liftExtensionSuperStructure));
     }
 
     private void configureDriveStyle() {
