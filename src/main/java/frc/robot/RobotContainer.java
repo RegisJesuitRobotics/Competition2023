@@ -4,6 +4,7 @@ import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.networktables.IntegerEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
@@ -64,8 +65,15 @@ public class RobotContainer {
 
     private void configureAutos() {
         ConfigurablePaths paths = new ConfigurablePaths(driveSubsystem);
-        autoCommandChooser.setDefaultOption("GeneratedAuto", new ProxyCommand(paths::generatePath));
+        autoCommandChooser.setDefaultOption(
+                "GeneratedAuto", new ProxyCommand(paths::getCurrentCommandAndUpdateIfNeeded));
         autoCommandChooser.addOption("Nothing", null);
+        SendableTelemetryManager.getInstance()
+                .addSendable(
+                        "/autoChooser/generatePath",
+                        Commands.runOnce(paths::generatePath)
+                                .ignoringDisable(true)
+                                .withName(""));
 
         if (MiscConstants.TUNING_MODE) {
             autoCommandChooser.addOption("SysIDLogger", new DriveTrainSysIDCompatibleLoggerCommand(driveSubsystem));
@@ -295,4 +303,10 @@ public class RobotContainer {
     public Command getAutonomousCommand() {
         return autoCommandChooser.getSelected();
     }
+
+    /**
+     * Called from Robot.java when the alliance is detected to have changed.
+     * @param newAlliance the new alliance
+     */
+    public void onAllianceChange(Alliance newAlliance) {}
 }

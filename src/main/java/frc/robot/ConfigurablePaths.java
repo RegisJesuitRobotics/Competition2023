@@ -6,6 +6,7 @@ import static frc.robot.FieldConstants.*;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.ProxyCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
@@ -21,6 +22,7 @@ import frc.robot.utils.trajectory.HolonomicTrajectoryGenerator;
 import frc.robot.utils.trajectory.Waypoint;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class ConfigurablePaths {
 
@@ -34,6 +36,9 @@ public class ConfigurablePaths {
     private final ListenableSendableChooser<WaypointsCommandPair> balance = new ListenableSendableChooser<>();
 
     private final SwerveDriveSubsystem driveSubsystem;
+
+    private SequentialCommandGroup currentCommand;
+    private int currentConfigHash = 0;
 
     public ConfigurablePaths(SwerveDriveSubsystem driveSubsystem) {
         this.driveSubsystem = driveSubsystem;
@@ -51,8 +56,20 @@ public class ConfigurablePaths {
         SendableTelemetryManager.getInstance().addSendable("/autoChooser/balance", balance);
     }
 
-    public SequentialCommandGroup generatePath() {
-        SequentialCommandGroup command = new SequentialCommandGroup();
+    private int getHash() {
+        return Objects.hash(
+                startPositionChooser.getSelected(),
+                aroundCharger.getSelected(),
+                firstPiece.getSelected(),
+                firstTarget.getSelected(),
+                secondPiece.getSelected(),
+                secondTarget.getSelected(),
+                balance.getSelected());
+    }
+
+    public void generatePath() {
+        currentCommand = new SequentialCommandGroup();
+        currentConfigHash = getHash();
 
         List<WaypointsCommandPair> waypoints = new ArrayList<>();
 
@@ -107,9 +124,9 @@ public class ConfigurablePaths {
                     currentTrajectoryIndex++;
                     currentTrajectoryPoints.clear();
                     currentTrajectoryPoints.add(currentWaypoints.get(currentWaypoints.size() - 1));
-                    command.addCommands(new FollowPathCommand(holonomicTrajectory, driveSubsystem));
+                    currentCommand.addCommands(new FollowPathCommand(holonomicTrajectory, driveSubsystem));
                 }
-                command.addCommands(new ProxyCommand(waypointsCommandPair.getCommand()));
+                currentCommand.addCommands(new ProxyCommand(waypointsCommandPair.getCommand()));
             }
             firstRun = false;
         }
@@ -120,39 +137,27 @@ public class ConfigurablePaths {
             field.getObject("traj" + currentTrajectoryIndex).setTrajectory(holonomicTrajectory.trajectory());
             currentTrajectoryPoints.clear();
         }
+    }
 
-        return command;
+    public SequentialCommandGroup getCurrentCommandAndUpdateIfNeeded() {
+        if (getHash() != currentConfigHash) {
+            DataLogManager.log("Generating path in get");
+            generatePath();
+        }
+        return currentCommand;
     }
 
     private void addMapValues() {
         // TODO: finish these
 
         // WaitCommand to simulate placing preload
-        startPositionChooser.setDefaultOption(
-                "Right",
-                new WaypointsCommandPair(
-                        Waypoint.fromHolonomicPose(Community.regionCorners[0], new Rotation2d(0)),
-                        new WaitCommand(0.5)));
-        startPositionChooser.addOption(
-                "Middle",
-                new WaypointsCommandPair(
-                        Waypoint.fromHolonomicPose(
-                                Community.regionCorners[0]
-                                        .plus(Community.regionCorners[1])
-                                        .div(2),
-                                new Rotation2d(0)),
-                        new WaitCommand(0.5)));
-        startPositionChooser.addOption(
-                "Left",
-                new WaypointsCommandPair(
-                        Waypoint.fromHolonomicPose(Community.regionCorners[1], new Rotation2d(0)),
-                        new WaitCommand(0.5)));
+        addScoringOptions(startPositionChooser, false);
 
         addPieceOptions(firstPiece);
         addPieceOptions(secondPiece);
 
-        addScoringOptions(firstTarget);
-        addScoringOptions(secondTarget);
+        addScoringOptions(firstTarget, true);
+        addScoringOptions(secondTarget, true);
 
         aroundCharger.setDefaultOption(
                 "Right",
@@ -208,11 +213,17 @@ public class ConfigurablePaths {
                         Waypoint.fromHolonomicPose(gamePiecePickUpLocations[3]), new WaitCommand(0.75)));
     }
 
-    private void addScoringOptions(ListenableSendableChooser<WaypointsCommandPair> sendableChooser) {
-        sendableChooser.setDefaultOption("None", null);
-        sendableChooser.addOption(
-                "Cone 1",
-                new WaypointsCommandPair(Waypoint.fromHolonomicPose(scoreFromLocations[0]), new WaitCommand(0.75)));
+    private void addScoringOptions(ListenableSendableChooser<WaypointsCommandPair> sendableChooser, boolean allowNone) {
+        if (allowNone) {
+            sendableChooser.setDefaultOption("None", null);
+            sendableChooser.addOption(
+                    "Cone 1",
+                    new WaypointsCommandPair(Waypoint.fromHolonomicPose(scoreFromLocations[0]), new WaitCommand(0.75)));
+        } else {
+            sendableChooser.setDefaultOption(
+                    "Cone 1",
+                    new WaypointsCommandPair(Waypoint.fromHolonomicPose(scoreFromLocations[0]), new WaitCommand(0.75)));
+        }
         sendableChooser.addOption(
                 "Cube 2",
                 new WaypointsCommandPair(Waypoint.fromHolonomicPose(scoreFromLocations[1]), new WaitCommand(0.75)));
