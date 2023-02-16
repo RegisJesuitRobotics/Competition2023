@@ -1,9 +1,8 @@
 package frc.robot;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.networktables.DoubleEntry;
+import edu.wpi.first.networktables.IntegerEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -11,8 +10,8 @@ import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ProxyCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ProxyCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.AutoScoreConstants;
 import frc.robot.Constants.DriveTrainConstants;
@@ -29,7 +28,7 @@ import frc.robot.hid.CommandXboxPlaystationController;
 import frc.robot.subsystems.LiftExtensionSuperStructure;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.SendableTelemetryManager;
-import frc.robot.telemetry.tunable.TunableDouble;
+import frc.robot.telemetry.tunable.gains.TunableDouble;
 import frc.robot.utils.Alert;
 import frc.robot.utils.Alert.AlertType;
 import frc.robot.utils.ListenableSendableChooser;
@@ -110,17 +109,21 @@ public class RobotContainer {
         // TODO: Substation
         operatorController.square().whileTrue(new InstantCommand());
 
-        DoubleEntry gridEntry = NetworkTableInstance.getDefault()
-                .getDoubleTopic("/toLog/autoScore/grid")
-                .getEntry(0.0);
-        gridEntry.set(0.0);
+        IntegerEntry gridEntry = NetworkTableInstance.getDefault()
+                .getIntegerTopic("/toLog/autoScore/grid")
+                .getEntry(0);
+        gridEntry.set(0);
+
+        // Decrement the grid entry
         operatorController
                 .povLeft()
-                .onTrue(Commands.runOnce(() -> gridEntry.set(MathUtil.clamp(gridEntry.get() - 1, 0, 8)))
+                .onTrue(Commands.runOnce(() -> gridEntry.set(RaiderMathUtils.longClamp(gridEntry.get() - 1, 0, 8)))
                         .ignoringDisable(true));
+
+        // Increment the grid entry
         operatorController
                 .povRight()
-                .onTrue(Commands.runOnce(() -> gridEntry.set(MathUtil.clamp(gridEntry.get() + 1, 0, 8)))
+                .onTrue(Commands.runOnce(() -> gridEntry.set(RaiderMathUtils.longClamp(gridEntry.get() + 1, 0, 8)))
                         .ignoringDisable(true));
     }
 

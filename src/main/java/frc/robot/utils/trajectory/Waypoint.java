@@ -114,4 +114,10 @@ public class Waypoint {
     public Optional<Rotation2d> getHolonomicRotation() {
         return Optional.ofNullable(holonomicRotation);
     }
+
+    @Override
+    public String toString() {
+        return "Waypoint{" + "translation=" + translation + ", driveRotation=" + driveRotation + ", holonomicRotation="
+                + holonomicRotation + '}';
+    }
 }
