@@ -30,6 +30,10 @@ public class LiftExtensionSuperStructure extends SubsystemBase {
         liftSubsystem.setVoltage(voltage);
     }
 
+    public void setExtensionVoltage(double voltage) {
+        extensionSubsystem.setVoltage(voltage);
+    }
+
     public Translation2d getClawPosition() {
         double liftAngleRadians = liftSubsystem.getArmAngle().getRadians();
 

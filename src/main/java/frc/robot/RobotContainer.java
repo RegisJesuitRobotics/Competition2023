@@ -116,6 +116,17 @@ public class RobotContainer {
                         () -> liftExtensionSuperStructure.setLiftVoltage(0.0),
                         liftExtensionSuperStructure));
 
+        operatorController
+                .leftTrigger()
+                .whileTrue(new StartEndCommand(
+                        () -> liftExtensionSuperStructure.setExtensionVoltage(3.0),
+                        () -> liftExtensionSuperStructure.setExtensionVoltage(0.0)));
+        operatorController
+                .rightTrigger()
+                .whileTrue(new StartEndCommand(
+                        () -> liftExtensionSuperStructure.setExtensionVoltage(-3.0),
+                        () -> liftExtensionSuperStructure.setExtensionVoltage(0.0)));
+
         DoubleEntry gridEntry = NetworkTableInstance.getDefault()
                 .getDoubleTopic("/toLog/autoScore/grid")
                 .getEntry(0.0);
