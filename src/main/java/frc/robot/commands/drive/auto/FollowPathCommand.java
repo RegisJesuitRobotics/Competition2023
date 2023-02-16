@@ -33,15 +33,14 @@ public class FollowPathCommand extends CommandBase {
     // We don't use a profiled PID controller for the angle because the path should
     // already profile it for us
     private final CustomHolonomicDriveController driveController = new CustomHolonomicDriveController(
-            AutoConstants.PATH_TRANSLATION_POSITION_GAINS.createLoggablePIDController("followPath/xController"),
-            AutoConstants.PATH_TRANSLATION_POSITION_GAINS.createLoggablePIDController("followPath/yController"),
-            AutoConstants.PATH_ANGULAR_POSITION_PID_GAINS.createLoggablePIDController("followPath/thetaController"));
+            AutoConstants.TRANSLATION_POSITION_GAINS.createLoggablePIDController("followPath/xController"),
+            AutoConstants.TRANSLATION_POSITION_GAINS.createLoggablePIDController("followPath/yController"),
+            AutoConstants.ANGULAR_POSITION_PID_GAINS.createLoggablePIDController("followPath/thetaController"));
 
     private final CustomHolonomicDriveController nextDriveController = new CustomHolonomicDriveController(
-            AutoConstants.PATH_TRANSLATION_POSITION_GAINS.createLoggablePIDController("followPath/nextXController"),
-            AutoConstants.PATH_TRANSLATION_POSITION_GAINS.createLoggablePIDController("followPath/nextYController"),
-            AutoConstants.PATH_ANGULAR_POSITION_PID_GAINS.createLoggablePIDController(
-                    "followPath/nextThetaController"));
+            AutoConstants.TRANSLATION_POSITION_GAINS.createLoggablePIDController("followPath/nextXController"),
+            AutoConstants.TRANSLATION_POSITION_GAINS.createLoggablePIDController("followPath/nextYController"),
+            AutoConstants.ANGULAR_POSITION_PID_GAINS.createLoggablePIDController("followPath/nextThetaController"));
 
     private final Timer timer = new Timer();
 

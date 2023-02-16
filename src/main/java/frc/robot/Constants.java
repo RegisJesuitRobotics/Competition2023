@@ -7,6 +7,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+import frc.robot.FieldConstants.Community;
 import frc.robot.FieldConstants.Grids;
 import frc.robot.telemetry.tunable.gains.TunableArmFFGains;
 import frc.robot.telemetry.tunable.gains.TunableFFGains;
@@ -14,6 +15,7 @@ import frc.robot.telemetry.tunable.gains.TunablePIDGains;
 import frc.robot.telemetry.tunable.gains.TunableTrapezoidalProfileGains;
 import frc.robot.utils.SwerveModuleConfiguration;
 import frc.robot.utils.SwerveModuleConfiguration.SharedSwerveModuleConfiguration;
+import frc.robot.utils.geometry.Rectangle;
 
 /** File containing all constants for the robot. */
 public final class Constants {
@@ -112,25 +114,29 @@ public final class Constants {
     public static class AutoConstants {
         private AutoConstants() {}
 
-        public static final TunablePIDGains PATH_TRANSLATION_POSITION_GAINS =
-                new TunablePIDGains("/gains/pathXY", 2.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
-        public static final TunablePIDGains PATH_ANGULAR_POSITION_PID_GAINS =
-                new TunablePIDGains("/gains/pathAngular", 1.5, 0.0, 0.0, MiscConstants.TUNING_MODE);
-        public static final TunablePIDGains SNAP_ANGULAR_POSITION_PID_GAINS =
-                new TunablePIDGains("/gains/snapAngular", 1.5, 0.0, 0.0, MiscConstants.TUNING_MODE);
-        public static final TunableTrapezoidalProfileGains SNAP_ANGULAR_POSITION_TRAPEZOIDAL_GAINS =
+        public static final double MAX_AUTO_ACCELERATION_METERS_PER_SECOND_SQUARED =
+                DriveTrainConstants.MAX_VELOCITY_METERS_SECOND / 2.0;
+        public static final double MAX_AUTO_VELOCITY_METERS_SECOND =
+                DriveTrainConstants.MAX_VELOCITY_METERS_SECOND / 1.25;
+        public static final TrajectoryConfig TRAJECTORY_CONSTRAINTS =
+                new TrajectoryConfig(MAX_AUTO_VELOCITY_METERS_SECOND, MAX_AUTO_ACCELERATION_METERS_PER_SECOND_SQUARED);
+
+        public static final TunablePIDGains TRANSLATION_POSITION_GAINS =
+                new TunablePIDGains("/gains/driveXY", 2.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
+        public static final TunableTrapezoidalProfileGains TRANSLATION_POSITION_TRAPEZOIDAL_GAINS =
                 new TunableTrapezoidalProfileGains(
-                        "/gains/snapAngular",
+                        "/gains/driveXY",
+                        MAX_AUTO_VELOCITY_METERS_SECOND,
+                        MAX_AUTO_ACCELERATION_METERS_PER_SECOND_SQUARED,
+                        MiscConstants.TUNING_MODE);
+        public static final TunablePIDGains ANGULAR_POSITION_PID_GAINS =
+                new TunablePIDGains("/gains/driveAngular", 1.5, 0.0, 0.0, MiscConstants.TUNING_MODE);
+        public static final TunableTrapezoidalProfileGains ANGULAR_POSITION_TRAPEZOIDAL_GAINS =
+                new TunableTrapezoidalProfileGains(
+                        "/gains/driveAngular",
                         DriveTrainConstants.MAX_ANGULAR_VELOCITY_RADIANS_SECOND,
                         DriveTrainConstants.MAX_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED,
                         MiscConstants.TUNING_MODE);
-        public static final double MAX_PATH_ACCELERATION_METERS_PER_SECOND_SQUARED =
-                DriveTrainConstants.MAX_VELOCITY_METERS_SECOND / 2.0;
-        public static final double MAX_PATH_VELOCITY_METERS_SECOND =
-                DriveTrainConstants.MAX_VELOCITY_METERS_SECOND / 1.25;
-
-        public static final TrajectoryConfig TRAJECTORY_CONSTRAINTS =
-                new TrajectoryConfig(MAX_PATH_VELOCITY_METERS_SECOND, MAX_PATH_ACCELERATION_METERS_PER_SECOND_SQUARED);
     }
 
     public static class LiftConstants {
@@ -251,6 +257,11 @@ public final class Constants {
                         Rotation2d.fromDegrees(180.0));
             }
         }
+
+        public static final Rectangle ALLOWED_SCORING_AREA = new Rectangle(
+                new Translation2d(Community.innerX, Community.rightY),
+                new Translation2d(
+                        Community.chargingStationInnerX - (MiscConstants.LONGEST_SIDE_METERS / 2.0), Community.leftY));
     }
 
     public static class MiscConstants {
@@ -268,5 +279,7 @@ public final class Constants {
         // With bumpers
         public static final double FULL_ROBOT_LENGTH_METERS = Units.inchesToMeters(26.0) + (BUMPER_WIDTH_METERS * 2);
         public static final double FULL_ROBOT_WIDTH_METERS = Units.inchesToMeters(33.866) + (BUMPER_WIDTH_METERS * 2);
+
+        public static final double LONGEST_SIDE_METERS = Math.max(FULL_ROBOT_LENGTH_METERS, FULL_ROBOT_WIDTH_METERS);
     }
 }

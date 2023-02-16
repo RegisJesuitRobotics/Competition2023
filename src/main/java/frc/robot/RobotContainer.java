@@ -7,7 +7,6 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.AutoScoreConstants;
@@ -109,25 +108,33 @@ public class RobotContainer {
             }
             return grid;
         };
+        Trigger inAllowedArea = new Trigger(() -> AutoScoreConstants.ALLOWED_SCORING_AREA.isPointInside(
+                RaiderUtils.flipIfShould(driveSubsystem.getPose()).getTranslation()));
 
-        SmartDashboard.putData(
-                "TestHigh",
-                new AutoScoreCommand(ScoreLevel.HIGH, gridSupplier, driveSubsystem, liftExtensionSuperStructure));
         driverController
                 .povUp()
                 .debounce(0.1)
-                .onTrue(new AutoScoreCommand(ScoreLevel.HIGH, gridSupplier, driveSubsystem, liftExtensionSuperStructure)
-                        .until(driverTakeControl.debounce(0.1)));
+                .onTrue(RaiderCommands.ifCondition(inAllowedArea)
+                        .then(new AutoScoreCommand(
+                                        ScoreLevel.HIGH, gridSupplier, driveSubsystem, liftExtensionSuperStructure)
+                                .until(driverTakeControl.debounce(0.1)))
+                        .otherwise(rumbleDriverControllerCommand()));
         driverController
                 .povRight()
                 .debounce(0.1)
-                .onTrue(new AutoScoreCommand(ScoreLevel.MID, gridSupplier, driveSubsystem, liftExtensionSuperStructure)
-                        .until(driverTakeControl.debounce(0.1)));
+                .onTrue(RaiderCommands.ifCondition(inAllowedArea)
+                        .then(new AutoScoreCommand(
+                                        ScoreLevel.MID, gridSupplier, driveSubsystem, liftExtensionSuperStructure)
+                                .until(driverTakeControl.debounce(0.1)))
+                        .otherwise(rumbleDriverControllerCommand()));
         driverController
                 .povDown()
                 .debounce(0.1)
-                .onTrue(new AutoScoreCommand(ScoreLevel.LOW, gridSupplier, driveSubsystem, liftExtensionSuperStructure)
-                        .until(driverTakeControl.debounce(0.1)));
+                .onTrue(RaiderCommands.ifCondition(inAllowedArea)
+                        .then(new AutoScoreCommand(
+                                        ScoreLevel.LOW, gridSupplier, driveSubsystem, liftExtensionSuperStructure)
+                                .until(driverTakeControl.debounce(0.1)))
+                        .otherwise(rumbleDriverControllerCommand()));
     }
 
     private void configureOperatorBindings() {

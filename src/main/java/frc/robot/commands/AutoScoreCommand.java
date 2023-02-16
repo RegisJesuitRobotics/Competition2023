@@ -1,26 +1,18 @@
 package frc.robot.commands;
 
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ProxyCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.AutoScoreConstants;
 import frc.robot.Constants.AutoScoreConstants.ScoreLevel;
 import frc.robot.Constants.AutoScoreConstants.ScorePiece;
-import frc.robot.commands.drive.auto.FollowPathCommand;
+import frc.robot.commands.drive.auto.SimpleToPointCommand;
 import frc.robot.commands.lift.PositionClawCommand;
 import frc.robot.subsystems.LiftExtensionSuperStructure;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.utils.RaiderUtils;
-import frc.robot.utils.trajectory.HolonomicTrajectory;
-import frc.robot.utils.trajectory.HolonomicTrajectoryGenerator;
-import frc.robot.utils.trajectory.ObstacleAvoidanceZones;
-import frc.robot.utils.trajectory.Waypoint;
-import java.util.List;
 import java.util.function.IntSupplier;
-import java.util.function.Supplier;
 
 public class AutoScoreCommand extends SequentialCommandGroup {
     public AutoScoreCommand(
@@ -28,16 +20,11 @@ public class AutoScoreCommand extends SequentialCommandGroup {
             IntSupplier scorePositionSupplier,
             SwerveDriveSubsystem driveSubsystem,
             LiftExtensionSuperStructure liftExtensionSuperStructure) {
-        Supplier<HolonomicTrajectory> trajectoryGeneratorSupplier = () -> {
-            Pose2d desiredPose = AutoScoreConstants.scoreFromLocations[scorePositionSupplier.getAsInt()];
-            List<Waypoint> waypoints = List.of(
-                    Waypoint.fromHolonomicPose(RaiderUtils.flipIfShould(driveSubsystem.getPose())),
-                    Waypoint.fromHolonomicPose(desiredPose));
-            waypoints = ObstacleAvoidanceZones.addIntermediaryWaypoints(waypoints);
-            return HolonomicTrajectoryGenerator.generate(AutoConstants.TRAJECTORY_CONSTRAINTS, waypoints);
-        };
         addCommands(Commands.parallel(
-                new FollowPathCommand(trajectoryGeneratorSupplier, driveSubsystem),
+                new SimpleToPointCommand(
+                        () -> RaiderUtils.flipIfShould(
+                                AutoScoreConstants.scoreFromLocations[scorePositionSupplier.getAsInt()]),
+                        driveSubsystem),
                 new ProxyCommand(() -> new PositionClawCommand(
                         getScoreClawTranslation(scoreLevel, getScorePiece(scorePositionSupplier.getAsInt())),
                         liftExtensionSuperStructure))));
