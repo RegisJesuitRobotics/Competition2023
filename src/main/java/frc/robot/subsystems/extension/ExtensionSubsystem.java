@@ -21,10 +21,10 @@ import frc.robot.utils.ConfigTimeout;
  * <strong>Do not use this directly in commands, use {@link frc.robot.subsystems.LiftExtensionSuperStructure}</strong>
  */
 public class ExtensionSubsystem extends SubsystemBase {
-    private final TelemetryCANSparkMax leftMotor =
-            new TelemetryCANSparkMax(LEFT_MOTOR_PORT, MotorType.kBrushless, "/extension/left");
-    private final TelemetryCANSparkMax rightMotor =
-            new TelemetryCANSparkMax(RIGHT_MOTOR_PORT, MotorType.kBrushless, "/extension/right");
+    private final TelemetryCANSparkMax leftMotor = new TelemetryCANSparkMax(
+            LEFT_MOTOR_PORT, MotorType.kBrushless, "/extension/left", MiscConstants.TUNING_MODE);
+    private final TelemetryCANSparkMax rightMotor = new TelemetryCANSparkMax(
+            RIGHT_MOTOR_PORT, MotorType.kBrushless, "/extension/right", MiscConstants.TUNING_MODE);
     private final RelativeEncoder encoder = leftMotor.getEncoder();
     private final TunableTelemetryProfiledPIDController controller =
             new TunableTelemetryProfiledPIDController("/extension/controller", PID_GAINS, TRAPEZOIDAL_PROFILE_GAINS);

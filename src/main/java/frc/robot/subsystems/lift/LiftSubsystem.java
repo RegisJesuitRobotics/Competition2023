@@ -37,11 +37,11 @@ public class LiftSubsystem extends SubsystemBase {
         }
     }
 
-    private final TelemetryCANSparkMax leftMotor =
-            new TelemetryCANSparkMax(LEFT_MOTOR_PORT, MotorType.kBrushless, "/lifter/leftMotor");
+    private final TelemetryCANSparkMax leftMotor = new TelemetryCANSparkMax(
+            LEFT_MOTOR_PORT, MotorType.kBrushless, "/lifter/leftMotor", MiscConstants.TUNING_MODE);
 
-    private final TelemetryCANSparkMax rightMotor =
-            new TelemetryCANSparkMax(RIGHT_MOTOR_PORT, MotorType.kBrushless, "/lifter/rightMotor");
+    private final TelemetryCANSparkMax rightMotor = new TelemetryCANSparkMax(
+            RIGHT_MOTOR_PORT, MotorType.kBrushless, "/lifter/rightMotor", MiscConstants.TUNING_MODE);
 
     private final RelativeEncoder leftEncoder = leftMotor.getEncoder();
     private final RelativeEncoder rightEncoder = rightMotor.getEncoder();

@@ -138,7 +138,8 @@ public class SwerveModule {
         this.driveMotor = new TelemetryTalonFX(
                 config.driveMotorPort(),
                 tableName + "driveMotor",
-                config.sharedConfiguration().canBus());
+                config.sharedConfiguration().canBus(),
+                tuningMode);
         configDriveMotor(config);
 
         // Steer encoder
@@ -150,7 +151,8 @@ public class SwerveModule {
         this.steerMotor = new TelemetryTalonFX(
                 config.steerMotorPort(),
                 tableName + "steerMotor",
-                config.sharedConfiguration().canBus());
+                config.sharedConfiguration().canBus(),
+                tuningMode);
         configSteerMotor(config);
 
         this.nominalVoltage = config.sharedConfiguration().nominalVoltage();

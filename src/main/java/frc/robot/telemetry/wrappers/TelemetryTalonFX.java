@@ -12,19 +12,19 @@ public class TelemetryTalonFX extends TalonFX {
     private final DoubleTelemetryEntry temperatureEntry;
     private final BooleanTelemetryEntry inBrakeModeEntry;
 
-    public TelemetryTalonFX(int deviceNumber, String telemetryPath, String canbus) {
+    public TelemetryTalonFX(int deviceNumber, String telemetryPath, String canbus, boolean tuningMode) {
         super(deviceNumber, canbus);
 
         telemetryPath += "/";
-        outputAmpsEntry = new DoubleTelemetryEntry(telemetryPath + "outputAmps", true);
-        inputAmpsEntry = new DoubleTelemetryEntry(telemetryPath + "inputAmps", false);
-        outputPercentEntry = new DoubleTelemetryEntry(telemetryPath + "outputPercent", true);
-        temperatureEntry = new DoubleTelemetryEntry(telemetryPath + "temperature", false);
-        inBrakeModeEntry = new BooleanTelemetryEntry(telemetryPath + "inBrakeMode", true);
+        outputAmpsEntry = new DoubleTelemetryEntry(telemetryPath + "outputAmps", tuningMode);
+        inputAmpsEntry = new DoubleTelemetryEntry(telemetryPath + "inputAmps", tuningMode);
+        outputPercentEntry = new DoubleTelemetryEntry(telemetryPath + "outputPercent", tuningMode);
+        temperatureEntry = new DoubleTelemetryEntry(telemetryPath + "temperature", tuningMode);
+        inBrakeModeEntry = new BooleanTelemetryEntry(telemetryPath + "inBrakeMode", tuningMode);
     }
 
-    public TelemetryTalonFX(int deviceNumber, String logTable) {
-        this(deviceNumber, logTable, "");
+    public TelemetryTalonFX(int deviceNumber, String logTable, boolean tuningMode) {
+        this(deviceNumber, logTable, "", tuningMode);
     }
 
     @Override

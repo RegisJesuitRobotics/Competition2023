@@ -12,15 +12,15 @@ public class TelemetryCANSparkMax extends CANSparkMax {
     private final DoubleTelemetryEntry temperatureEntry;
     private final BooleanTelemetryEntry inBrakeModeEntry;
 
-    public TelemetryCANSparkMax(int deviceId, MotorType type, String telemetryPath) {
+    public TelemetryCANSparkMax(int deviceId, MotorType type, String telemetryPath, boolean tuningMode) {
         super(deviceId, type);
 
         telemetryPath += "/";
 
-        outputAmpsEntry = new DoubleTelemetryEntry(telemetryPath + "outputAmps", true);
-        outputPercentEntry = new DoubleTelemetryEntry(telemetryPath + "outputPercent", true);
-        temperatureEntry = new DoubleTelemetryEntry(telemetryPath + "temperature", false);
-        inBrakeModeEntry = new BooleanTelemetryEntry(telemetryPath + "inBrakeMode", true);
+        outputAmpsEntry = new DoubleTelemetryEntry(telemetryPath + "outputAmps", tuningMode);
+        outputPercentEntry = new DoubleTelemetryEntry(telemetryPath + "outputPercent", tuningMode);
+        temperatureEntry = new DoubleTelemetryEntry(telemetryPath + "temperature", tuningMode);
+        inBrakeModeEntry = new BooleanTelemetryEntry(telemetryPath + "inBrakeMode", tuningMode);
     }
 
     @Override
