@@ -51,6 +51,7 @@ public class LiftSubsystem extends SubsystemBase {
     private ArmFeedforward feedforward = FF_GAINS.createFeedforward();
 
     private final LiftMechanism2d mechanism2d = new LiftMechanism2d();
+    private final LiftMechanism2d setpointMechanism2d = new LiftMechanism2d();
 
     private final Alert failedConfigurationAlert = new Alert("Lifter Arm Failed to Configure Motor", AlertType.ERROR);
     private final EventTelemetryEntry eventEntry = new EventTelemetryEntry("/lifter/events");
@@ -69,6 +70,8 @@ public class LiftSubsystem extends SubsystemBase {
 
     public LiftSubsystem() {
         SendableTelemetryManager.getInstance().addSendable("Lifter", mechanism2d.getMechanism2dObject());
+        SendableTelemetryManager.getInstance()
+                .addSendable("LifterSetpoint", setpointMechanism2d.getMechanism2dObject());
 
         configMotors();
         eventEntry.append("Lifter initialized");
@@ -141,6 +144,8 @@ public class LiftSubsystem extends SubsystemBase {
         } else if (mode == Mode.CLOSED_LOOP) {
             double feedbackOutput = controller.calculate(getArmAngle().getRadians());
 
+            setpointMechanism2d.setAngle(Rotation2d.fromRadians(controller.getSetpoint().position));
+
             TrapezoidProfile.State currentSetpoint = controller.getSetpoint();
             leftMotor.setVoltage(
                     feedbackOutput + feedforward.calculate(currentSetpoint.position, currentSetpoint.velocity));
@@ -153,7 +158,7 @@ public class LiftSubsystem extends SubsystemBase {
     }
 
     private void logValues() {
-        mechanism2d.update(getArmAngle());
+        mechanism2d.setAngle(getArmAngle());
         leftMotor.logValues();
         rightMotor.logValues();
         leftPosition.append(leftEncoder.getPosition());

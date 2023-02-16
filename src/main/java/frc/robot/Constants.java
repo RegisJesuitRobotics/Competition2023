@@ -143,7 +143,7 @@ public final class Constants {
         public static final double HORIZONTAL_BAR_TO_CLAW = Units.inchesToMeters(5.274);
 
         public static final Translation2d TOP_HORIZONTAL_TO_BOTTOM_HORIZONTAL =
-                new Translation2d(Units.inchesToMeters(1.0), Units.inchesToMeters(-5.0));
+                new Translation2d(Units.inchesToMeters(-1.0), Units.inchesToMeters(-5.0));
 
         public static final double GEAR_REDUCTION = 5.0 * 5.0 * 5.0 * 5.0;
 
@@ -217,17 +217,17 @@ public final class Constants {
             System.out.println("Grids.highX: " + Grids.highX);
         }
 
-        public static final Translation2d CUBE_HIGH =
-                new Translation2d(ROBOT_SCORING_X - Grids.highX + CONE_X_OFFSET, Grids.highConeZ + CONE_Z_OFFSET);
-        public static final Translation2d CUBE_MID =
-                new Translation2d(ROBOT_SCORING_X - Grids.midX + CONE_X_OFFSET, Grids.midConeZ + CONE_Z_OFFSET);
-        public static final Translation2d CUBE_LOW =
-                new Translation2d(ROBOT_SCORING_X - Grids.lowX + CONE_X_OFFSET, GROUND_OFFSET);
         public static final Translation2d CONE_HIGH =
-                new Translation2d(ROBOT_SCORING_X - Grids.highX + CUBE_X_OFFSET, Grids.highCubeZ + CUBE_Z_OFFSET);
+                new Translation2d(ROBOT_SCORING_X - Grids.highX + CONE_X_OFFSET, Grids.highConeZ + CONE_Z_OFFSET);
         public static final Translation2d CONE_MID =
-                new Translation2d(ROBOT_SCORING_X - Grids.midX + CUBE_X_OFFSET, Grids.midCubeZ + CUBE_Z_OFFSET);
+                new Translation2d(ROBOT_SCORING_X - Grids.midX + CONE_X_OFFSET, Grids.midConeZ + CONE_Z_OFFSET);
         public static final Translation2d CONE_LOW =
+                new Translation2d(ROBOT_SCORING_X - Grids.lowX + CONE_X_OFFSET, GROUND_OFFSET);
+        public static final Translation2d CUBE_HIGH =
+                new Translation2d(ROBOT_SCORING_X - Grids.highX + CUBE_X_OFFSET, Grids.highCubeZ + CUBE_Z_OFFSET);
+        public static final Translation2d CUBE_MID =
+                new Translation2d(ROBOT_SCORING_X - Grids.midX + CUBE_X_OFFSET, Grids.midCubeZ + CUBE_Z_OFFSET);
+        public static final Translation2d CUBE_LOW =
                 new Translation2d(ROBOT_SCORING_X - Grids.lowX + CUBE_X_OFFSET, GROUND_OFFSET);
     }
 

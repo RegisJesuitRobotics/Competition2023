@@ -102,7 +102,6 @@ public class RobotContainer {
                         .andThen(rumbleOperatorControllerCommand()));
         // TODO: Substation
         operatorController.square().whileTrue(Commands.none());
-        System.out.println(AutoScoreConstants.CONE_HIGH);
 
         operatorController
                 .leftBumper()
