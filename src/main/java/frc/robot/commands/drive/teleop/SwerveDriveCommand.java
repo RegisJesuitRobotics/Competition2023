@@ -5,7 +5,8 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants.AutoConstants;
-import frc.robot.Constants.DriveTrainConstants;
+import frc.robot.Constants.TeleopConstants;
+import frc.robot.Robot;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.tunable.TunableTelemetryProfiledPIDController;
 import frc.robot.utils.RaiderMathUtils;
@@ -21,12 +22,11 @@ public class SwerveDriveCommand extends CommandBase {
     private final BooleanSupplier isFieldRelativeSupplier;
 
     private final TunableTelemetryProfiledPIDController snapPIDController = new TunableTelemetryProfiledPIDController(
-            "drive/snapController",
+            "/drive/snapController",
             AutoConstants.SNAP_ANGULAR_POSITION_PID_GAINS,
             AutoConstants.SNAP_ANGULAR_POSITION_TRAPEZOIDAL_GAINS);
     private final SwerveDriveSubsystem driveSubsystem;
 
-    private ChassisSpeeds chassisSpeeds = new ChassisSpeeds();
     private boolean isSnapping = false;
 
     public SwerveDriveCommand(
@@ -42,6 +42,7 @@ public class SwerveDriveCommand extends CommandBase {
         this.snapAngleSupplier = snapAngleSupplier;
         this.isFieldRelativeSupplier = isFieldRelativeSupplier;
 
+        snapPIDController.enableContinuousInput(-Math.PI, Math.PI);
         this.driveSubsystem = driveSubsystem;
         addRequirements(driveSubsystem);
     }
@@ -53,6 +54,7 @@ public class SwerveDriveCommand extends CommandBase {
 
     @Override
     public void execute() {
+        Robot.startWNode("DriveExecute");
         boolean isFieldRelative = isFieldRelativeSupplier.getAsBoolean();
         Translation2d translation = translationSupplier.get();
 
@@ -65,26 +67,30 @@ public class SwerveDriveCommand extends CommandBase {
                 snapPIDController.reset(currentHeading.getRadians(), currentOmegaRadiansSecond);
                 isSnapping = true;
             }
-            omega = snapPIDController.calculate(currentOmegaRadiansSecond, snapAngleSupplier.getAsDouble())
+            omega = snapPIDController.calculate(currentHeading.getRadians(), snapAngleSupplier.getAsDouble())
                     + snapPIDController.getSetpoint().velocity;
         } else {
             omega = omegaRadiansSecondSupplier.getAsDouble();
             isSnapping = false;
         }
 
-        ChassisSpeeds nextChassisSpeeds =
-                ChassisSpeeds.fromFieldRelativeSpeeds(translation.getX(), translation.getY(), omega, currentHeading);
+        ChassisSpeeds chassisSpeeds = new ChassisSpeeds(translation.getX(), translation.getY(), omega);
+
+        if (isFieldRelative) {
+            chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+                    chassisSpeeds, driveSubsystem.getPose().getRotation());
+        }
 
         if (RaiderMathUtils.isChassisSpeedsZero(
                 chassisSpeeds,
-                DriveTrainConstants.TELEOP_MINIMUM_VELOCITY_METERS_SECOND,
-                DriveTrainConstants.TELEOP_MINIMUM_ANGULAR_VELOCITY_RADIANS_SECOND)) {
+                TeleopConstants.MINIMUM_VELOCITY_METERS_SECOND,
+                TeleopConstants.MINIMUM_ANGULAR_VELOCITY_RADIANS_SECOND)) {
             driveSubsystem.stopMovement();
         } else {
-            driveSubsystem.setChassisSpeeds(chassisSpeeds, nextChassisSpeeds, true);
+            driveSubsystem.setChassisSpeeds(chassisSpeeds, TeleopConstants.OPEN_LOOP_DRIVETRAIN);
         }
 
-        chassisSpeeds = nextChassisSpeeds;
+        Robot.endWNode();
     }
 
     @Override
