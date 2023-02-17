@@ -126,13 +126,13 @@ public final class Constants {
     }
 
     public static class ClawConstants {
-        public static final int[] SOLENOID_PORTS = {0, 0};
+        public static final int[] SOLENOID_PORTS = {6, 3};
     }
 
     // TODO: change names when theres a cad for intake and change ports
     public static class IntakeConstants {
-        public static final int[] UP_DOWN_SOLENOID_PORTS = {1, 2};
-        public static final int[] LEFT_RIGHT_SOLENOID_PORTS = {3, 4};
+        public static final int[] UP_DOWN_SOLENOID_PORTS = {5, 2};
+        public static final int[] LEFT_RIGHT_SOLENOID_PORTS = {4, 1};
     }
 
     public static class TeleopConstants {

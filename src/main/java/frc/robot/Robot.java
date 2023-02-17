@@ -71,6 +71,7 @@ public class Robot extends TreeTimedRobot {
 
         telemetryPowerDistribution =
                 new TelemetryPowerDistribution(MiscConstants.POWER_MODULE_ID, MiscConstants.POWER_MODULE_TYPE);
+        telemetryPneumaticHub = new TelemetryPneumaticHub();
         miscRobotTelemetryAndAlerts = new MiscRobotTelemetryAndAlerts();
         overrunAlertManager = new OverrunAlertManager();
 

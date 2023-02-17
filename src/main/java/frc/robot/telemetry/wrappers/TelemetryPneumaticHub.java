@@ -39,8 +39,8 @@ public class TelemetryPneumaticHub extends PneumaticHub {
         totalSolenoidCurrentEntry = new DoubleTelemetryEntry(thisTableName + "totalSolenoidCurrent", false);
         solenoidVoltageEntry = new DoubleTelemetryEntry(thisTableName + "solenoidVoltage", false);
         compressorCurrentEntry = new DoubleTelemetryEntry(thisTableName + "compressorCurrent", false);
-        pressureSwitchEntry = new BooleanTelemetryEntry(thisTableName + "pressureSwitch", false);
-        compressorActiveEntry = new BooleanTelemetryEntry(thisTableName + "compressorActive", false);
+        pressureSwitchEntry = new BooleanTelemetryEntry(thisTableName + "pressureSwitch", true);
+        compressorActiveEntry = new BooleanTelemetryEntry(thisTableName + "compressorActive", true);
         faultsEntry = new BooleanArrayTelemetryEntry(thisTableName + "faults", false);
     }
 
