@@ -11,7 +11,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.MiscConstants;
 import frc.robot.Robot;
 import frc.robot.telemetry.tunable.TunableTelemetryProfiledPIDController;
-import frc.robot.telemetry.types.DoubleTelemetryEntry;
 import frc.robot.telemetry.types.EventTelemetryEntry;
 import frc.robot.telemetry.types.IntegerTelemetryEntry;
 import frc.robot.telemetry.wrappers.TelemetryCANSparkMax;
@@ -19,17 +18,14 @@ import frc.robot.utils.Alert;
 import frc.robot.utils.Alert.AlertType;
 import frc.robot.utils.ConfigTimeout;
 
-/**
- * <strong>Do not use this directly in commands, use {@link frc.robot.subsystems.LiftExtensionSuperStructure}</strong>
- */
 public class ExtensionSubsystem extends SubsystemBase {
-    enum Mode {
+    enum ExtensionControlMode {
         CLOSED_LOOP(1),
         RAW_VOLTAGE(2);
 
         final int logValue;
 
-        Mode(int logValue) {
+        ExtensionControlMode(int logValue) {
             this.logValue = logValue;
         }
     }
@@ -47,17 +43,9 @@ public class ExtensionSubsystem extends SubsystemBase {
     private final Alert failedConfigurationAlert = new Alert("Extension Failed to Configure Motor", AlertType.ERROR);
     private final EventTelemetryEntry eventEntry = new EventTelemetryEntry("/extension/events");
     private final IntegerTelemetryEntry modeEntry = new IntegerTelemetryEntry("/extension/mode", false);
-    private final DoubleTelemetryEntry leftPosition =
-            new DoubleTelemetryEntry("/extension/leftPosition", MiscConstants.TUNING_MODE);
-    private final DoubleTelemetryEntry leftVelocity =
-            new DoubleTelemetryEntry("/extension/leftVelocity", MiscConstants.TUNING_MODE);
-    private final DoubleTelemetryEntry rightPosition =
-            new DoubleTelemetryEntry("/extension/rightPosition", MiscConstants.TUNING_MODE);
-    private final DoubleTelemetryEntry rightVelocity =
-            new DoubleTelemetryEntry("/extension/rightVelocity", MiscConstants.TUNING_MODE);
 
     private double voltage = 0.0;
-    private Mode currentMode = Mode.CLOSED_LOOP;
+    private ExtensionControlMode currentMode = ExtensionControlMode.CLOSED_LOOP;
 
     public ExtensionSubsystem() {
         configMotors();
@@ -79,6 +67,8 @@ public class ExtensionSubsystem extends SubsystemBase {
             double conversionFactor = (Math.PI * ROLLER_DIAMETER_METERS) / GEAR_REDUCTION;
             faultInitializing |= checkRevError(leftEncoder.setPositionConversionFactor(conversionFactor));
             faultInitializing |= checkRevError(leftEncoder.setVelocityConversionFactor(conversionFactor));
+            faultInitializing |= checkRevError(rightEncoder.setPositionConversionFactor(conversionFactor));
+            faultInitializing |= checkRevError(leftEncoder.setPositionConversionFactor(conversionFactor));
 
             faultInitializing |= checkRevError(leftMotor.setSmartCurrentLimit(STALL_CURRENT_LIMIT, FREE_CURRENT_LIMIT));
             faultInitializing |=
@@ -92,17 +82,21 @@ public class ExtensionSubsystem extends SubsystemBase {
     }
 
     public void setDistance(double distanceMeters) {
-        currentMode = Mode.CLOSED_LOOP;
+        currentMode = ExtensionControlMode.CLOSED_LOOP;
         controller.setGoal(distanceMeters);
     }
 
     public void setVoltage(double voltage) {
-        currentMode = Mode.RAW_VOLTAGE;
+        currentMode = ExtensionControlMode.RAW_VOLTAGE;
         this.voltage = voltage;
     }
 
-    public double getDistance() {
+    public double getPosition() {
         return leftEncoder.getPosition();
+    }
+
+    public double getCurrent() {
+        return leftMotor.getOutputCurrent();
     }
 
     public void stopMovement() {
@@ -113,10 +107,10 @@ public class ExtensionSubsystem extends SubsystemBase {
     public void periodic() {
         Robot.startWNode("ExtensionSubsystem#periodic");
 
-        if (currentMode == Mode.RAW_VOLTAGE) {
+        if (currentMode == ExtensionControlMode.RAW_VOLTAGE) {
             leftMotor.setVoltage(voltage);
-        } else if (currentMode == Mode.CLOSED_LOOP) {
-            double feedbackOutput = controller.calculate(getDistance());
+        } else if (currentMode == ExtensionControlMode.CLOSED_LOOP) {
+            double feedbackOutput = controller.calculate(getPosition());
 
             TrapezoidProfile.State currentSetpoint = controller.getSetpoint();
             leftMotor.setVoltage(feedbackOutput + feedforward.calculate(currentSetpoint.velocity));
@@ -131,10 +125,6 @@ public class ExtensionSubsystem extends SubsystemBase {
     private void logValues() {
         leftMotor.logValues();
         rightMotor.logValues();
-        leftPosition.append(leftEncoder.getPosition());
-        rightPosition.append(rightEncoder.getPosition());
-        leftVelocity.append(leftEncoder.getVelocity());
-        rightVelocity.append(rightEncoder.getVelocity());
         modeEntry.append(currentMode.logValue);
 
         if (FF_GAINS.hasChanged()) {

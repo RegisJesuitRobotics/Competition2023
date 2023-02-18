@@ -147,9 +147,8 @@ public final class Constants {
 
         public static final double GEAR_REDUCTION = 5.0 * 5.0 * 5.0 * 5.0;
 
-        // TODO: Update this
-        public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(0.0);
-        public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(165.0);
+        public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(3.5);
+        public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(150.0);
 
         public static final TunablePIDGains PID_GAINS =
                 new TunablePIDGains("/gains/lifter", 4.7362, 0.0, 3.8901, MiscConstants.TUNING_MODE);
@@ -161,6 +160,9 @@ public final class Constants {
 
         public static final int STALL_CURRENT_LIMIT = 10;
         public static final int FREE_CURRENT_LIMIT = 50;
+
+        public static final double HOME_CURRENT = 5.0;
+        public static final double HOME_VOLTAGE = -3.0;
     }
 
     public static class ExtensionConstants {

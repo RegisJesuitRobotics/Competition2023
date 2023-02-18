@@ -11,16 +11,15 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.Constants.AutoScoreConstants;
-import frc.robot.Constants.DriveTrainConstants;
-import frc.robot.Constants.MiscConstants;
-import frc.robot.Constants.TeleopConstants;
+import frc.robot.Constants.*;
+import frc.robot.commands.HomeHomeableCommand;
+import frc.robot.commands.PositionClawCommand;
 import frc.robot.commands.drive.LockModulesCommand;
 import frc.robot.commands.drive.auto.Autos;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
-import frc.robot.commands.lift.PositionClawCommand;
 import frc.robot.hid.CommandXboxPlaystationController;
-import frc.robot.subsystems.LiftExtensionSuperStructure;
+import frc.robot.subsystems.extension.ExtensionSubsystem;
+import frc.robot.subsystems.lift.LiftSubsystem;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.tunable.gains.TunableDouble;
 import frc.robot.utils.Alert;
@@ -39,7 +38,8 @@ import java.util.function.DoubleSupplier;
  */
 public class RobotContainer {
     private final SwerveDriveSubsystem driveSubsystem = new SwerveDriveSubsystem();
-    private final LiftExtensionSuperStructure liftExtensionSuperStructure = new LiftExtensionSuperStructure();
+    private final LiftSubsystem liftSubsystem = new LiftSubsystem();
+    private final ExtensionSubsystem extensionSubsystem = new ExtensionSubsystem();
 
     private final CommandXboxPlaystationController driverController = new CommandXboxPlaystationController(0);
     private final CommandXboxPlaystationController operatorController = new CommandXboxPlaystationController(1);
@@ -90,15 +90,15 @@ public class RobotContainer {
 
         operatorController
                 .triangle()
-                .whileTrue(new PositionClawCommand(AutoScoreConstants.CONE_HIGH, liftExtensionSuperStructure)
+                .whileTrue(new PositionClawCommand(AutoScoreConstants.CONE_HIGH, liftSubsystem, extensionSubsystem)
                         .andThen(rumbleOperatorControllerCommand()));
         operatorController
                 .circle()
-                .whileTrue(new PositionClawCommand(AutoScoreConstants.CONE_MID, liftExtensionSuperStructure)
+                .whileTrue(new PositionClawCommand(AutoScoreConstants.CONE_MID, liftSubsystem, extensionSubsystem)
                         .andThen(rumbleOperatorControllerCommand()));
         operatorController
                 .x()
-                .whileTrue(new PositionClawCommand(AutoScoreConstants.CONE_LOW, liftExtensionSuperStructure)
+                .whileTrue(new PositionClawCommand(AutoScoreConstants.CONE_LOW, liftSubsystem, extensionSubsystem)
                         .andThen(rumbleOperatorControllerCommand()));
         // TODO: Substation
         operatorController.square().whileTrue(Commands.none());
@@ -106,26 +106,24 @@ public class RobotContainer {
         operatorController
                 .leftBumper()
                 .whileTrue(new StartEndCommand(
-                        () -> liftExtensionSuperStructure.setLiftVoltage(3.0),
-                        () -> liftExtensionSuperStructure.setLiftVoltage(0.0),
-                        liftExtensionSuperStructure));
+                        () -> liftSubsystem.setVoltage(3.0), () -> liftSubsystem.setVoltage(0.0), liftSubsystem));
         operatorController
                 .rightBumper()
                 .whileTrue(new StartEndCommand(
-                        () -> liftExtensionSuperStructure.setLiftVoltage(-3.0),
-                        () -> liftExtensionSuperStructure.setLiftVoltage(0.0),
-                        liftExtensionSuperStructure));
+                        () -> liftSubsystem.setVoltage(-3.0), () -> liftSubsystem.setVoltage(0.0), liftSubsystem));
 
         operatorController
                 .leftTrigger()
                 .whileTrue(new StartEndCommand(
-                        () -> liftExtensionSuperStructure.setExtensionVoltage(3.0),
-                        () -> liftExtensionSuperStructure.setExtensionVoltage(0.0)));
+                        () -> extensionSubsystem.setVoltage(3.0),
+                        () -> extensionSubsystem.setVoltage(0.0),
+                        extensionSubsystem));
         operatorController
                 .rightTrigger()
                 .whileTrue(new StartEndCommand(
-                        () -> liftExtensionSuperStructure.setExtensionVoltage(-3.0),
-                        () -> liftExtensionSuperStructure.setExtensionVoltage(0.0)));
+                        () -> extensionSubsystem.setVoltage(-3.0),
+                        () -> extensionSubsystem.setVoltage(0.0),
+                        extensionSubsystem));
 
         DoubleEntry gridEntry = NetworkTableInstance.getDefault()
                 .getDoubleTopic("/toLog/autoScore/grid")
@@ -139,6 +137,10 @@ public class RobotContainer {
                 .povRight()
                 .onTrue(Commands.runOnce(() -> gridEntry.set(MathUtil.clamp(gridEntry.get() + 1, 0, 8)))
                         .ignoringDisable(true));
+
+        operatorController.share().onTrue(
+                new HomeHomeableCommand(LiftConstants.HOME_VOLTAGE, LiftConstants.HOME_CURRENT, liftSubsystem)
+        );
     }
 
     private void configureDriveStyle() {

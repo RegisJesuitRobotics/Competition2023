@@ -14,25 +14,23 @@ import frc.robot.Constants.MiscConstants;
 import frc.robot.Robot;
 import frc.robot.telemetry.SendableTelemetryManager;
 import frc.robot.telemetry.tunable.TunableTelemetryProfiledPIDController;
-import frc.robot.telemetry.types.DoubleTelemetryEntry;
+import frc.robot.telemetry.types.BooleanTelemetryEntry;
 import frc.robot.telemetry.types.EventTelemetryEntry;
 import frc.robot.telemetry.types.IntegerTelemetryEntry;
 import frc.robot.telemetry.wrappers.TelemetryCANSparkMax;
 import frc.robot.utils.Alert;
 import frc.robot.utils.Alert.AlertType;
 import frc.robot.utils.ConfigTimeout;
+import frc.robot.utils.Homeable;
 
-/**
- * <strong>Do not use this directly in commands, use {@link frc.robot.subsystems.LiftExtensionSuperStructure}</strong>
- */
-public class LiftSubsystem extends SubsystemBase {
-    enum Mode {
+public class LiftSubsystem extends SubsystemBase implements Homeable {
+    enum LiftControlMode {
         CLOSED_LOOP(1),
         RAW_VOLTAGE(2);
 
         final int logValue;
 
-        Mode(int logValue) {
+        LiftControlMode(int logValue) {
             this.logValue = logValue;
         }
     }
@@ -54,19 +52,14 @@ public class LiftSubsystem extends SubsystemBase {
     private final LiftMechanism2d setpointMechanism2d = new LiftMechanism2d();
 
     private final Alert failedConfigurationAlert = new Alert("Lifter Arm Failed to Configure Motor", AlertType.ERROR);
+    private final Alert notHomedAlert = new Alert("Lifter is Not Homed!", AlertType.WARNING);
     private final EventTelemetryEntry eventEntry = new EventTelemetryEntry("/lifter/events");
-    private final DoubleTelemetryEntry leftPosition =
-            new DoubleTelemetryEntry("/lifter/leftPosition", MiscConstants.TUNING_MODE);
-    private final DoubleTelemetryEntry leftVelocity =
-            new DoubleTelemetryEntry("/lifter/leftVelocity", MiscConstants.TUNING_MODE);
-    private final DoubleTelemetryEntry rightPosition =
-            new DoubleTelemetryEntry("/lifter/rightPosition", MiscConstants.TUNING_MODE);
-    private final DoubleTelemetryEntry rightVelocity =
-            new DoubleTelemetryEntry("/lifter/rightVelocity", MiscConstants.TUNING_MODE);
     private final IntegerTelemetryEntry modeEntry = new IntegerTelemetryEntry("/lifter/mode", false);
+    private final BooleanTelemetryEntry homedEntry = new BooleanTelemetryEntry("/lifter/homed", true);
 
-    private Mode mode = Mode.CLOSED_LOOP;
+    private LiftControlMode currentMode = LiftControlMode.CLOSED_LOOP;
     private double voltage = 0.0;
+    private boolean isHomed = false;
 
     public LiftSubsystem() {
         SendableTelemetryManager.getInstance().addSendable("Lifter", mechanism2d.getMechanism2dObject());
@@ -113,15 +106,26 @@ public class LiftSubsystem extends SubsystemBase {
      * @param angle the rotation relative to the default frame perimeter position
      */
     public void setArmAngle(Rotation2d angle) {
-        mode = Mode.CLOSED_LOOP;
+        currentMode = LiftControlMode.CLOSED_LOOP;
         // Limited to physical constraints
         controller.setGoal(MathUtil.clamp(
                 MathUtil.angleModulus(angle.getRadians()), MIN_ANGLE.getRadians(), MAX_ANGLE.getRadians()));
     }
 
     public void setVoltage(double voltage) {
-        mode = Mode.RAW_VOLTAGE;
+        currentMode = LiftControlMode.RAW_VOLTAGE;
         this.voltage = voltage;
+    }
+
+    @Override
+    public void setInHome() {
+        setPosition(MIN_ANGLE);
+        isHomed = true;
+    }
+
+    public void setPosition(Rotation2d position) {
+        leftEncoder.setPosition(position.getRadians());
+        rightEncoder.setPosition(position.getRadians());
     }
 
     public void stopMovement() {
@@ -136,12 +140,17 @@ public class LiftSubsystem extends SubsystemBase {
     }
 
     @Override
+    public double getCurrent() {
+        return leftMotor.getOutputCurrent();
+    }
+
+    @Override
     public void periodic() {
         Robot.startWNode("LifterSubsystem#periodic");
 
-        if (mode == Mode.RAW_VOLTAGE) {
+        if (currentMode == LiftControlMode.RAW_VOLTAGE) {
             leftMotor.setVoltage(voltage);
-        } else if (mode == Mode.CLOSED_LOOP) {
+        } else if (currentMode == LiftControlMode.CLOSED_LOOP) {
             double feedbackOutput = controller.calculate(getArmAngle().getRadians());
 
             setpointMechanism2d.setAngle(Rotation2d.fromRadians(controller.getSetpoint().position));
@@ -161,11 +170,9 @@ public class LiftSubsystem extends SubsystemBase {
         mechanism2d.setAngle(getArmAngle());
         leftMotor.logValues();
         rightMotor.logValues();
-        leftPosition.append(leftEncoder.getPosition());
-        rightPosition.append(rightEncoder.getPosition());
-        leftVelocity.append(leftEncoder.getVelocity());
-        rightVelocity.append(rightEncoder.getVelocity());
-        modeEntry.append(mode.logValue);
+        modeEntry.append(currentMode.logValue);
+        homedEntry.append(isHomed);
+        notHomedAlert.set(!isHomed);
 
         if (FF_GAINS.hasChanged()) {
             feedforward = FF_GAINS.createFeedforward();
