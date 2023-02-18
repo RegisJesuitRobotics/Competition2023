@@ -18,6 +18,8 @@ import frc.robot.commands.drive.LockModulesCommand;
 import frc.robot.commands.drive.auto.Autos;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
 import frc.robot.hid.CommandXboxPlaystationController;
+import frc.robot.subsystems.claw.ClawSubsystem;
+import frc.robot.subsystems.intake.FlipperSubsystem;
 import frc.robot.subsystems.extension.ExtensionSubsystem;
 import frc.robot.subsystems.lift.LiftSubsystem;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
@@ -38,6 +40,8 @@ import java.util.function.DoubleSupplier;
  */
 public class RobotContainer {
     private final SwerveDriveSubsystem driveSubsystem = new SwerveDriveSubsystem();
+    private final FlipperSubsystem flipper = new FlipperSubsystem();
+    private final ClawSubsystem clawSubsystem = new ClawSubsystem();
     private final LiftSubsystem liftSubsystem = new LiftSubsystem();
     private final ExtensionSubsystem extensionSubsystem = new ExtensionSubsystem();
 
