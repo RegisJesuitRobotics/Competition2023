@@ -16,6 +16,8 @@ import frc.robot.commands.drive.LockModulesCommand;
 import frc.robot.commands.drive.auto.Autos;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
 import frc.robot.hid.CommandXboxPlaystationController;
+import frc.robot.subsystems.claw.ClawSubsystem;
+import frc.robot.subsystems.intake.FlipperSubsystem;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.tunable.TunableDouble;
 import frc.robot.utils.Alert;
@@ -34,6 +36,8 @@ import java.util.function.DoubleSupplier;
  */
 public class RobotContainer {
     private final SwerveDriveSubsystem driveSubsystem = new SwerveDriveSubsystem();
+    private final FlipperSubsystem flipper = new FlipperSubsystem();
+    private final ClawSubsystem clawSubsystem = new ClawSubsystem();
 
     private final CommandXboxPlaystationController driverController = new CommandXboxPlaystationController(0);
     private final TeleopControlsStateManager teleopControlsStateManager = new TeleopControlsStateManager();
@@ -138,6 +142,10 @@ public class RobotContainer {
         driverController
                 .povUp()
                 .whileTrue(new LockModulesCommand(driveSubsystem).repeatedly().withName("Lock Modules"));
+
+        driverController.rightTrigger().onTrue(Commands.runOnce(flipper::toggleUpDownState, flipper));
+        driverController.leftTrigger().onTrue(Commands.runOnce(flipper::toggleInOutState, flipper));
+        driverController.share().onTrue(Commands.runOnce(clawSubsystem::toggleClawState, clawSubsystem));
     }
 
     private void evaluateDriveStyle(Command newCommand) {
