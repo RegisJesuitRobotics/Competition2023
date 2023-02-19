@@ -19,15 +19,15 @@ public final class Constants {
     private Constants() {}
 
     public static class VisionConstants {
+        private VisionConstants() {}
+
         // TODO: update once cameras are mounted
         public static final Transform3d FRONT_CAMERA_LOCATION = new Transform3d(
                 new Translation3d(
-                        Units.inchesToMeters(4.629714), Units.inchesToMeters(12.271), Units.inchesToMeters(25.875)),
-                new Rotation3d(0, 0, 0));
+                        Units.inchesToMeters(2.26271), Units.inchesToMeters(11.55917), Units.inchesToMeters(35.851)),
+                new Rotation3d(0, Units.degreesToRadians(5.0), 0));
 
-        private VisionConstants() {}
-
-        public static final String FRONT_CAMERA_NAME = "frontCamera";
+        public static final String FRONT_CAMERA_NAME = "FrontCamera";
     }
 
     public static final double DT = 0.02;
