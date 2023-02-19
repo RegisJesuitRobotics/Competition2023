@@ -164,7 +164,7 @@ public final class Constants {
                 new TunablePIDGains("/gains/lifter", 7.4421, 0.0, 12.694, MiscConstants.TUNING_MODE);
         public static final TunableTrapezoidalProfileGains TRAPEZOIDAL_PROFILE_GAINS =
                 new TunableTrapezoidalProfileGains(
-                        "/gains/lifter", Math.PI / 4, Math.PI / 6, MiscConstants.TUNING_MODE);
+                        "/gains/lifter", Math.PI * 3.0 / 4.0, Math.PI / 4, MiscConstants.TUNING_MODE);
         public static final TunableArmFFGains FF_GAINS =
                 new TunableArmFFGains("/gains/lifter", 0.15734, 0.35255, 11.587, 0.54436, MiscConstants.TUNING_MODE);
 
