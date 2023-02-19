@@ -1,34 +1,34 @@
 package frc.robot.telemetry.types;
 
-import edu.wpi.first.networktables.DoubleArrayPublisher;
+import edu.wpi.first.networktables.FloatArrayPublisher;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.util.datalog.DoubleArrayLogEntry;
+import edu.wpi.first.util.datalog.FloatArrayLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
 import java.util.Arrays;
 
-public class DoubleArrayTelemetryEntry extends PrimitiveTelemetryEntry {
-    private final DoubleArrayLogEntry logEntry;
-    private final DoubleArrayPublisher networkPublisher;
-    private double[] lastValue;
+public class FloatArrayTelemetryEntry extends PrimitiveTelemetryEntry {
+    private final FloatArrayLogEntry logEntry;
+    private final FloatArrayPublisher networkPublisher;
+    private float[] lastValue;
 
-    public DoubleArrayTelemetryEntry(String path, boolean shouldNT) {
+    public FloatArrayTelemetryEntry(String path, boolean shouldNT) {
         this(path, shouldNT, true);
     }
 
-    public DoubleArrayTelemetryEntry(String path, boolean shouldNT, boolean shouldLazyLog) {
+    public FloatArrayTelemetryEntry(String path, boolean shouldNT, boolean shouldLazyLog) {
         super(shouldLazyLog);
 
-        logEntry = new DoubleArrayLogEntry(DataLogManager.getLog(), path);
+        logEntry = new FloatArrayLogEntry(DataLogManager.getLog(), path);
         if (shouldNT) {
             networkPublisher =
-                    NetworkTableInstance.getDefault().getDoubleArrayTopic(path).publish();
-            networkPublisher.setDefault(new double[0]);
+                    NetworkTableInstance.getDefault().getFloatArrayTopic(path).publish();
+            networkPublisher.setDefault(new float[0]);
         } else {
             networkPublisher = null;
         }
     }
 
-    public void append(double[] value) {
+    public void append(float[] value) {
         if (shouldLog(() -> Arrays.equals(lastValue, value))) {
             logEntry.append(value);
 

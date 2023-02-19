@@ -4,6 +4,8 @@ import com.pathplanner.lib.PathConstraints;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.PneumaticsModuleType;
+import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import frc.robot.telemetry.tunable.TunableFFGains;
 import frc.robot.telemetry.tunable.TunablePIDGains;
 import frc.robot.telemetry.tunable.TunableTrapezoidalProfileGains;
@@ -25,7 +27,7 @@ public final class Constants {
 
         public static final double STEER_GEAR_REDUCTION = 150.0 / 7.0;
 
-        public static final boolean INVERT_GYRO = false;
+        public static final boolean INVERT_GYRO = true;
 
         public static final double DRIVE_PEAK_CURRENT_LIMIT = 65.0;
         public static final double DRIVE_CONTINUOUS_CURRENT_LIMIT = 35.0;
@@ -38,27 +40,27 @@ public final class Constants {
 
         // For talons PID full output is 1023 except for all FF gains
         public static final TunablePIDGains DRIVE_VELOCITY_PID_GAINS =
-                new TunablePIDGains("gains/drive", 0.1, 0.0, 0.0, MiscConstants.TUNING_MODE);
+                new TunablePIDGains("/gains/drive", 0.042758, 0.0, 0.0, MiscConstants.TUNING_MODE);
 
         public static final TunableFFGains DRIVE_VELOCITY_FF_GAINS =
-                new TunableFFGains("gains/drive", 0.3346, 2.2549, 0.5731, MiscConstants.TUNING_MODE);
+                new TunableFFGains("/gains/drive", 0.1152, 2.2639, 0.22216, MiscConstants.TUNING_MODE);
 
         public static final TunablePIDGains STEER_POSITION_PID_GAINS =
-                new TunablePIDGains("gains/steer", 0.3, 0.0, 0.1, MiscConstants.TUNING_MODE);
+                new TunablePIDGains("/gains/steer", 0.3, 0.0, 0.1, MiscConstants.TUNING_MODE);
 
         public static final double ACCEPTABLE_STEER_ERROR_RADIANS = Units.degreesToRadians(0.20);
 
         // Left right distance between center of wheels
-        public static final double TRACKWIDTH_METERS = Units.inchesToMeters(24.75);
+        public static final double TRACKWIDTH_METERS = Units.inchesToMeters(28.616);
 
         // Front back distance between center of wheels
-        public static final double WHEELBASE_METERS = Units.inchesToMeters(24.75);
+        public static final double WHEELBASE_METERS = Units.inchesToMeters(20.75);
 
         public static final Translation2d[] MODULE_TRANSLATIONS = new Translation2d[] {
-            new Translation2d(TRACKWIDTH_METERS / 2.0, WHEELBASE_METERS / 2.0),
-            new Translation2d(TRACKWIDTH_METERS / 2.0, -WHEELBASE_METERS / 2.0),
-            new Translation2d(-TRACKWIDTH_METERS / 2.0, WHEELBASE_METERS / 2.0),
-            new Translation2d(-TRACKWIDTH_METERS / 2.0, -WHEELBASE_METERS / 2.0)
+            new Translation2d(WHEELBASE_METERS / 2.0, TRACKWIDTH_METERS / 2.0),
+            new Translation2d(WHEELBASE_METERS / 2.0, -TRACKWIDTH_METERS / 2.0),
+            new Translation2d(-WHEELBASE_METERS / 2.0, TRACKWIDTH_METERS / 2.0),
+            new Translation2d(-WHEELBASE_METERS / 2.0, -TRACKWIDTH_METERS / 2.0)
         };
 
         public static final SwerveDriveKinematics KINEMATICS = new SwerveDriveKinematics(MODULE_TRANSLATIONS);
@@ -71,12 +73,7 @@ public final class Constants {
         public static final double MAX_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED =
                 MAX_ANGULAR_VELOCITY_RADIANS_SECOND / 2.0;
 
-        public static final double TRANSLATION_RATE_LIMIT_METERS_SECOND_SQUARED = 10.0;
-        public static final double ANGULAR_RATE_LIMIT_RADIANS_SECOND_SQUARED = 5.0 * Math.PI;
-        public static final double TELEOP_MINIMUM_VELOCITY_METERS_SECOND = 0.10;
-        public static final double TELEOP_MINIMUM_ANGULAR_VELOCITY_RADIANS_SECOND = 0.10;
-
-        public static final String CAN_BUS = "rio";
+        public static final String CAN_BUS = "canivore";
         private static final SharedSwerveModuleConfiguration SHARED_SWERVE_MODULE_CONFIGURATION =
                 new SharedSwerveModuleConfiguration(
                         CAN_BUS,
@@ -97,16 +94,16 @@ public final class Constants {
                         ACCEPTABLE_STEER_ERROR_RADIANS);
 
         public static final SwerveModuleConfiguration FRONT_LEFT_MODULE_CONFIGURATION = new SwerveModuleConfiguration(
-                1, 5, 9, true, true, -1.22565065, false, SHARED_SWERVE_MODULE_CONFIGURATION);
+                1, 5, 9, true, true, Units.degreesToRadians(-72.685547), false, SHARED_SWERVE_MODULE_CONFIGURATION);
 
         public static final SwerveModuleConfiguration FRONT_RIGHT_MODULE_CONFIGURATION = new SwerveModuleConfiguration(
-                2, 6, 10, true, true, 1.30388367, false, SHARED_SWERVE_MODULE_CONFIGURATION);
+                2, 6, 10, true, true, Units.degreesToRadians(75.673828), false, SHARED_SWERVE_MODULE_CONFIGURATION);
 
         public static final SwerveModuleConfiguration BACK_LEFT_MODULE_CONFIGURATION = new SwerveModuleConfiguration(
-                3, 7, 11, true, true, 1.37751475, false, SHARED_SWERVE_MODULE_CONFIGURATION);
+                3, 7, 11, true, true, Units.degreesToRadians(78.044531), false, SHARED_SWERVE_MODULE_CONFIGURATION);
 
         public static final SwerveModuleConfiguration BACK_RIGHT_MODULE_CONFIGURATION = new SwerveModuleConfiguration(
-                4, 8, 12, true, true, -2.73662173, false, SHARED_SWERVE_MODULE_CONFIGURATION);
+                4, 8, 12, true, true, Units.degreesToRadians(-156.621094), false, SHARED_SWERVE_MODULE_CONFIGURATION);
     }
 
     public static class AutoConstants {
@@ -138,16 +135,35 @@ public final class Constants {
                 DriveTrainConstants.MAX_VELOCITY_METERS_SECOND, MAX_PATH_ACCELERATION_METERS_PER_SECOND_SQUARED);
     }
 
+    public static class ClawConstants {
+        public static final int[] SOLENOID_PORTS = {6, 3};
+    }
+
+    // TODO: change names when theres a cad for intake and change ports
+    public static class IntakeConstants {
+        public static final int[] UP_DOWN_SOLENOID_PORTS = {5, 2};
+        public static final int[] LEFT_RIGHT_SOLENOID_PORTS = {4, 1};
+    }
+
     public static class TeleopConstants {
         private TeleopConstants() {}
 
         public static final boolean OPEN_LOOP_DRIVETRAIN = false;
+        public static final double TRANSLATION_RATE_LIMIT_METERS_SECOND_SQUARED = 10.0;
+        public static final double ANGULAR_RATE_LIMIT_RADIANS_SECOND_SQUARED = 5.0 * Math.PI;
+        public static final double MINIMUM_VELOCITY_METERS_SECOND = 0.10;
+        public static final double MINIMUM_ANGULAR_VELOCITY_RADIANS_SECOND = 0.10;
     }
 
     public static class MiscConstants {
+
         private MiscConstants() {}
 
         public static final int[] USED_CONTROLLER_PORTS = {0};
         public static final boolean TUNING_MODE = true;
+
+        public static final PneumaticsModuleType PNEUMATICS_MODULE_TYPE = PneumaticsModuleType.REVPH;
+        public static final ModuleType POWER_MODULE_TYPE = ModuleType.kRev;
+        public static final int POWER_MODULE_ID = 1;
     }
 }

@@ -1,33 +1,33 @@
 package frc.robot.telemetry.types;
 
-import edu.wpi.first.networktables.BooleanPublisher;
+import edu.wpi.first.networktables.FloatPublisher;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.util.datalog.BooleanLogEntry;
+import edu.wpi.first.util.datalog.FloatLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
 
-public class BooleanTelemetryEntry extends PrimitiveTelemetryEntry {
-    private final BooleanLogEntry logEntry;
-    private final BooleanPublisher networkPublisher;
-    private boolean lastValue;
+public class FloatTelemetryEntry extends PrimitiveTelemetryEntry {
+    private final FloatLogEntry logEntry;
+    private final FloatPublisher networkPublisher;
+    private float lastValue;
 
-    public BooleanTelemetryEntry(String path, boolean shouldNT) {
+    public FloatTelemetryEntry(String path, boolean shouldNT) {
         this(path, shouldNT, true);
     }
 
-    public BooleanTelemetryEntry(String path, boolean shouldNT, boolean shouldLazyLog) {
+    public FloatTelemetryEntry(String path, boolean shouldNT, boolean shouldLazyLog) {
         super(shouldLazyLog);
 
-        logEntry = new BooleanLogEntry(DataLogManager.getLog(), path);
+        logEntry = new FloatLogEntry(DataLogManager.getLog(), path);
         if (shouldNT) {
             networkPublisher =
-                    NetworkTableInstance.getDefault().getBooleanTopic(path).publish();
-            networkPublisher.setDefault(false);
+                    NetworkTableInstance.getDefault().getFloatTopic(path).publish();
+            networkPublisher.setDefault(0);
         } else {
             networkPublisher = null;
         }
     }
 
-    public void append(boolean value) {
+    public void append(float value) {
         if (shouldLog(() -> lastValue == value)) {
             logEntry.append(value);
 
