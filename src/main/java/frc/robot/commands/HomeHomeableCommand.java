@@ -1,6 +1,8 @@
 package frc.robot.commands;
 
 import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.filter.LinearFilter;
+import edu.wpi.first.math.filter.MedianFilter;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.utils.Homeable;
 
@@ -9,7 +11,7 @@ public class HomeHomeableCommand extends CommandBase {
     private final double homeVoltage;
     private final double homeCurrent;
 
-    private final Debouncer debouncer = new Debouncer(0.1);
+    private final MedianFilter currentFilter = new MedianFilter(4);
 
     public HomeHomeableCommand(double homeVoltage, double homeCurrent, Homeable homeable) {
         this.homeVoltage = homeVoltage;
@@ -21,8 +23,7 @@ public class HomeHomeableCommand extends CommandBase {
 
     @Override
     public void initialize() {
-        // Reset debounce
-        debouncer.calculate(false);
+        currentFilter.reset();
     }
 
     @Override
@@ -40,6 +41,6 @@ public class HomeHomeableCommand extends CommandBase {
 
     @Override
     public boolean isFinished() {
-        return debouncer.calculate(Math.abs(homeable.getCurrent()) >= homeCurrent);
+        return currentFilter.calculate(homeable.getCurrent()) > homeCurrent;
     }
 }

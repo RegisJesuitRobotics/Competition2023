@@ -171,8 +171,8 @@ public final class Constants {
         public static final int STALL_CURRENT_LIMIT = 10;
         public static final int FREE_CURRENT_LIMIT = 40;
 
-        public static final double HOME_CURRENT = 1.0;
-        public static final double HOME_VOLTAGE = -0.5;
+        public static final double HOME_CURRENT = 0.3;
+        public static final double HOME_VOLTAGE = -0.3;
     }
 
     public static class ExtensionConstants {

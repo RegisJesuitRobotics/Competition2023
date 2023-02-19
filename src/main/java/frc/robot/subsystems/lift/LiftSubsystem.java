@@ -144,6 +144,7 @@ public class LiftSubsystem extends SubsystemBase implements Homeable {
     public void setEncoderPosition(Rotation2d position) {
         leftEncoder.setPosition(position.getRadians());
         rightEncoder.setPosition(position.getRadians());
+        controller.reset(position.getRadians(), leftEncoder.getVelocity());
     }
 
     public void stopMovement() {

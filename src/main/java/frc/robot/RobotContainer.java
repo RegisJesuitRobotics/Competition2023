@@ -60,7 +60,7 @@ public class RobotContainer {
         configureAutos();
 
         Shuffleboard.getTab("UtilsRaw").add(CommandScheduler.getInstance());
-        liftSubsystem.setDefaultCommand(Commands.run(liftSubsystem::stopMovement, liftSubsystem));
+        liftSubsystem.setDefaultCommand(Commands.run(() -> liftSubsystem.setVoltage(0.0), liftSubsystem));
     }
 
     private void configureAutos() {
@@ -122,13 +122,13 @@ public class RobotContainer {
         operatorController
                 .leftTrigger()
                 .whileTrue(new StartEndCommand(
-                        () -> extensionSubsystem.setVoltage(12.0),
+                        () -> extensionSubsystem.setVoltage(4.0),
                         () -> extensionSubsystem.setVoltage(0.0),
                         extensionSubsystem));
         operatorController
                 .rightTrigger()
                 .whileTrue(new StartEndCommand(
-                        () -> extensionSubsystem.setVoltage(-12.0),
+                        () -> extensionSubsystem.setVoltage(-4.0),
                         () -> extensionSubsystem.setVoltage(0.0),
                         extensionSubsystem));
 
@@ -150,7 +150,7 @@ public class RobotContainer {
                 .onTrue(new HomeHomeableCommand(LiftConstants.HOME_VOLTAGE, LiftConstants.HOME_CURRENT, liftSubsystem));
         operatorController
                 .options()
-                .onTrue(new SetLiftPositionCommand(Rotation2d.fromDegrees(0.0), liftSubsystem)
+                .onTrue(new SetLiftPositionCommand(Rotation2d.fromDegrees(-45.0), liftSubsystem)
                         .andThen(rumbleOperatorControllerCommand()));
     }
 
