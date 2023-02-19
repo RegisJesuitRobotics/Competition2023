@@ -1,9 +1,9 @@
 package frc.robot;
 
 import com.pathplanner.lib.PathConstraints;
-import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -196,24 +196,27 @@ public final class Constants {
         public static final int LEFT_MOTOR_PORT = 3;
         public static final int RIGHT_MOTOR_PORT = 4;
 
-        public static final boolean INVERT_LEADER = false;
+        public static final boolean INVERT_LEADER = true;
         public static final boolean INVERT_FOLLOWER_FROM_LEADER = true;
 
         public static final int STALL_CURRENT_LIMIT = 10;
         public static final int FREE_CURRENT_LIMIT = 20;
 
-        public static final double GEAR_REDUCTION = 3.0 * 4.0 * 5.0;
+        public static final double GEAR_REDUCTION = 3.0 * 5.0;
         public static final double ROLLER_DIAMETER_METERS = Units.inchesToMeters(0.5);
 
-        // Offset from claw to center of robot when at "0"
-        public static final double X_OFFSET_METERS = Units.inchesToMeters(-1);
+        //        // Offset from claw to center of robot when at "0"
+        //        public static final double X_OFFSET_METERS = Units.inchesToMeters(8);
 
         public static final TunablePIDGains PID_GAINS =
-                new TunablePIDGains("/gains/extension", 0.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
+                new TunablePIDGains("/gains/extension", 12.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
         public static final TunableTrapezoidalProfileGains TRAPEZOIDAL_PROFILE_GAINS =
-                new TunableTrapezoidalProfileGains("/gains/extension", 0.0, 0.0, MiscConstants.TUNING_MODE);
+                new TunableTrapezoidalProfileGains("/gains/extension", 0.75, 0.4, MiscConstants.TUNING_MODE);
         public static final TunableFFGains FF_GAINS =
-                new TunableFFGains("/gains/extension", 0.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
+                new TunableFFGains("/gains/extension", 0.27288, 20.188, 2.1074, MiscConstants.TUNING_MODE);
+
+        public static final double HOME_CURRENT = 3;
+        public static final double HOME_VOLTAGE = -1;
     }
 
     public static class TeleopConstants {

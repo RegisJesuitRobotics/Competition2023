@@ -1,7 +1,5 @@
 package frc.robot.commands;
 
-import edu.wpi.first.math.filter.Debouncer;
-import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.filter.MedianFilter;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.utils.Homeable;

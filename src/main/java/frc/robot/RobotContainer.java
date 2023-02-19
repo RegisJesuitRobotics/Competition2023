@@ -3,7 +3,6 @@ package frc.robot;
 import com.pathplanner.lib.server.PathPlannerServer;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.networktables.DoubleEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -18,13 +17,13 @@ import frc.robot.commands.PositionClawCommand;
 import frc.robot.commands.drive.LockModulesCommand;
 import frc.robot.commands.drive.auto.Autos;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
-import frc.robot.commands.lift.SetLiftPositionCommand;
+import frc.robot.commands.extension.SetExtensionPositionCommand;
 import frc.robot.hid.CommandXboxPlaystationController;
 import frc.robot.subsystems.claw.ClawSubsystem;
 import frc.robot.subsystems.extension.ExtensionSubsystem;
 import frc.robot.subsystems.intake.FlipperSubsystem;
-import frc.robot.subsystems.photon.PhotonSubsystem;
 import frc.robot.subsystems.lift.LiftSubsystem;
+import frc.robot.subsystems.photon.PhotonSubsystem;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.tunable.gains.TunableDouble;
 import frc.robot.utils.Alert;
@@ -125,13 +124,13 @@ public class RobotContainer {
         operatorController
                 .leftTrigger()
                 .whileTrue(new StartEndCommand(
-                        () -> extensionSubsystem.setVoltage(4.0),
+                        () -> extensionSubsystem.setVoltage(-4.0),
                         () -> extensionSubsystem.setVoltage(0.0),
                         extensionSubsystem));
         operatorController
                 .rightTrigger()
                 .whileTrue(new StartEndCommand(
-                        () -> extensionSubsystem.setVoltage(-4.0),
+                        () -> extensionSubsystem.setVoltage(4.0),
                         () -> extensionSubsystem.setVoltage(0.0),
                         extensionSubsystem));
 
@@ -150,10 +149,11 @@ public class RobotContainer {
 
         operatorController
                 .share()
-                .onTrue(new HomeHomeableCommand(LiftConstants.HOME_VOLTAGE, LiftConstants.HOME_CURRENT, liftSubsystem));
+                .onTrue(new HomeHomeableCommand(
+                        ExtensionConstants.HOME_VOLTAGE, ExtensionConstants.HOME_CURRENT, extensionSubsystem));
         operatorController
                 .options()
-                .onTrue(new SetLiftPositionCommand(Rotation2d.fromDegrees(-45.0), liftSubsystem)
+                .onTrue(new SetExtensionPositionCommand(0.5, extensionSubsystem)
                         .andThen(rumbleOperatorControllerCommand()));
     }
 

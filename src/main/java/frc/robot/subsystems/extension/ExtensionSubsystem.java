@@ -50,7 +50,7 @@ public class ExtensionSubsystem extends SubsystemBase implements Homeable {
 
     private boolean isHomed = false;
     private double voltage = 0.0;
-    private ExtensionControlMode currentMode = ExtensionControlMode.CLOSED_LOOP;
+    private ExtensionControlMode currentMode = ExtensionControlMode.RAW_VOLTAGE;
 
     public ExtensionSubsystem() {
         configMotors();
@@ -71,9 +71,9 @@ public class ExtensionSubsystem extends SubsystemBase implements Homeable {
 
             double conversionFactor = (Math.PI * ROLLER_DIAMETER_METERS) / GEAR_REDUCTION;
             faultInitializing |= checkRevError(leftEncoder.setPositionConversionFactor(conversionFactor));
-            faultInitializing |= checkRevError(leftEncoder.setVelocityConversionFactor(conversionFactor));
+            faultInitializing |= checkRevError(leftEncoder.setVelocityConversionFactor(conversionFactor / 60));
             faultInitializing |= checkRevError(rightEncoder.setPositionConversionFactor(conversionFactor));
-            faultInitializing |= checkRevError(leftEncoder.setPositionConversionFactor(conversionFactor));
+            faultInitializing |= checkRevError(rightEncoder.setVelocityConversionFactor(conversionFactor / 60));
 
             faultInitializing |= checkRevError(leftMotor.setSmartCurrentLimit(STALL_CURRENT_LIMIT, FREE_CURRENT_LIMIT));
             faultInitializing |=
@@ -88,6 +88,7 @@ public class ExtensionSubsystem extends SubsystemBase implements Homeable {
 
     public void setDesiredPosition(double distanceMeters) {
         currentMode = ExtensionControlMode.CLOSED_LOOP;
+        controller.reset(getPosition(), leftEncoder.getVelocity());
         controller.setGoal(distanceMeters);
     }
 
@@ -104,9 +105,14 @@ public class ExtensionSubsystem extends SubsystemBase implements Homeable {
         return leftEncoder.getPosition();
     }
 
+    public void setPosition(double position) {
+        leftEncoder.setPosition(position);
+        rightEncoder.setPosition(position);
+    }
+
     @Override
     public void setInHome() {
-        setDesiredPosition(0.0);
+        setPosition(0.0);
         isHomed = true;
     }
 
