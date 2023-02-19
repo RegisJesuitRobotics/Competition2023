@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import frc.robot.FieldConstants.Community;
 import frc.robot.FieldConstants.Grids;
@@ -45,10 +46,10 @@ public final class Constants {
 
         // For talons PID full output is 1023 except for all FF gains
         public static final TunablePIDGains DRIVE_VELOCITY_PID_GAINS =
-                new TunablePIDGains("/gains/drive", 0.042758, 0.0, 0.0, MiscConstants.TUNING_MODE);
+                new TunablePIDGains("/gains/drive", 0.16556, 0.0, 0.0, MiscConstants.TUNING_MODE);
 
         public static final TunableFFGains DRIVE_VELOCITY_FF_GAINS =
-                new TunableFFGains("/gains/drive", 0.1152, 2.2639, 0.22216, MiscConstants.TUNING_MODE);
+                new TunableFFGains("/gains/drive", 0.16649, 2.2457, 0.33446, MiscConstants.TUNING_MODE);
 
         public static final TunablePIDGains STEER_POSITION_PID_GAINS =
                 new TunablePIDGains("/gains/steer", 0.3, 0.0, 0.1, MiscConstants.TUNING_MODE);
@@ -139,6 +140,16 @@ public final class Constants {
                         MiscConstants.TUNING_MODE);
     }
 
+    public static class ClawConstants {
+        public static final int[] SOLENOID_PORTS = {6, 3};
+    }
+
+    // TODO: change names when theres a cad for intake and change ports
+    public static class IntakeConstants {
+        public static final int[] UP_DOWN_SOLENOID_PORTS = {5, 2};
+        public static final int[] LEFT_RIGHT_SOLENOID_PORTS = {4, 1};
+    }
+
     public static class LiftConstants {
         private LiftConstants() {}
 
@@ -157,20 +168,22 @@ public final class Constants {
 
         public static final double GEAR_REDUCTION = 5.0 * 5.0 * 5.0 * 5.0;
 
-        // TODO: Update this
-        public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(0.0);
-        public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(165.0);
+        public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(-86.5);
+        public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(45.0);
 
         public static final TunablePIDGains PID_GAINS =
-                new TunablePIDGains("/gains/lifter", 4.7362, 0.0, 3.8901, MiscConstants.TUNING_MODE);
+                new TunablePIDGains("/gains/lifter", 7.4421, 0.0, 12.694, MiscConstants.TUNING_MODE);
         public static final TunableTrapezoidalProfileGains TRAPEZOIDAL_PROFILE_GAINS =
                 new TunableTrapezoidalProfileGains(
-                        "/gains/lifter", Math.PI / 2, Math.PI / 2, MiscConstants.TUNING_MODE);
+                        "/gains/lifter", Math.PI / 4, Math.PI / 6, MiscConstants.TUNING_MODE);
         public static final TunableArmFFGains FF_GAINS =
-                new TunableArmFFGains("/gains/lifter", 0.12526, 0.15687, 10.508, 0.19378, MiscConstants.TUNING_MODE);
+                new TunableArmFFGains("/gains/lifter", 0.15734, 0.35255, 11.587, 0.54436, MiscConstants.TUNING_MODE);
 
         public static final int STALL_CURRENT_LIMIT = 10;
-        public static final int FREE_CURRENT_LIMIT = 50;
+        public static final int FREE_CURRENT_LIMIT = 40;
+
+        public static final double HOME_CURRENT = 1.0;
+        public static final double HOME_VOLTAGE = -0.5;
     }
 
     public static class ExtensionConstants {
@@ -202,7 +215,7 @@ public final class Constants {
     public static class TeleopConstants {
         private TeleopConstants() {}
 
-        public static final boolean OPEN_LOOP_DRIVETRAIN = false;
+        public static final boolean OPEN_LOOP_DRIVETRAIN = true;
         public static final double TRANSLATION_RATE_LIMIT_METERS_SECOND_SQUARED = 10.0;
         public static final double ANGULAR_RATE_LIMIT_RADIANS_SECOND_SQUARED = 5.0 * Math.PI;
         public static final double MINIMUM_VELOCITY_METERS_SECOND = 0.10;
@@ -234,6 +247,11 @@ public final class Constants {
 
         public static final double ROBOT_SCORING_X =
                 Grids.outerX + BUMPER_OFFSET_FROM_LOW_EDGE + (MiscConstants.FULL_ROBOT_LENGTH_METERS / 2.0);
+
+        static {
+            System.out.println("ROBOT_SCORING_X: " + ROBOT_SCORING_X);
+            System.out.println("Grids.highX: " + Grids.highX);
+        }
 
         public static final Translation2d CONE_HIGH =
                 new Translation2d(ROBOT_SCORING_X - Grids.highX + CONE_X_OFFSET, Grids.highConeZ + CONE_Z_OFFSET);
@@ -271,6 +289,7 @@ public final class Constants {
         public static final int[] USED_CONTROLLER_PORTS = {0};
         public static final boolean TUNING_MODE = true;
 
+        public static final PneumaticsModuleType PNEUMATICS_MODULE_TYPE = PneumaticsModuleType.REVPH;
         public static final ModuleType POWER_MODULE_TYPE = ModuleType.kRev;
         public static final int POWER_MODULE_ID = 1;
         public static final double CONFIGURATION_TIMEOUT_SECONDS = 5.0;

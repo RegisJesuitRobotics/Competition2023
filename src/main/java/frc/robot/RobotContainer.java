@@ -1,6 +1,7 @@
 package frc.robot;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.networktables.IntegerEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -22,9 +23,12 @@ import frc.robot.commands.drive.characterize.DriveTestingCommand;
 import frc.robot.commands.drive.characterize.DriveTrainSysIDCompatibleLoggerCommand;
 import frc.robot.commands.drive.characterize.SteerTestingCommand;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
-import frc.robot.commands.lift.PositionClawCommand;
+import frc.robot.commands.lift.SetLiftPositionCommand;
 import frc.robot.hid.CommandXboxPlaystationController;
-import frc.robot.subsystems.LiftExtensionSuperStructure;
+import frc.robot.subsystems.claw.ClawSubsystem;
+import frc.robot.subsystems.extension.ExtensionSubsystem;
+import frc.robot.subsystems.intake.FlipperSubsystem;
+import frc.robot.subsystems.lift.LiftSubsystem;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.SendableTelemetryManager;
 import frc.robot.telemetry.tunable.gains.TunableDouble;
@@ -41,7 +45,10 @@ import java.util.function.IntSupplier;
  */
 public class RobotContainer {
     private final SwerveDriveSubsystem driveSubsystem = new SwerveDriveSubsystem();
-    private final LiftExtensionSuperStructure liftExtensionSuperStructure = new LiftExtensionSuperStructure();
+    private final FlipperSubsystem flipper = new FlipperSubsystem();
+    private final ClawSubsystem clawSubsystem = new ClawSubsystem();
+    private final LiftSubsystem liftSubsystem = new LiftSubsystem();
+    private final ExtensionSubsystem extensionSubsystem = new ExtensionSubsystem();
 
     private final CommandXboxPlaystationController driverController = new CommandXboxPlaystationController(0);
     private final CommandXboxPlaystationController operatorController = new CommandXboxPlaystationController(1);
@@ -61,6 +68,7 @@ public class RobotContainer {
         configureAutos();
 
         Shuffleboard.getTab("UtilsRaw").add(CommandScheduler.getInstance());
+        liftSubsystem.setDefaultCommand(Commands.run(liftSubsystem::stopMovement, liftSubsystem));
     }
 
     private void configureAutos() {

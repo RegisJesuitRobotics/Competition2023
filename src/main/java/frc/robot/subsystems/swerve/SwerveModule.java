@@ -60,9 +60,6 @@ public class SwerveModule {
     private final BooleanTelemetryEntry openLoopEntry;
     private final DoubleTelemetryEntry steerPositionGoalEntry;
     private final BooleanTelemetryEntry activeSteerEntry;
-    private final DoubleTelemetryEntry actualDriveVelocityEntry;
-    private final DoubleTelemetryEntry actualSteerPositionEntry;
-    private final DoubleTelemetryEntry actualSteerVelocityEntry;
     private final DoubleTelemetryEntry absoluteHeadingEntry;
     private final BooleanTelemetryEntry setToAbsoluteEntry;
     // 1 is regular, 2 is characterization, 3 is raw voltage, 4 is dead mode
@@ -107,9 +104,6 @@ public class SwerveModule {
         openLoopEntry = new BooleanTelemetryEntry(tableName + "openLoop", tuningMode);
         steerPositionGoalEntry = new DoubleTelemetryEntry(tableName + "steerPositionGoal", true);
         activeSteerEntry = new BooleanTelemetryEntry(tableName + "activeSteer", tuningMode);
-        actualDriveVelocityEntry = new DoubleTelemetryEntry(tableName + "actualDriveVelocity", true);
-        actualSteerPositionEntry = new DoubleTelemetryEntry(tableName + "actualSteerPosition", true);
-        actualSteerVelocityEntry = new DoubleTelemetryEntry(tableName + "actualSteerVelocity", tuningMode);
         absoluteHeadingEntry = new DoubleTelemetryEntry(tableName + "absoluteHeading", tuningMode);
         setToAbsoluteEntry = new BooleanTelemetryEntry(tableName + "setToAbsolute", true);
         controlModeEntry = new IntegerTelemetryEntry(tableName + "controlMode", false);
@@ -138,7 +132,8 @@ public class SwerveModule {
         this.driveMotor = new TelemetryTalonFX(
                 config.driveMotorPort(),
                 tableName + "driveMotor",
-                config.sharedConfiguration().canBus());
+                config.sharedConfiguration().canBus(),
+                tuningMode);
         configDriveMotor(config);
 
         // Steer encoder
@@ -150,7 +145,8 @@ public class SwerveModule {
         this.steerMotor = new TelemetryTalonFX(
                 config.steerMotorPort(),
                 tableName + "steerMotor",
-                config.sharedConfiguration().canBus());
+                config.sharedConfiguration().canBus(),
+                tuningMode);
         configSteerMotor(config);
 
         this.nominalVoltage = config.sharedConfiguration().nominalVoltage();
@@ -190,6 +186,9 @@ public class SwerveModule {
             driveMotor.setSensorPhase(false);
 
             driveMotor.setNeutralMode(NeutralMode.Brake);
+
+            driveMotor.setLoggingPositionConversionFactor(driveMotorConversionFactorPosition);
+            driveMotor.setLoggingVelocityConversionFactor(driveMotorConversionFactorVelocity);
 
             // Clear the reset of it starting up
         } while (faultInitializing && configTimeout.hasNotTimedOut());
@@ -235,6 +234,9 @@ public class SwerveModule {
             steerMotor.setSensorPhase(false);
 
             steerMotor.setNeutralMode(NeutralMode.Brake);
+
+            steerMotor.setLoggingPositionConversionFactor(steerMotorConversionFactorPosition);
+            steerMotor.setLoggingVelocityConversionFactor(steerMotorConversionFactorVelocity);
 
         } while (faultInitializing && configTimeout.hasNotTimedOut());
 
@@ -538,10 +540,7 @@ public class SwerveModule {
     public void logValues() {
         driveMotor.logValues();
         steerMotor.logValues();
-        actualSteerPositionEntry.append(getSteerAngle().getDegrees());
-        actualSteerVelocityEntry.append(Units.radiansToDegrees(getSteerVelocityRadiansPerSecond()));
-        actualDriveVelocityEntry.append(getDriveVelocityMetersPerSecond());
-        absoluteHeadingEntry.append(Units.radiansToDegrees(getAbsoluteRadians()));
+        absoluteHeadingEntry.append(getAbsoluteRadians());
         setToAbsoluteEntry.append(setToAbsolute);
     }
 }

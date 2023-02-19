@@ -8,9 +8,25 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.FieldConstants;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 
 public class RaiderUtils {
-    private RaiderUtils() {}
+    public static int getSolenoidValueToInt(Value value) {
+        return switch (value) {
+            case kOff -> 0;
+            case kForward -> 1;
+            case kReverse -> 2;
+        };
+    }
+
+    public static boolean anyTrue(boolean[] array) {
+        for (boolean bool : array) {
+            if (bool) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     /**
      * @param code the error code

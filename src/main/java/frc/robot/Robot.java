@@ -12,6 +12,7 @@ import frc.robot.telemetry.CommandSchedulerLogger;
 import frc.robot.telemetry.MiscRobotTelemetryAndAlerts;
 import frc.robot.telemetry.OverrunAlertManager;
 import frc.robot.telemetry.SendableTelemetryManager;
+import frc.robot.telemetry.wrappers.TelemetryPneumaticHub;
 import frc.robot.telemetry.wrappers.TelemetryPowerDistribution;
 import frc.robot.utils.SparkMaxFlashManager;
 import frc.robot.utils.wpilib.TreeTimedRobot;
@@ -40,6 +41,7 @@ public class Robot extends TreeTimedRobot {
     private RobotContainer robotContainer;
 
     private TelemetryPowerDistribution telemetryPowerDistribution;
+    private TelemetryPneumaticHub telemetryPneumaticHub;
     private MiscRobotTelemetryAndAlerts miscRobotTelemetryAndAlerts;
     private OverrunAlertManager overrunAlertManager;
     private Alliance lastAlliance;
@@ -64,9 +66,9 @@ public class Robot extends TreeTimedRobot {
 
         DataLog dataLog = DataLogManager.getLog();
         // Log all photon traffic and other things we specifically want to log
-        NetworkTableInstance.getDefault().startEntryDataLog(dataLog, "/photonvision/", "photonvision/");
-        NetworkTableInstance.getDefault().startEntryDataLog(dataLog, "/toLog/", "");
         NetworkTableInstance.getDefault().startConnectionDataLog(dataLog, "NTConnection");
+        NetworkTableInstance.getDefault().startEntryDataLog(DataLogManager.getLog(), "/photonvision/", "photonvision/");
+        NetworkTableInstance.getDefault().startEntryDataLog(DataLogManager.getLog(), "/toLog/", "toLog/");
 
         DriverStation.startDataLog(dataLog);
 
@@ -74,11 +76,13 @@ public class Robot extends TreeTimedRobot {
 
         telemetryPowerDistribution =
                 new TelemetryPowerDistribution(MiscConstants.POWER_MODULE_ID, MiscConstants.POWER_MODULE_TYPE);
+        telemetryPneumaticHub = new TelemetryPneumaticHub();
         miscRobotTelemetryAndAlerts = new MiscRobotTelemetryAndAlerts();
         overrunAlertManager = new OverrunAlertManager();
 
         Notifier otherLoggingThread = new Notifier(() -> {
             telemetryPowerDistribution.logValues();
+            telemetryPneumaticHub.logValues();
             miscRobotTelemetryAndAlerts.logValues();
         });
         otherLoggingThread.setName("Other Logging");
