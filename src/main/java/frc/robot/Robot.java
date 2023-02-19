@@ -10,6 +10,7 @@ import frc.robot.telemetry.CommandSchedulerLogger;
 import frc.robot.telemetry.MiscRobotTelemetryAndAlerts;
 import frc.robot.telemetry.OverrunAlertManager;
 import frc.robot.telemetry.SendableTelemetryManager;
+import frc.robot.telemetry.wrappers.TelemetryPneumaticHub;
 import frc.robot.telemetry.wrappers.TelemetryPowerDistribution;
 import frc.robot.utils.wpilib.TreeTimedRobot;
 
@@ -37,6 +38,7 @@ public class Robot extends TreeTimedRobot {
     private RobotContainer robotContainer;
 
     private TelemetryPowerDistribution telemetryPowerDistribution;
+    private TelemetryPneumaticHub telemetryPneumaticHub;
     private MiscRobotTelemetryAndAlerts miscRobotTelemetryAndAlerts;
     private OverrunAlertManager overrunAlertManager;
 
@@ -69,11 +71,13 @@ public class Robot extends TreeTimedRobot {
 
         telemetryPowerDistribution =
                 new TelemetryPowerDistribution(MiscConstants.POWER_MODULE_ID, MiscConstants.POWER_MODULE_TYPE);
+        telemetryPneumaticHub = new TelemetryPneumaticHub();
         miscRobotTelemetryAndAlerts = new MiscRobotTelemetryAndAlerts();
         overrunAlertManager = new OverrunAlertManager();
 
         Notifier otherLoggingThread = new Notifier(() -> {
             telemetryPowerDistribution.logValues();
+            telemetryPneumaticHub.logValues();
             miscRobotTelemetryAndAlerts.logValues();
         });
         otherLoggingThread.setName("Other Logging");
