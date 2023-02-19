@@ -11,14 +11,16 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.MiscConstants;
 import frc.robot.Robot;
 import frc.robot.telemetry.tunable.TunableTelemetryProfiledPIDController;
+import frc.robot.telemetry.types.BooleanTelemetryEntry;
 import frc.robot.telemetry.types.EventTelemetryEntry;
 import frc.robot.telemetry.types.IntegerTelemetryEntry;
 import frc.robot.telemetry.wrappers.TelemetryCANSparkMax;
 import frc.robot.utils.Alert;
 import frc.robot.utils.Alert.AlertType;
 import frc.robot.utils.ConfigTimeout;
+import frc.robot.utils.Homeable;
 
-public class ExtensionSubsystem extends SubsystemBase {
+public class ExtensionSubsystem extends SubsystemBase implements Homeable {
     enum ExtensionControlMode {
         CLOSED_LOOP(1),
         RAW_VOLTAGE(2);
@@ -43,7 +45,10 @@ public class ExtensionSubsystem extends SubsystemBase {
     private final Alert failedConfigurationAlert = new Alert("Extension Failed to Configure Motor", AlertType.ERROR);
     private final EventTelemetryEntry eventEntry = new EventTelemetryEntry("/extension/events");
     private final IntegerTelemetryEntry modeEntry = new IntegerTelemetryEntry("/extension/mode", false);
+    private final BooleanTelemetryEntry homedEntry = new BooleanTelemetryEntry("/extension/homed", false);
+    private final Alert notHomedAlert = new Alert("Extension is Not Homed!", AlertType.WARNING);
 
+    private boolean isHomed = false;
     private double voltage = 0.0;
     private ExtensionControlMode currentMode = ExtensionControlMode.CLOSED_LOOP;
 
@@ -81,9 +86,13 @@ public class ExtensionSubsystem extends SubsystemBase {
         failedConfigurationAlert.set(faultInitializing);
     }
 
-    public void setDistance(double distanceMeters) {
+    public void setDesiredPosition(double distanceMeters) {
         currentMode = ExtensionControlMode.CLOSED_LOOP;
         controller.setGoal(distanceMeters);
+    }
+
+    public boolean atClosedLoopGoal() {
+        return currentMode != ExtensionControlMode.CLOSED_LOOP || controller.atGoal();
     }
 
     public void setVoltage(double voltage) {
@@ -95,6 +104,13 @@ public class ExtensionSubsystem extends SubsystemBase {
         return leftEncoder.getPosition();
     }
 
+    @Override
+    public void setInHome() {
+        setDesiredPosition(0.0);
+        isHomed = true;
+    }
+
+    @Override
     public double getCurrent() {
         return leftMotor.getOutputCurrent();
     }
@@ -126,6 +142,8 @@ public class ExtensionSubsystem extends SubsystemBase {
         leftMotor.logValues();
         rightMotor.logValues();
         modeEntry.append(currentMode.logValue);
+        homedEntry.append(isHomed);
+        notHomedAlert.set(!isHomed);
 
         if (FF_GAINS.hasChanged()) {
             feedforward = FF_GAINS.createFeedforward();

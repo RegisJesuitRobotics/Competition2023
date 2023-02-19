@@ -17,7 +17,7 @@ public class SetLiftPositionCommand extends CommandBase {
 
     @Override
     public void initialize() {
-        liftSubsystem.setPosition(desiredPosition);
+        liftSubsystem.setDesiredArmAngle(desiredPosition);
     }
 
     @Override
@@ -27,7 +27,6 @@ public class SetLiftPositionCommand extends CommandBase {
 
     @Override
     public boolean isFinished() {
-        // TODO
-        return false;
+        return liftSubsystem.atClosedLoopGoal();
     }
 }

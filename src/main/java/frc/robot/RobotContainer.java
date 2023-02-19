@@ -3,6 +3,7 @@ package frc.robot;
 import com.pathplanner.lib.server.PathPlannerServer;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.networktables.DoubleEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -17,10 +18,11 @@ import frc.robot.commands.PositionClawCommand;
 import frc.robot.commands.drive.LockModulesCommand;
 import frc.robot.commands.drive.auto.Autos;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
+import frc.robot.commands.lift.SetLiftPositionCommand;
 import frc.robot.hid.CommandXboxPlaystationController;
 import frc.robot.subsystems.claw.ClawSubsystem;
-import frc.robot.subsystems.intake.FlipperSubsystem;
 import frc.robot.subsystems.extension.ExtensionSubsystem;
+import frc.robot.subsystems.intake.FlipperSubsystem;
 import frc.robot.subsystems.lift.LiftSubsystem;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.tunable.gains.TunableDouble;
@@ -58,6 +60,7 @@ public class RobotContainer {
         configureAutos();
 
         Shuffleboard.getTab("UtilsRaw").add(CommandScheduler.getInstance());
+        liftSubsystem.setDefaultCommand(Commands.run(liftSubsystem::stopMovement, liftSubsystem));
     }
 
     private void configureAutos() {
@@ -119,13 +122,13 @@ public class RobotContainer {
         operatorController
                 .leftTrigger()
                 .whileTrue(new StartEndCommand(
-                        () -> extensionSubsystem.setVoltage(3.0),
+                        () -> extensionSubsystem.setVoltage(12.0),
                         () -> extensionSubsystem.setVoltage(0.0),
                         extensionSubsystem));
         operatorController
                 .rightTrigger()
                 .whileTrue(new StartEndCommand(
-                        () -> extensionSubsystem.setVoltage(-3.0),
+                        () -> extensionSubsystem.setVoltage(-12.0),
                         () -> extensionSubsystem.setVoltage(0.0),
                         extensionSubsystem));
 
@@ -142,9 +145,13 @@ public class RobotContainer {
                 .onTrue(Commands.runOnce(() -> gridEntry.set(MathUtil.clamp(gridEntry.get() + 1, 0, 8)))
                         .ignoringDisable(true));
 
-        operatorController.share().onTrue(
-                new HomeHomeableCommand(LiftConstants.HOME_VOLTAGE, LiftConstants.HOME_CURRENT, liftSubsystem)
-        );
+        operatorController
+                .share()
+                .onTrue(new HomeHomeableCommand(LiftConstants.HOME_VOLTAGE, LiftConstants.HOME_CURRENT, liftSubsystem));
+        operatorController
+                .options()
+                .onTrue(new SetLiftPositionCommand(Rotation2d.fromDegrees(0.0), liftSubsystem)
+                        .andThen(rumbleOperatorControllerCommand()));
     }
 
     private void configureDriveStyle() {

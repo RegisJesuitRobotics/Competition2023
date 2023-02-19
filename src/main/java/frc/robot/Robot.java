@@ -62,7 +62,7 @@ public class Robot extends TreeTimedRobot {
 
         // Log all photon traffic and other things we specifically want to log
         NetworkTableInstance.getDefault().startEntryDataLog(DataLogManager.getLog(), "/photonvision/", "photonvision/");
-        NetworkTableInstance.getDefault().startEntryDataLog(DataLogManager.getLog(), "/toLog/", "");
+        NetworkTableInstance.getDefault().startEntryDataLog(DataLogManager.getLog(), "/toLog/", "toLog/");
 
         DriverStation.startDataLog(DataLogManager.getLog());
 

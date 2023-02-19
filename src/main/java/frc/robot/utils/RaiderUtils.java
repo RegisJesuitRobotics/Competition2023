@@ -1,5 +1,7 @@
 package frc.robot.utils;
 
+import com.ctre.phoenix.ErrorCode;
+import com.revrobotics.REVLibError;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 
 public class RaiderUtils {
@@ -19,7 +21,6 @@ public class RaiderUtils {
         }
         return false;
     }
-}
 
     /**
      * @param code the error code
@@ -32,3 +33,4 @@ public class RaiderUtils {
     public static boolean checkRevError(REVLibError code) {
         return code != REVLibError.kOk;
     }
+}
