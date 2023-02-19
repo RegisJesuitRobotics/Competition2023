@@ -6,7 +6,6 @@ import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.MiscConstants;
 import frc.robot.commands.drive.GreaseGearsCommand;
 import frc.robot.commands.drive.LockModulesCommand;
-import frc.robot.commands.drive.auto.balance.AutoBalanceCommand;
 import frc.robot.commands.drive.characterize.*;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import java.util.HashMap;

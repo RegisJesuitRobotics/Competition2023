@@ -114,9 +114,8 @@ public final class Constants {
         public static final TunablePIDGains SNAP_ANGULAR_POSITION_PID_GAINS =
                 new TunablePIDGains("/gains/snapAngular", 1.5, 0.0, 0.0, MiscConstants.TUNING_MODE);
 
-        // TODO: Tune
-        public static final TunablePIDGains AUTO_BALANCE_PID_GAINS =
-                new TunablePIDGains("/gains/balance", 0.01, 0, 0, MiscConstants.TUNING_MODE);
+        public static final double AUTO_BALANCE_TOLERANCE_RADIANS = Units.degreesToRadians(1.0);
+        public static final double AUTO_BALANCE_SPEED_METERS_SECOND = 0.5;
 
         public static final TunableTrapezoidalProfileGains SNAP_ANGULAR_POSITION_TRAPEZOIDAL_GAINS =
                 new TunableTrapezoidalProfileGains(
@@ -124,10 +123,6 @@ public final class Constants {
                         DriveTrainConstants.MAX_ANGULAR_VELOCITY_RADIANS_SECOND,
                         DriveTrainConstants.MAX_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED,
                         MiscConstants.TUNING_MODE);
-
-        public static final double MAX_AUTO_BALANCE_VELOCITY = 1.0;
-        public static final PathConstraints AUTO_BALANCE_PATH_CONSTRAINTS =
-                new PathConstraints(MAX_AUTO_BALANCE_VELOCITY, 0.5);
 
         public static final double MAX_PATH_ACCELERATION_METERS_PER_SECOND_SQUARED =
                 DriveTrainConstants.MAX_VELOCITY_METERS_SECOND / 1.5;
