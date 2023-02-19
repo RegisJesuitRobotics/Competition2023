@@ -8,8 +8,8 @@ import frc.robot.Constants.AutoScoreConstants;
 import frc.robot.Constants.AutoScoreConstants.ScoreLevel;
 import frc.robot.Constants.AutoScoreConstants.ScorePiece;
 import frc.robot.commands.drive.auto.SimpleToPointCommand;
-import frc.robot.commands.lift.PositionClawCommand;
-import frc.robot.subsystems.LiftExtensionSuperStructure;
+import frc.robot.subsystems.extension.ExtensionSubsystem;
+import frc.robot.subsystems.lift.LiftSubsystem;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.utils.RaiderUtils;
 import java.util.function.IntSupplier;
@@ -19,7 +19,8 @@ public class AutoScoreCommand extends SequentialCommandGroup {
             ScoreLevel scoreLevel,
             IntSupplier scorePositionSupplier,
             SwerveDriveSubsystem driveSubsystem,
-            LiftExtensionSuperStructure liftExtensionSuperStructure) {
+            LiftSubsystem liftSubsystem,
+            ExtensionSubsystem extensionSubsystem) {
         addCommands(Commands.parallel(
                 new SimpleToPointCommand(
                         () -> RaiderUtils.flipIfShould(
@@ -27,7 +28,8 @@ public class AutoScoreCommand extends SequentialCommandGroup {
                         driveSubsystem),
                 new ProxyCommand(() -> new PositionClawCommand(
                         getScoreClawTranslation(scoreLevel, getScorePiece(scorePositionSupplier.getAsInt())),
-                        liftExtensionSuperStructure))));
+                        liftSubsystem,
+                        extensionSubsystem))));
     }
 
     public static Translation2d getScoreClawTranslation(ScoreLevel level, ScorePiece piece) {

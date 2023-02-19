@@ -1,7 +1,7 @@
 package frc.robot;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.networktables.IntegerEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -11,19 +11,18 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.Constants.AutoScoreConstants;
+import frc.robot.Constants.*;
 import frc.robot.Constants.AutoScoreConstants.ScoreLevel;
-import frc.robot.Constants.DriveTrainConstants;
-import frc.robot.Constants.MiscConstants;
-import frc.robot.Constants.TeleopConstants;
 import frc.robot.commands.AutoScoreCommand;
+import frc.robot.commands.HomeHomeableCommand;
+import frc.robot.commands.PositionClawCommand;
 import frc.robot.commands.drive.GreaseGearsCommand;
 import frc.robot.commands.drive.LockModulesCommand;
 import frc.robot.commands.drive.characterize.DriveTestingCommand;
 import frc.robot.commands.drive.characterize.DriveTrainSysIDCompatibleLoggerCommand;
 import frc.robot.commands.drive.characterize.SteerTestingCommand;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
-import frc.robot.commands.lift.SetLiftPositionCommand;
+import frc.robot.commands.flipper.FullyToggleFlipperCommand;
 import frc.robot.hid.CommandXboxPlaystationController;
 import frc.robot.subsystems.claw.ClawSubsystem;
 import frc.robot.subsystems.extension.ExtensionSubsystem;
@@ -108,6 +107,9 @@ public class RobotContainer {
                         .withName("Reset Odometry"));
         driverController.share().onTrue(new LockModulesCommand(driveSubsystem).repeatedly());
 
+        driverController.leftTrigger().onTrue(Commands.runOnce(clawSubsystem::toggleClawState, clawSubsystem));
+        driverController.rightTrigger().whileTrue(new FullyToggleFlipperCommand(flipper));
+
         Trigger driverTakeControl = new Trigger(() ->
                 RaiderMathUtils.inAbsRange(driverController.getLeftX(), TeleopConstants.DRIVER_TAKE_CONTROL_THRESHOLD)
                         || RaiderMathUtils.inAbsRange(
@@ -132,7 +134,11 @@ public class RobotContainer {
                 .debounce(0.1)
                 .onTrue(RaiderCommands.ifCondition(inAllowedArea)
                         .then(new AutoScoreCommand(
-                                        ScoreLevel.HIGH, gridSupplier, driveSubsystem, liftExtensionSuperStructure)
+                                        ScoreLevel.HIGH,
+                                        gridSupplier,
+                                        driveSubsystem,
+                                        liftSubsystem,
+                                        extensionSubsystem)
                                 .until(driverTakeControl.debounce(0.1)))
                         .otherwise(rumbleDriverControllerCommand()));
         driverController
@@ -140,7 +146,7 @@ public class RobotContainer {
                 .debounce(0.1)
                 .onTrue(RaiderCommands.ifCondition(inAllowedArea)
                         .then(new AutoScoreCommand(
-                                        ScoreLevel.MID, gridSupplier, driveSubsystem, liftExtensionSuperStructure)
+                                        ScoreLevel.MID, gridSupplier, driveSubsystem, liftSubsystem, extensionSubsystem)
                                 .until(driverTakeControl.debounce(0.1)))
                         .otherwise(rumbleDriverControllerCommand()));
         driverController
@@ -148,7 +154,7 @@ public class RobotContainer {
                 .debounce(0.1)
                 .onTrue(RaiderCommands.ifCondition(inAllowedArea)
                         .then(new AutoScoreCommand(
-                                        ScoreLevel.LOW, gridSupplier, driveSubsystem, liftExtensionSuperStructure)
+                                        ScoreLevel.LOW, gridSupplier, driveSubsystem, liftSubsystem, extensionSubsystem)
                                 .until(driverTakeControl.debounce(0.1)))
                         .otherwise(rumbleDriverControllerCommand()));
     }
@@ -160,34 +166,47 @@ public class RobotContainer {
 
         operatorController
                 .povUp()
-                .whileTrue(new PositionClawCommand(AutoScoreConstants.CONE_HIGH, liftExtensionSuperStructure)
+                .whileTrue(new PositionClawCommand(AutoScoreConstants.CONE_HIGH, liftSubsystem, extensionSubsystem)
                         .andThen(rumbleOperatorControllerCommand()));
         operatorController
                 .povRight()
-                .whileTrue(new PositionClawCommand(AutoScoreConstants.CONE_MID, liftExtensionSuperStructure)
+                .whileTrue(new PositionClawCommand(AutoScoreConstants.CONE_MID, liftSubsystem, extensionSubsystem)
                         .andThen(rumbleOperatorControllerCommand()));
         operatorController
                 .povDown()
-                .whileTrue(new PositionClawCommand(AutoScoreConstants.CONE_LOW, liftExtensionSuperStructure)
+                .whileTrue(new PositionClawCommand(AutoScoreConstants.CONE_LOW, liftSubsystem, extensionSubsystem)
                         .andThen(rumbleOperatorControllerCommand()));
         // TODO: Substation
         operatorController.povLeft().whileTrue(Commands.none().andThen(rumbleOperatorControllerCommand()));
 
+        // Lift override, ranges from 0 to 6 volts
+        new Trigger(() -> RaiderMathUtils.inAbsRange(operatorController.getLeftY(), 0.1))
+                .whileTrue(Commands.run(
+                        () -> liftSubsystem.setVoltage(
+                                MathUtil.applyDeadband(operatorController.getLeftY(), 0.1) * 6.0),
+                        liftSubsystem));
+
+        // Extension override, ranges from 0 - 6 volts
+        new Trigger(() -> RaiderMathUtils.inAbsRange(operatorController.getRightX(), 0.1))
+                .whileTrue(Commands.run(
+                        () -> extensionSubsystem.setVoltage(
+                                MathUtil.applyDeadband(operatorController.getRightX(), 0.1) * 6.0),
+                        extensionSubsystem));
+
         operatorController
-                .leftBumper()
-                .whileTrue(new StartEndCommand(
-                        () -> liftExtensionSuperStructure.setLiftVoltage(3.0),
-                        () -> liftExtensionSuperStructure.setLiftVoltage(0.0),
-                        liftExtensionSuperStructure));
+                .share()
+                .onTrue(new HomeHomeableCommand(LiftConstants.HOME_VOLTAGE, LiftConstants.HOME_CURRENT, liftSubsystem)
+                        .andThen(rumbleOperatorControllerCommand()));
         operatorController
-                .rightBumper()
-                .whileTrue(new StartEndCommand(
-                        () -> liftExtensionSuperStructure.setLiftVoltage(-3.0),
-                        () -> liftExtensionSuperStructure.setLiftVoltage(0.0),
-                        liftExtensionSuperStructure));
+                .options()
+                .onTrue(new HomeHomeableCommand(
+                                ExtensionConstants.HOME_VOLTAGE, ExtensionConstants.HOME_CURRENT, extensionSubsystem)
+                        .andThen(rumbleOperatorControllerCommand()));
+
+        operatorController.leftTrigger().onTrue(Commands.runOnce(flipper::toggleInOutState));
+        operatorController.rightTrigger().onTrue(Commands.runOnce(flipper::toggleUpDownState));
 
         gridEntry.set(0);
-
         // Decrement the grid entry
         operatorController
                 .leftBumper()
@@ -199,19 +218,6 @@ public class RobotContainer {
                 .rightBumper()
                 .onTrue(Commands.runOnce(() -> gridEntry.set(RaiderMathUtils.longClamp(gridEntry.get() + 1, 0, 8)))
                         .ignoringDisable(true));
-
-        operatorController
-                .triangle()
-                .whileTrue(new StartEndCommand(
-                        () -> liftExtensionSuperStructure.setLiftVoltage(1.0),
-                        () -> liftExtensionSuperStructure.setLiftVoltage(0.0),
-                        liftExtensionSuperStructure));
-        operatorController
-                .x()
-                .whileTrue(new StartEndCommand(
-                        () -> liftExtensionSuperStructure.setLiftVoltage(-1.0),
-                        () -> liftExtensionSuperStructure.setLiftVoltage(0.0),
-                        liftExtensionSuperStructure));
     }
 
     private void configureDriving() {

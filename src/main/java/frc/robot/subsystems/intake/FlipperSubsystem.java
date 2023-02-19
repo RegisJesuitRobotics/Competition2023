@@ -1,6 +1,6 @@
 package frc.robot.subsystems.intake;
 
-import static frc.robot.Constants.IntakeConstants.*;
+import static frc.robot.Constants.FlipperConstants.*;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
@@ -12,8 +12,8 @@ import frc.robot.utils.RaiderUtils;
 
 public class FlipperSubsystem extends SubsystemBase {
     public enum UpDownState {
-        DOWN(Value.kReverse),
-        UP(Value.kForward);
+        UP(Value.kReverse),
+        DOWN(Value.kForward);
 
         public final Value value;
 

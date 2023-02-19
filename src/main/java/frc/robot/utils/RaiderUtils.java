@@ -5,10 +5,10 @@ import com.revrobotics.REVLibError;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.FieldConstants;
-import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 
 public class RaiderUtils {
     public static int getSolenoidValueToInt(Value value) {

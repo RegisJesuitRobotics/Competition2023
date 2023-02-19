@@ -144,10 +144,12 @@ public final class Constants {
         public static final int[] SOLENOID_PORTS = {6, 3};
     }
 
-    // TODO: change names when theres a cad for intake and change ports
-    public static class IntakeConstants {
+    public static class FlipperConstants {
         public static final int[] UP_DOWN_SOLENOID_PORTS = {5, 2};
         public static final int[] LEFT_RIGHT_SOLENOID_PORTS = {4, 1};
+
+        public static final double UP_DOWN_DOWN_TIME = 0.2;
+        public static final double UP_DOWN_UP_TIME = 0.4;
     }
 
     public static class LiftConstants {
@@ -210,6 +212,9 @@ public final class Constants {
                 new TunableTrapezoidalProfileGains("/gains/extension", 0.0, 0.0, MiscConstants.TUNING_MODE);
         public static final TunableFFGains FF_GAINS =
                 new TunableFFGains("/gains/extension", 0.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
+
+        public static final double HOME_VOLTAGE = -0.5;
+        public static final double HOME_CURRENT = 5.0;
     }
 
     public static class TeleopConstants {
@@ -247,11 +252,6 @@ public final class Constants {
 
         public static final double ROBOT_SCORING_X =
                 Grids.outerX + BUMPER_OFFSET_FROM_LOW_EDGE + (MiscConstants.FULL_ROBOT_LENGTH_METERS / 2.0);
-
-        static {
-            System.out.println("ROBOT_SCORING_X: " + ROBOT_SCORING_X);
-            System.out.println("Grids.highX: " + Grids.highX);
-        }
 
         public static final Translation2d CONE_HIGH =
                 new Translation2d(ROBOT_SCORING_X - Grids.highX + CONE_X_OFFSET, Grids.highConeZ + CONE_Z_OFFSET);
