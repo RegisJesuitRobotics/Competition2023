@@ -1,7 +1,9 @@
 package frc.robot;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.util.datalog.DataLog;
 import edu.wpi.first.wpilibj.*;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.MiscConstants;
@@ -41,6 +43,7 @@ public class Robot extends TreeTimedRobot {
     private TelemetryPneumaticHub telemetryPneumaticHub;
     private MiscRobotTelemetryAndAlerts miscRobotTelemetryAndAlerts;
     private OverrunAlertManager overrunAlertManager;
+    private Alliance lastAlliance;
 
     public Robot() {
         startTime = Timer.getFPGATimestamp();
@@ -60,11 +63,13 @@ public class Robot extends TreeTimedRobot {
         DataLogManager.logNetworkTables(false);
         DataLogManager.start();
 
+        DataLog dataLog = DataLogManager.getLog();
         // Log all photon traffic and other things we specifically want to log
+        NetworkTableInstance.getDefault().startConnectionDataLog(dataLog, "NTConnection");
         NetworkTableInstance.getDefault().startEntryDataLog(DataLogManager.getLog(), "/photonvision/", "photonvision/");
         NetworkTableInstance.getDefault().startEntryDataLog(DataLogManager.getLog(), "/toLog/", "toLog/");
 
-        DriverStation.startDataLog(DataLogManager.getLog());
+        DriverStation.startDataLog(dataLog);
 
         CommandSchedulerLogger.getInstance().start();
 
@@ -86,6 +91,8 @@ public class Robot extends TreeTimedRobot {
         SparkMaxFlashManager.init();
         robotContainer = new RobotContainer();
 
+        lastAlliance = DriverStation.getAlliance();
+
         DataLogManager.log("RobotInit took " + (Timer.getFPGATimestamp() - startTime) + " seconds");
     }
 
@@ -99,6 +106,11 @@ public class Robot extends TreeTimedRobot {
     @Override
     public void robotPeriodic() {
         overrunAlertManager.update(super.didLastLoopOverrun);
+
+        if (DriverStation.getAlliance() != lastAlliance) {
+            lastAlliance = DriverStation.getAlliance();
+            robotContainer.onAllianceChange(lastAlliance);
+        }
 
         watchdog.addNode("commandScheduler");
         CommandScheduler.getInstance().run();

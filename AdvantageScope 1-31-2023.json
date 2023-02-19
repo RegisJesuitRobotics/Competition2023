@@ -1,0 +1,144 @@
+{
+  "version": "2.1.0",
+  "layout": [
+    {
+      "type": 1,
+      "legends": {
+        "left": {
+          "lockedRange": null,
+          "unitConversion": {
+            "type": null,
+            "factor": 1
+          },
+          "fields": [
+            {
+              "key": "/drive/modules/0/actualDriveVelocity",
+              "color": "#e5b31b",
+              "show": false
+            },
+            {
+              "key": "/drive/modules/0/driveVelocitySetpoint",
+              "color": "#2b66a2",
+              "show": false
+            },
+            {
+              "key": "/drive/modules/1/actualDriveVelocity",
+              "color": "#af2437",
+              "show": false
+            },
+            {
+              "key": "/drive/modules/1/driveVelocitySetpoint",
+              "color": "#80588e",
+              "show": false
+            },
+            {
+              "key": "/drive/modules/2/actualDriveVelocity",
+              "color": "#e48b32",
+              "show": false
+            },
+            {
+              "key": "/drive/modules/2/driveVelocitySetpoint",
+              "color": "#aacaee",
+              "show": false
+            },
+            {
+              "key": "/drive/modules/3/actualDriveVelocity",
+              "color": "#c0b487",
+              "show": false
+            },
+            {
+              "key": "/drive/modules/3/driveVelocitySetpoint",
+              "color": "#858584",
+              "show": false
+            }
+          ]
+        },
+        "discrete": {
+          "fields": []
+        },
+        "right": {
+          "lockedRange": null,
+          "unitConversion": {
+            "type": null,
+            "factor": 1
+          },
+          "fields": []
+        }
+      },
+      "title": "Line Graph"
+    },
+    {
+      "type": 5,
+      "fields": [],
+      "listFields": [
+        [
+          {
+            "type": "Robot",
+            "key": "/Shuffleboard/DriveTrainRaw/Field/Robot"
+          },
+          {
+            "type": "Ghost",
+            "key": "/Shuffleboard/DriveTrainRaw/Field/followPathDesired"
+          }
+        ]
+      ],
+      "options": {
+        "game": "2023",
+        "unitDistance": "meters",
+        "unitRotation": "degrees",
+        "origin": "right",
+        "size": 0.75,
+        "alliance": "blue",
+        "orientation": "blue left, red right"
+      },
+      "title": "Odometry"
+    },
+    {
+      "type": 6,
+      "fields": [],
+      "listFields": [
+        [],
+        [
+          {
+            "type": "Robot",
+            "key": "/Shuffleboard/DriveTrainRaw/Field/Robot"
+          },
+          {
+            "type": "Ghost",
+            "key": "/Shuffleboard/DriveTrainRaw/Field/followPathDesired"
+          },
+          {
+            "type": "Trajectory",
+            "key": "/Shuffleboard/DriveTrainRaw/Field/traj"
+          }
+        ]
+      ],
+      "options": {
+        "field": "Evergreen",
+        "alliance": "blue",
+        "robot": "KitBot",
+        "unitDistance": "meters",
+        "unitRotation": "degrees"
+      },
+      "title": "3D Field"
+    },
+    {
+      "type": 9,
+      "fields": [
+        "/drive/actualStates",
+        "/drive/desiredStates",
+        "/drive/estimatedPose/2"
+      ],
+      "listFields": [],
+      "options": {
+        "maxSpeed": 4.5,
+        "rotationUnits": "radians",
+        "arrangement": "0,1,2,3",
+        "sizeLeftRight": 0.8636,
+        "sizeFrontBack": 0.6604,
+        "forwardDirection": "up"
+      },
+      "title": "Swerve"
+    }
+  ]
+}

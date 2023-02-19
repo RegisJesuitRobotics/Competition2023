@@ -1,15 +1,17 @@
 package frc.robot;
 
-import com.pathplanner.lib.PathConstraints;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+import frc.robot.FieldConstants.Community;
 import frc.robot.FieldConstants.Grids;
 import frc.robot.telemetry.tunable.gains.TunableArmFFGains;
 import frc.robot.telemetry.tunable.gains.TunableFFGains;
@@ -17,6 +19,7 @@ import frc.robot.telemetry.tunable.gains.TunablePIDGains;
 import frc.robot.telemetry.tunable.gains.TunableTrapezoidalProfileGains;
 import frc.robot.utils.SwerveModuleConfiguration;
 import frc.robot.utils.SwerveModuleConfiguration.SharedSwerveModuleConfiguration;
+import frc.robot.utils.geometry.Rectangle;
 
 /** File containing all constants for the robot. */
 public final class Constants {
@@ -127,31 +130,41 @@ public final class Constants {
     public static class AutoConstants {
         private AutoConstants() {}
 
-        public static final TunablePIDGains PATH_TRANSLATION_POSITION_GAINS =
-                new TunablePIDGains("/gains/pathXY", 2.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
-        public static final TunablePIDGains PATH_ANGULAR_POSITION_PID_GAINS =
-                new TunablePIDGains("/gains/pathAngular", 1.5, 0.0, 0.0, MiscConstants.TUNING_MODE);
-        public static final TunablePIDGains SNAP_ANGULAR_POSITION_PID_GAINS =
-                new TunablePIDGains("/gains/snapAngular", 1.5, 0.0, 0.0, MiscConstants.TUNING_MODE);
-        public static final TunableTrapezoidalProfileGains SNAP_ANGULAR_POSITION_TRAPEZOIDAL_GAINS =
+        public static final double MAX_AUTO_ACCELERATION_METERS_PER_SECOND_SQUARED =
+                DriveTrainConstants.MAX_VELOCITY_METERS_SECOND / 2.0;
+        public static final double MAX_AUTO_VELOCITY_METERS_SECOND =
+                DriveTrainConstants.MAX_VELOCITY_METERS_SECOND / 1.25;
+        public static final TrajectoryConfig TRAJECTORY_CONSTRAINTS =
+                new TrajectoryConfig(MAX_AUTO_VELOCITY_METERS_SECOND, MAX_AUTO_ACCELERATION_METERS_PER_SECOND_SQUARED);
+
+        public static final TunablePIDGains TRANSLATION_POSITION_GAINS =
+                new TunablePIDGains("/gains/driveXY", 2.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
+        public static final TunableTrapezoidalProfileGains TRANSLATION_POSITION_TRAPEZOIDAL_GAINS =
                 new TunableTrapezoidalProfileGains(
-                        "/gains/snapAngular",
+                        "/gains/driveXY",
+                        MAX_AUTO_VELOCITY_METERS_SECOND,
+                        MAX_AUTO_ACCELERATION_METERS_PER_SECOND_SQUARED,
+                        MiscConstants.TUNING_MODE);
+        public static final TunablePIDGains ANGULAR_POSITION_PID_GAINS =
+                new TunablePIDGains("/gains/driveAngular", 1.5, 0.0, 0.0, MiscConstants.TUNING_MODE);
+        public static final TunableTrapezoidalProfileGains ANGULAR_POSITION_TRAPEZOIDAL_GAINS =
+                new TunableTrapezoidalProfileGains(
+                        "/gains/driveAngular",
                         DriveTrainConstants.MAX_ANGULAR_VELOCITY_RADIANS_SECOND,
                         DriveTrainConstants.MAX_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED,
                         MiscConstants.TUNING_MODE);
-        public static final double MAX_PATH_ACCELERATION_METERS_PER_SECOND_SQUARED =
-                DriveTrainConstants.MAX_VELOCITY_METERS_SECOND / 1.5;
-        public static final PathConstraints PATH_CONSTRAINTS = new PathConstraints(
-                DriveTrainConstants.MAX_VELOCITY_METERS_SECOND, MAX_PATH_ACCELERATION_METERS_PER_SECOND_SQUARED);
     }
 
     public static class ClawConstants {
         public static final int[] SOLENOID_PORTS = {6, 3};
     }
 
-    public static class IntakeConstants {
+    public static class FlipperConstants {
         public static final int[] UP_DOWN_SOLENOID_PORTS = {5, 2};
         public static final int[] LEFT_RIGHT_SOLENOID_PORTS = {4, 1};
+
+        public static final double UP_DOWN_DOWN_TIME = 0.2;
+        public static final double UP_DOWN_UP_TIME = 0.4;
     }
 
     public static class LiftConstants {
@@ -227,10 +240,23 @@ public final class Constants {
         public static final double ANGULAR_RATE_LIMIT_RADIANS_SECOND_SQUARED = 5.0 * Math.PI;
         public static final double MINIMUM_VELOCITY_METERS_SECOND = 0.10;
         public static final double MINIMUM_ANGULAR_VELOCITY_RADIANS_SECOND = 0.10;
+
+        public static final double DRIVER_TAKE_CONTROL_THRESHOLD = 0.2;
     }
 
     public static class AutoScoreConstants {
         private AutoScoreConstants() {}
+
+        public enum ScoreLevel {
+            LOW,
+            MID,
+            HIGH
+        }
+
+        public enum ScorePiece {
+            CUBE,
+            CONE
+        }
 
         private static final double BUMPER_OFFSET_FROM_LOW_EDGE = Units.inchesToMeters(5.0);
         private static final double CONE_X_OFFSET = Units.inchesToMeters(0.0);
@@ -241,11 +267,6 @@ public final class Constants {
 
         public static final double ROBOT_SCORING_X =
                 Grids.outerX + BUMPER_OFFSET_FROM_LOW_EDGE + (MiscConstants.FULL_ROBOT_LENGTH_METERS / 2.0);
-
-        static {
-            System.out.println("ROBOT_SCORING_X: " + ROBOT_SCORING_X);
-            System.out.println("Grids.highX: " + Grids.highX);
-        }
 
         public static final Translation2d CONE_HIGH =
                 new Translation2d(ROBOT_SCORING_X - Grids.highX + CONE_X_OFFSET, Grids.highConeZ + CONE_Z_OFFSET);
@@ -259,6 +280,21 @@ public final class Constants {
                 new Translation2d(ROBOT_SCORING_X - Grids.midX + CUBE_X_OFFSET, Grids.midCubeZ + CUBE_Z_OFFSET);
         public static final Translation2d CUBE_LOW =
                 new Translation2d(ROBOT_SCORING_X - Grids.lowX + CUBE_X_OFFSET, GROUND_OFFSET);
+
+        public static final Pose2d[] scoreFromLocations = new Pose2d[Grids.highTranslations.length];
+
+        static {
+            for (int i = 0; i < scoreFromLocations.length; i++) {
+                scoreFromLocations[i] = new Pose2d(
+                        new Translation2d(ROBOT_SCORING_X, Grids.lowTranslations[i].getY()),
+                        Rotation2d.fromDegrees(180.0));
+            }
+        }
+
+        public static final Rectangle ALLOWED_SCORING_AREA = new Rectangle(
+                new Translation2d(Community.innerX, Community.rightY),
+                new Translation2d(
+                        Community.chargingStationInnerX - (MiscConstants.LONGEST_SIDE_METERS / 2.0), Community.leftY));
     }
 
     public static class MiscConstants {
@@ -277,5 +313,7 @@ public final class Constants {
         // With bumpers
         public static final double FULL_ROBOT_LENGTH_METERS = Units.inchesToMeters(26.0) + (BUMPER_WIDTH_METERS * 2);
         public static final double FULL_ROBOT_WIDTH_METERS = Units.inchesToMeters(33.866) + (BUMPER_WIDTH_METERS * 2);
+
+        public static final double LONGEST_SIDE_METERS = Math.max(FULL_ROBOT_LENGTH_METERS, FULL_ROBOT_WIDTH_METERS);
     }
 }
