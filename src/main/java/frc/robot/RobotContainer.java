@@ -1,6 +1,5 @@
 package frc.robot;
 
-import com.pathplanner.lib.server.PathPlannerServer;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -64,9 +63,6 @@ public class RobotContainer {
     }
 
     private void configureAutos() {
-        if (MiscConstants.TUNING_MODE) {
-            PathPlannerServer.startServer(5811);
-        }
 
         autoCommandChooser.setDefaultOption("Nothing", null);
         Autos autos = new Autos(driveSubsystem);
