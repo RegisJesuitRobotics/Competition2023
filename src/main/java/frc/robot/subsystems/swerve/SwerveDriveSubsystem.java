@@ -27,6 +27,9 @@ import frc.robot.telemetry.types.rich.SwerveModuleStateArrayEntry;
 import frc.robot.utils.Alert;
 import frc.robot.utils.Alert.AlertType;
 import frc.robot.utils.RaiderMathUtils;
+import java.util.List;
+import java.util.function.Function;
+import org.photonvision.EstimatedRobotPose;
 
 /** The subsystem containing all the swerve modules */
 public class SwerveDriveSubsystem extends SubsystemBase {
@@ -38,6 +41,8 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     }
 
     private final SwerveModule[] modules = new SwerveModule[NUM_MODULES];
+
+    private final Function<Pose2d, List<EstimatedRobotPose>> cameraPoseDataSupplier;
 
     private final AHRS gyro = new AHRS();
 
@@ -66,7 +71,9 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     private double rawDriveVolts = 0.0;
     private double rawSteerVolts = 0.0;
 
-    public SwerveDriveSubsystem() {
+    public SwerveDriveSubsystem(Function<Pose2d, List<EstimatedRobotPose>> cameraPoseDataSupplier) {
+        this.cameraPoseDataSupplier = cameraPoseDataSupplier;
+
         modules[0] = new SwerveModule(FRONT_LEFT_MODULE_CONFIGURATION, MiscConstants.TUNING_MODE);
         modules[1] = new SwerveModule(FRONT_RIGHT_MODULE_CONFIGURATION, MiscConstants.TUNING_MODE);
         modules[2] = new SwerveModule(BACK_LEFT_MODULE_CONFIGURATION, MiscConstants.TUNING_MODE);
@@ -334,6 +341,13 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
         Robot.startWNode("odometry");
         poseEstimator.update(getGyroRotation(), getModulePositions());
+
+        List<EstimatedRobotPose> estimatedRobotPoses = cameraPoseDataSupplier.apply(getPose());
+        for (EstimatedRobotPose estimatedRobotPose : estimatedRobotPoses) {
+            poseEstimator.addVisionMeasurement(
+                    estimatedRobotPose.estimatedPose.toPose2d(), estimatedRobotPose.timestampSeconds);
+        }
+
         Robot.endWNode();
 
         Robot.startWNode("logging");

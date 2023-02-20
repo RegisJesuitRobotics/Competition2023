@@ -1,7 +1,10 @@
 package frc.robot;
 
 import com.pathplanner.lib.PathConstraints;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
@@ -15,6 +18,18 @@ import frc.robot.utils.SwerveModuleConfiguration.SharedSwerveModuleConfiguration
 /** File containing all constants for the robot. */
 public final class Constants {
     private Constants() {}
+
+    public static class VisionConstants {
+        private VisionConstants() {}
+
+        // TODO: update once cameras are mounted
+        public static final Transform3d FRONT_CAMERA_LOCATION = new Transform3d(
+                new Translation3d(
+                        Units.inchesToMeters(2.26271), Units.inchesToMeters(11.55917), Units.inchesToMeters(35.851)),
+                new Rotation3d(0, Units.degreesToRadians(5.0), 0));
+
+        public static final String FRONT_CAMERA_NAME = "FrontCamera";
+    }
 
     public static final double DT = 0.02;
 

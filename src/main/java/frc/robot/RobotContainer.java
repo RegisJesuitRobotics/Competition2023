@@ -18,6 +18,7 @@ import frc.robot.commands.drive.teleop.SwerveDriveCommand;
 import frc.robot.hid.CommandXboxPlaystationController;
 import frc.robot.subsystems.claw.ClawSubsystem;
 import frc.robot.subsystems.intake.FlipperSubsystem;
+import frc.robot.subsystems.photon.PhotonSubsystem;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.tunable.TunableDouble;
 import frc.robot.utils.Alert;
@@ -35,7 +36,9 @@ import java.util.function.DoubleSupplier;
  * subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
-    private final SwerveDriveSubsystem driveSubsystem = new SwerveDriveSubsystem();
+    private final PhotonSubsystem cameraWrapperSubsystem = new PhotonSubsystem();
+    private final SwerveDriveSubsystem driveSubsystem =
+            new SwerveDriveSubsystem(cameraWrapperSubsystem::getEstimatedGlobalPose);
     private final FlipperSubsystem flipper = new FlipperSubsystem();
     private final ClawSubsystem clawSubsystem = new ClawSubsystem();
 
