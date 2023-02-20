@@ -7,7 +7,6 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -146,8 +145,7 @@ public class SwerveDriveSubsystem extends SubsystemBase {
      * @return the estimated position of the robot
      */
     public Pose2d getPose() {
-        return new Pose2d(new Translation2d(11.23, 4.73), Rotation2d.fromDegrees(90.0));
-        //        return poseEstimator.getEstimatedPosition();
+        return poseEstimator.getEstimatedPosition();
     }
 
     public ChassisSpeeds getCurrentChassisSpeeds() {
@@ -341,14 +339,14 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         }
         Robot.endWNode();
 
-        Robot.startWNode("odometry");
-        poseEstimator.update(getGyroRotation(), getModulePositions());
-
         List<EstimatedRobotPose> estimatedRobotPoses = cameraPoseDataSupplier.apply(getPose());
         for (EstimatedRobotPose estimatedRobotPose : estimatedRobotPoses) {
             poseEstimator.addVisionMeasurement(
                     estimatedRobotPose.estimatedPose.toPose2d(), estimatedRobotPose.timestampSeconds);
         }
+
+        Robot.startWNode("odometry");
+        poseEstimator.update(getGyroRotation(), getModulePositions());
 
         Robot.endWNode();
 

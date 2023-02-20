@@ -69,9 +69,10 @@ public class LiftSubsystem extends SubsystemBase implements Homeable {
     private boolean isHomed = false;
 
     public LiftSubsystem() {
-        SendableTelemetryManager.getInstance().addSendable("Lifter", mechanism2d.getMechanism2dObject());
         SendableTelemetryManager.getInstance()
-                .addSendable("LifterSetpoint", setpointMechanism2d.getMechanism2dObject());
+                .addSendable("/lifter/LifterMechanism2d", mechanism2d.getMechanism2dObject());
+        SendableTelemetryManager.getInstance()
+                .addSendable("/lifter/LifterSetpointMechanism2d", setpointMechanism2d.getMechanism2dObject());
 
         configMotors();
         eventEntry.append("Lifter initialized");
@@ -110,19 +111,18 @@ public class LiftSubsystem extends SubsystemBase implements Homeable {
 
         leftMotor.burnFlashIfShould();
         rightMotor.burnFlashIfShould();
-
-        // Set default position to inside frame perimeter one
-        setEncoderPosition(MIN_ANGLE);
     }
 
     /**
      * @param angle the rotation in the robot's frame of reference (0 is parallel to the floor)
      */
     public void setDesiredArmAngle(Rotation2d angle) {
+        if (currentMode != LiftControlMode.CLOSED_LOOP) {
+            controller.reset(getArmAngle().getRadians(), leftEncoder.getVelocity());
+        }
         currentMode = LiftControlMode.CLOSED_LOOP;
         // Limited to physical constraints
-        controller.setGoal(MathUtil.clamp(
-                MathUtil.angleModulus(angle.getRadians()), MIN_ANGLE.getRadians(), MAX_ANGLE.getRadians()));
+        controller.setGoal(MathUtil.clamp(angle.getRadians(), MIN_ANGLE.getRadians(), MAX_ANGLE.getRadians()));
     }
 
     public boolean atClosedLoopGoal() {

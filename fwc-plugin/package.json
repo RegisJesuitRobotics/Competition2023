@@ -4,13 +4,13 @@
   "description": "description",
   "author": "Team 3729",
   "type": "module",
-  "main": "dist/raider-plugin.js",
+  "main": "plugin/raider-plugin.js",
   "exports": {
-    ".": "./dist/raider-plugin.js"
+    ".": "./plugin/raider-plugin.js"
   },
   "types": "types/index.d.ts",
   "files": [
-    "dist",
+    "plugin",
     "types"
   ],
   "scripts": {

@@ -163,10 +163,6 @@ public class RobotContainer {
     }
 
     private void configureOperatorBindings() {
-        driverController
-                .povUp()
-                .whileTrue(new LockModulesCommand(driveSubsystem).repeatedly().withName("Lock Modules"));
-
         operatorController
                 .povUp()
                 .whileTrue(new PositionClawCommand(AutoScoreConstants.CONE_HIGH, liftSubsystem, extensionSubsystem)
@@ -183,17 +179,19 @@ public class RobotContainer {
         operatorController.povLeft().whileTrue(Commands.none().andThen(rumbleOperatorControllerCommand()));
 
         // Lift override, ranges from 0 to 6 volts
-        new Trigger(() -> RaiderMathUtils.inAbsRange(operatorController.getLeftY(), 0.1))
-                .whileTrue(Commands.run(
+        new Trigger(() -> !RaiderMathUtils.inAbsRange(operatorController.getLeftY(), 0.1))
+                .whileTrue(Commands.runEnd(
                         () -> liftSubsystem.setVoltage(
-                                MathUtil.applyDeadband(operatorController.getLeftY(), 0.1) * 6.0),
+                                MathUtil.applyDeadband(operatorController.getLeftY(), 0.1) * -6.0),
+                        () -> liftSubsystem.setVoltage(0.0),
                         liftSubsystem));
 
         // Extension override, ranges from 0 - 6 volts
-        new Trigger(() -> RaiderMathUtils.inAbsRange(operatorController.getRightX(), 0.1))
-                .whileTrue(Commands.run(
+        new Trigger(() -> !RaiderMathUtils.inAbsRange(operatorController.getRightX(), 0.1))
+                .whileTrue(Commands.runEnd(
                         () -> extensionSubsystem.setVoltage(
-                                MathUtil.applyDeadband(operatorController.getRightX(), 0.1) * 6.0),
+                                MathUtil.applyDeadband(operatorController.getRightX(), 0.1) * -6.0),
+                        () -> extensionSubsystem.setVoltage(0.0),
                         extensionSubsystem));
 
         operatorController

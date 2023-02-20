@@ -90,7 +90,7 @@ public final class Constants {
         public static final double MAX_VELOCITY_METERS_SECOND =
                 (MOTOR_FREE_SPEED_RPM * WHEEL_DIAMETER_METERS * Math.PI) / (60.0 * DRIVE_GEAR_REDUCTION);
 
-        public static final double MAX_ANGULAR_VELOCITY_RADIANS_SECOND = Math.PI * 4;
+        public static final double MAX_ANGULAR_VELOCITY_RADIANS_SECOND = Math.PI * 3;
         public static final double MAX_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED =
                 MAX_ANGULAR_VELOCITY_RADIANS_SECOND / 2.0;
 
@@ -163,8 +163,8 @@ public final class Constants {
         public static final int[] UP_DOWN_SOLENOID_PORTS = {5, 2};
         public static final int[] LEFT_RIGHT_SOLENOID_PORTS = {4, 1};
 
-        public static final double UP_DOWN_DOWN_TIME = 0.2;
-        public static final double UP_DOWN_UP_TIME = 0.4;
+        public static final double UP_DOWN_DOWN_TIME = 0.5;
+        public static final double UP_DOWN_UP_TIME = 0.5;
     }
 
     public static class LiftConstants {
@@ -228,7 +228,7 @@ public final class Constants {
         public static final TunableFFGains FF_GAINS =
                 new TunableFFGains("/gains/extension", 0.27288, 20.188, 2.1074, MiscConstants.TUNING_MODE);
 
-        public static final double HOME_CURRENT = 3;
+        public static final double HOME_CURRENT = 5;
         public static final double HOME_VOLTAGE = -1;
     }
 
@@ -258,7 +258,7 @@ public final class Constants {
             CONE
         }
 
-        private static final double BUMPER_OFFSET_FROM_LOW_EDGE = Units.inchesToMeters(5.0);
+        private static final double BUMPER_OFFSET_FROM_LOW_EDGE = Units.inchesToMeters(2.0);
         private static final double CONE_X_OFFSET = Units.inchesToMeters(0.0);
         private static final double CUBE_X_OFFSET = Units.inchesToMeters(0.0);
         private static final double CONE_Z_OFFSET = Units.inchesToMeters(4.0);
@@ -293,8 +293,7 @@ public final class Constants {
 
         public static final Rectangle ALLOWED_SCORING_AREA = new Rectangle(
                 new Translation2d(Community.innerX, Community.rightY),
-                new Translation2d(
-                        Community.chargingStationInnerX - (MiscConstants.LONGEST_SIDE_METERS / 2.0), Community.leftY));
+                new Translation2d(Community.chargingStationInnerX, Community.leftY));
     }
 
     public static class MiscConstants {
