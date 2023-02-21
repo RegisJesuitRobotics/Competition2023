@@ -29,7 +29,6 @@ public final class Constants {
     public static class VisionConstants {
         private VisionConstants() {}
 
-        // TODO: update once cameras are mounted
         public static final Transform3d FRONT_CAMERA_LOCATION = new Transform3d(
                 new Translation3d(
                         Units.inchesToMeters(2.26271), Units.inchesToMeters(11.55917), Units.inchesToMeters(35.851)),
@@ -217,7 +216,9 @@ public final class Constants {
         public static final int FREE_CURRENT_LIMIT = 20;
 
         public static final double GEAR_REDUCTION = 3.0 * 5.0;
-        public static final double ROLLER_DIAMETER_METERS = Units.inchesToMeters(0.5);
+
+        // It's a 0.5in hex shaft
+        public static final double METERS_PER_REV = Units.inchesToMeters(0.2887 * 6);
 
         // Offset from claw to center of robot when at "0"
         public static final double X_OFFSET_METERS = Units.inchesToMeters(8.0);

@@ -6,10 +6,8 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants.AutoConstants;
-import frc.robot.Constants.MiscConstants;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.tunable.TunableTelemetryProfiledPIDController;
-import frc.robot.telemetry.types.DoubleTelemetryEntry;
 import java.util.function.Supplier;
 
 public class SimpleToPointCommand extends CommandBase {
@@ -20,8 +18,6 @@ public class SimpleToPointCommand extends CommandBase {
                     "/simpleToPoint/translationController",
                     AutoConstants.TRANSLATION_POSITION_GAINS,
                     AutoConstants.TRANSLATION_POSITION_TRAPEZOIDAL_GAINS);
-    private final DoubleTelemetryEntry translationErrorEntry =
-            new DoubleTelemetryEntry("/simpleToPoint/translationError", MiscConstants.TUNING_MODE);
     private final TunableTelemetryProfiledPIDController rotationController = new TunableTelemetryProfiledPIDController(
             "/simpleToPoint/rotationController",
             AutoConstants.ANGULAR_POSITION_PID_GAINS,
@@ -47,20 +43,19 @@ public class SimpleToPointCommand extends CommandBase {
         translationController.setGoal(0.0);
         rotationController.setGoal(currentDesiredPose.getRotation().getRadians());
 
-        Translation2d translationError =
-                driveSubsystem.getPose().getTranslation().minus(currentDesiredPose.getTranslation());
+        Translation2d translationError = getTranslationError();
         ChassisSpeeds speeds = driveSubsystem.getCurrentChassisSpeeds();
+        // Use negative norm because it needs to be a positive feedback
         translationController.reset(
-                translationError.getNorm(), Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond));
+                -translationError.getNorm(), Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond));
         rotationController.reset(driveSubsystem.getPose().getRotation().getRadians(), speeds.omegaRadiansPerSecond);
     }
 
     @Override
     public void execute() {
-        Translation2d translationError =
-                driveSubsystem.getPose().getTranslation().minus(currentDesiredPose.getTranslation());
-        translationErrorEntry.append(translationError.getNorm());
-        double translationFeedback = translationController.calculate(translationError.getNorm());
+        Translation2d translationError = getTranslationError();
+        // Use negative norm because it needs to be a positive feedback
+        double translationFeedback = translationController.calculate(-translationError.getNorm());
         double translationFeedforward = translationController.getSetpoint().velocity;
         Translation2d translationVelocity =
                 new Translation2d(translationFeedback + translationFeedforward, translationError.getAngle());
@@ -75,6 +70,12 @@ public class SimpleToPointCommand extends CommandBase {
                         angularVelocity,
                         driveSubsystem.getPose().getRotation()),
                 false);
+    }
+
+    private Translation2d getTranslationError() {
+        return currentDesiredPose
+                .getTranslation()
+                .minus(driveSubsystem.getPose().getTranslation());
     }
 
     @Override

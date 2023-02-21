@@ -76,7 +76,7 @@ public class ExtensionSubsystem extends SubsystemBase implements DualHomeable {
             leftMotor.setInverted(INVERT_LEFT);
             rightMotor.setInverted(INVERT_RIGHT);
 
-            double conversionFactor = (Math.PI * ROLLER_DIAMETER_METERS) / GEAR_REDUCTION;
+            double conversionFactor = (METERS_PER_REV) / GEAR_REDUCTION;
             faultInitializing |= checkRevError(leftEncoder.setPositionConversionFactor(conversionFactor));
             faultInitializing |= checkRevError(leftEncoder.setVelocityConversionFactor(conversionFactor / 60));
             faultInitializing |= checkRevError(rightEncoder.setPositionConversionFactor(conversionFactor));

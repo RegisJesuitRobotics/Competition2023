@@ -8,8 +8,11 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.MiscConstants;
 import frc.robot.Constants.VisionConstants;
+import frc.robot.Robot;
 import frc.robot.telemetry.types.rich.Pose3dArrayEntry;
 import frc.robot.telemetry.types.rich.Pose3dEntry;
+import frc.robot.utils.Alert;
+import frc.robot.utils.Alert.AlertType;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +31,9 @@ public class PhotonSubsystem extends SubsystemBase {
     private final Pose3dArrayEntry visionTargetEntries =
             new Pose3dArrayEntry("/photon/targets", MiscConstants.TUNING_MODE);
     private final List<PhotonCamera> cameras = new ArrayList<>();
+
+    private final Alert cameraNotConnectedAlert =
+            new Alert("AprilTag Camera is Not Powered or Not Connected", AlertType.ERROR);
 
     public PhotonSubsystem() {
         try {
@@ -69,5 +75,16 @@ public class PhotonSubsystem extends SubsystemBase {
         }
         visionTargetEntries.append(targetPoses);
         return updatedPoses;
+    }
+
+    @Override
+    public void periodic() {
+        Robot.startWNode("PhotonSubsystem#periodic");
+        boolean allCamerasConnected = true;
+        for (PhotonCamera camera : cameras) {
+            allCamerasConnected &= camera.isConnected();
+        }
+        cameraNotConnectedAlert.set(!allCamerasConnected);
+        Robot.endWNode();
     }
 }
