@@ -6,7 +6,6 @@ import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -339,13 +338,12 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         }
         Robot.endWNode();
 
+        Robot.startWNode("odometry");
         List<EstimatedRobotPose> estimatedRobotPoses = cameraPoseDataSupplier.apply(getPose());
         for (EstimatedRobotPose estimatedRobotPose : estimatedRobotPoses) {
             poseEstimator.addVisionMeasurement(
                     estimatedRobotPose.estimatedPose.toPose2d(), estimatedRobotPose.timestampSeconds);
         }
-
-        Robot.startWNode("odometry");
         poseEstimator.update(getGyroRotation(), getModulePositions());
 
         Robot.endWNode();
@@ -365,14 +363,8 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         chassisSpeedsEntry.append(getCurrentChassisSpeeds());
 
         field2d.setRobotPose(estimatedPose);
-        for (int i = 0; i < modules.length; i++) {
-            field2d.getObject("module " + i)
-                    .setPose(estimatedPose.plus(
-                            new Transform2d(MODULE_TRANSLATIONS[i], modules[i].getActualState().angle)));
-        }
 
-        for (int i = 0; i < modules.length; i++) {
-            SwerveModule module = modules[i];
+        for (SwerveModule module : modules) {
             module.logValues();
         }
 

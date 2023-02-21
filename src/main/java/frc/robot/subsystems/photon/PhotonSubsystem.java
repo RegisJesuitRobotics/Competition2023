@@ -18,6 +18,7 @@ import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
+import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 public class PhotonSubsystem extends SubsystemBase {
@@ -51,14 +52,15 @@ public class PhotonSubsystem extends SubsystemBase {
         List<Pose3d> targetPoses = new ArrayList<>();
         for (int i = 0; i < poseEstimators.size(); i++) {
             PhotonPoseEstimator poseEstimator = poseEstimators.get(i);
-            poseEstimator.setReferencePose(prevEstimatedRobotPose);
-            Optional<EstimatedRobotPose> estimatedRobotPose = poseEstimator.update();
-            if (estimatedRobotPose.isPresent()) {
-                updatedPoses.add(estimatedRobotPose.get());
-                estimatedPoseEntries.get(i).append(estimatedRobotPose.get().estimatedPose);
-            }
             PhotonCamera photonCamera = cameras.get(i);
-            for (PhotonTrackedTarget target : photonCamera.getLatestResult().getTargets()) {
+            PhotonPipelineResult result = photonCamera.getLatestResult();
+            poseEstimator.setReferencePose(prevEstimatedRobotPose);
+            Optional<EstimatedRobotPose> estimatedRobotPose = poseEstimator.update(result);
+            if (estimatedRobotPose.isPresent()) {
+                estimatedPoseEntries.get(i).append(estimatedRobotPose.get().estimatedPose);
+                updatedPoses.add(estimatedRobotPose.get());
+            }
+            for (PhotonTrackedTarget target : result.getTargets()) {
                 if (fieldLayout.getTagPose(target.getFiducialId()).isPresent()) {
                     targetPoses.add(
                             fieldLayout.getTagPose(target.getFiducialId()).get());

@@ -2,43 +2,63 @@ package frc.robot.commands;
 
 import edu.wpi.first.math.filter.MedianFilter;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.utils.Homeable;
+import frc.robot.utils.DualHomeable;
 
 public class HomeHomeableCommand extends CommandBase {
-    private final Homeable homeable;
+    private final DualHomeable dualHomeable;
     private final double homeVoltage;
     private final double homeCurrent;
 
-    private final MedianFilter currentFilter = new MedianFilter(4);
+    private final MedianFilter leftFilter = new MedianFilter(4);
+    private final MedianFilter rightFilter = new MedianFilter(4);
 
-    public HomeHomeableCommand(double homeVoltage, double homeCurrent, Homeable homeable) {
+    private boolean done = false;
+
+    public HomeHomeableCommand(double homeVoltage, double homeCurrent, DualHomeable dualHomeable) {
         this.homeVoltage = homeVoltage;
         this.homeCurrent = homeCurrent;
-        this.homeable = homeable;
+        this.dualHomeable = dualHomeable;
 
-        addRequirements(homeable);
+        addRequirements(dualHomeable);
     }
 
     @Override
     public void initialize() {
-        currentFilter.reset();
+        done = false;
+        leftFilter.reset();
+        rightFilter.reset();
     }
 
     @Override
     public void execute() {
-        homeable.setVoltage(homeVoltage);
+        double leftVoltage, rightVoltage;
+        if (leftFilter.calculate(dualHomeable.getLeftCurrent()) > homeCurrent) {
+            leftVoltage = 0.0;
+            done = true;
+        } else {
+            leftVoltage = homeVoltage;
+            done = false;
+        }
+        if (rightFilter.calculate(dualHomeable.getRightCurrent()) > homeCurrent) {
+            rightVoltage = 0.0;
+        } else {
+            rightVoltage = homeVoltage;
+            done = false;
+        }
+
+        dualHomeable.setVoltage(leftVoltage, rightVoltage);
     }
 
     @Override
     public void end(boolean interrupted) {
         if (!interrupted) {
-            homeable.setInHome();
+            dualHomeable.setInHome();
         }
-        homeable.setVoltage(0.0);
+        dualHomeable.setVoltage(0.0, 0.0);
     }
 
     @Override
     public boolean isFinished() {
-        return currentFilter.calculate(homeable.getCurrent()) > homeCurrent;
+        return done;
     }
 }

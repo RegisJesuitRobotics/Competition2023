@@ -57,6 +57,11 @@ public class FlipperSubsystem extends SubsystemBase {
         }
     }
 
+    public void setInStowedPosition() {
+        setInOutState(InOutState.IN);
+        setUpDownState(UpDownState.UP);
+    }
+
     public void setInOutState(InOutState inOutState) {
         inOutSolenoid.set(inOutState.value);
     }

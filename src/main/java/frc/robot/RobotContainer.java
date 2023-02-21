@@ -2,7 +2,9 @@ package frc.robot;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.IntegerEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -22,7 +24,9 @@ import frc.robot.commands.drive.characterize.DriveTestingCommand;
 import frc.robot.commands.drive.characterize.DriveTrainSysIDCompatibleLoggerCommand;
 import frc.robot.commands.drive.characterize.SteerTestingCommand;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
+import frc.robot.commands.extension.SetExtensionPositionCommand;
 import frc.robot.commands.flipper.FullyToggleFlipperCommand;
+import frc.robot.commands.lift.SetLiftPositionCommand;
 import frc.robot.hid.CommandXboxPlaystationController;
 import frc.robot.subsystems.claw.ClawSubsystem;
 import frc.robot.subsystems.extension.ExtensionSubsystem;
@@ -103,31 +107,32 @@ public class RobotContainer {
     private void configureDriverBindings() {
         configureDriving();
 
+        driverController.share().whileTrue(new LockModulesCommand(driveSubsystem).repeatedly());
         driverController
                 .options()
-                .onTrue(Commands.runOnce(driveSubsystem::resetOdometry)
-                        .ignoringDisable(true)
-                        .withName("Reset Odometry"));
-        driverController.share().onTrue(new LockModulesCommand(driveSubsystem).repeatedly());
+                .onTrue(Commands.parallel(
+                        new SetLiftPositionCommand(
+                                LiftConstants.MIN_ANGLE.plus(Rotation2d.fromDegrees(1.0)), liftSubsystem),
+                        new SetExtensionPositionCommand(Units.inchesToMeters(0.5), extensionSubsystem)));
 
         driverController.leftTrigger().onTrue(Commands.runOnce(clawSubsystem::toggleClawState, clawSubsystem));
         driverController.rightTrigger().whileTrue(new FullyToggleFlipperCommand(flipper));
 
         Trigger driverTakeControl = new Trigger(() ->
-                RaiderMathUtils.inAbsRange(driverController.getLeftX(), TeleopConstants.DRIVER_TAKE_CONTROL_THRESHOLD)
-                        || RaiderMathUtils.inAbsRange(
+                !RaiderMathUtils.inAbsRange(driverController.getLeftX(), TeleopConstants.DRIVER_TAKE_CONTROL_THRESHOLD)
+                        || !RaiderMathUtils.inAbsRange(
                                 driverController.getLeftY(), TeleopConstants.DRIVER_TAKE_CONTROL_THRESHOLD)
-                        || RaiderMathUtils.inAbsRange(
+                        || !RaiderMathUtils.inAbsRange(
                                 driverController.getRightX(), TeleopConstants.DRIVER_TAKE_CONTROL_THRESHOLD)
-                        || RaiderMathUtils.inAbsRange(
+                        || !RaiderMathUtils.inAbsRange(
                                 driverController.getRightY(), TeleopConstants.DRIVER_TAKE_CONTROL_THRESHOLD));
 
         IntSupplier gridSupplier = () -> {
             int grid = (int) gridEntry.get();
             if (RaiderUtils.shouldFlip()) {
-                return 8 - grid;
+                return grid;
             }
-            return grid;
+            return 8 - grid;
         };
         Trigger inAllowedArea = new Trigger(() -> AutoScoreConstants.ALLOWED_SCORING_AREA.isPointInside(
                 RaiderUtils.flipIfShould(driveSubsystem.getPose()).getTranslation()));
@@ -141,7 +146,9 @@ public class RobotContainer {
                                         gridSupplier,
                                         driveSubsystem,
                                         liftSubsystem,
-                                        extensionSubsystem)
+                                        extensionSubsystem,
+                                        clawSubsystem,
+                                        flipper)
                                 .until(driverTakeControl.debounce(0.1)))
                         .otherwise(rumbleDriverControllerCommand()));
         driverController
@@ -149,7 +156,13 @@ public class RobotContainer {
                 .debounce(0.1)
                 .onTrue(RaiderCommands.ifCondition(inAllowedArea)
                         .then(new AutoScoreCommand(
-                                        ScoreLevel.MID, gridSupplier, driveSubsystem, liftSubsystem, extensionSubsystem)
+                                        ScoreLevel.MID,
+                                        gridSupplier,
+                                        driveSubsystem,
+                                        liftSubsystem,
+                                        extensionSubsystem,
+                                        clawSubsystem,
+                                        flipper)
                                 .until(driverTakeControl.debounce(0.1)))
                         .otherwise(rumbleDriverControllerCommand()));
         driverController
@@ -157,7 +170,13 @@ public class RobotContainer {
                 .debounce(0.1)
                 .onTrue(RaiderCommands.ifCondition(inAllowedArea)
                         .then(new AutoScoreCommand(
-                                        ScoreLevel.LOW, gridSupplier, driveSubsystem, liftSubsystem, extensionSubsystem)
+                                        ScoreLevel.LOW,
+                                        gridSupplier,
+                                        driveSubsystem,
+                                        liftSubsystem,
+                                        extensionSubsystem,
+                                        clawSubsystem,
+                                        flipper)
                                 .until(driverTakeControl.debounce(0.1)))
                         .otherwise(rumbleDriverControllerCommand()));
     }
@@ -175,8 +194,11 @@ public class RobotContainer {
                 .povDown()
                 .whileTrue(new PositionClawCommand(AutoScoreConstants.CONE_LOW, liftSubsystem, extensionSubsystem)
                         .andThen(rumbleOperatorControllerCommand()));
-        // TODO: Substation
-        operatorController.povLeft().whileTrue(Commands.none().andThen(rumbleOperatorControllerCommand()));
+        operatorController
+                .povLeft()
+                .whileTrue(new PositionClawCommand(
+                                AutoScoreConstants.SUBSTATION_LOCATION, liftSubsystem, extensionSubsystem)
+                        .andThen(rumbleOperatorControllerCommand()));
 
         // Lift override, ranges from 0 to 6 volts
         new Trigger(() -> !RaiderMathUtils.inAbsRange(operatorController.getLeftY(), 0.1))
@@ -223,7 +245,7 @@ public class RobotContainer {
 
     private void configureDriving() {
         TunableDouble maxTranslationSpeedPercent = new TunableDouble("/speed/maxTranslation", 0.9, true);
-        TunableDouble maxMaxAngularSpeedPercent = new TunableDouble("/speed/maxAngular", 0.5, true);
+        TunableDouble maxMaxAngularSpeedPercent = new TunableDouble("/speed/maxAngular", 0.4, true);
 
         DoubleSupplier maxTranslationalSpeedSuppler = () -> maxTranslationSpeedPercent.get()
                 * DriveTrainConstants.MAX_VELOCITY_METERS_SECOND

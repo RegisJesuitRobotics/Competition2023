@@ -25,9 +25,9 @@ import frc.robot.telemetry.wrappers.TelemetryCANSparkMax;
 import frc.robot.utils.Alert;
 import frc.robot.utils.Alert.AlertType;
 import frc.robot.utils.ConfigTimeout;
-import frc.robot.utils.Homeable;
+import frc.robot.utils.DualHomeable;
 
-public class LiftSubsystem extends SubsystemBase implements Homeable {
+public class LiftSubsystem extends SubsystemBase implements DualHomeable {
     enum LiftControlMode {
         CLOSED_LOOP(1),
         RAW_VOLTAGE(2);
@@ -60,12 +60,15 @@ public class LiftSubsystem extends SubsystemBase implements Homeable {
     private final EventTelemetryEntry eventEntry = new EventTelemetryEntry("/lifter/events");
     private final IntegerTelemetryEntry modeEntry = new IntegerTelemetryEntry("/lifter/mode", false);
     private final BooleanTelemetryEntry homedEntry = new BooleanTelemetryEntry("/lifter/homed", true);
-    private final DoubleTelemetryEntry rawVoltageVoltageEntry =
-            new DoubleTelemetryEntry("/lifter/rawVoltageVoltage", false);
+    private final DoubleTelemetryEntry leftRawVoltageRequestEntry =
+            new DoubleTelemetryEntry("/lifter/leftVoltageRequest", false);
+    private final DoubleTelemetryEntry rightRawVoltageRequestEntry =
+            new DoubleTelemetryEntry("/lifter/leftVoltageRequest", false);
 
     private LiftControlMode currentMode = LiftControlMode.RAW_VOLTAGE;
     // Only for voltage mode
-    private double desiredVoltage = 0.0;
+    private double desiredLeftVoltage = 0.0;
+    private double desiredRightVoltage = 0.0;
     private boolean isHomed = false;
 
     public LiftSubsystem() {
@@ -86,8 +89,8 @@ public class LiftSubsystem extends SubsystemBase implements Homeable {
             faultInitializing |= checkRevError(leftMotor.restoreFactoryDefaults());
             faultInitializing |= checkRevError(rightMotor.restoreFactoryDefaults());
 
-            leftMotor.setInverted(INVERT_LEADER);
-            faultInitializing |= checkRevError(rightMotor.follow(leftMotor, INVERT_FOLLOWER_FROM_LEADER));
+            leftMotor.setInverted(INVERT_LEFT);
+            rightMotor.setInverted(INVERT_RIGHT);
 
             double conversionFactor = (Math.PI * 2) / GEAR_REDUCTION;
             faultInitializing |= checkRevError(leftEncoder.setPositionConversionFactor(conversionFactor));
@@ -117,8 +120,12 @@ public class LiftSubsystem extends SubsystemBase implements Homeable {
      * @param angle the rotation in the robot's frame of reference (0 is parallel to the floor)
      */
     public void setDesiredArmAngle(Rotation2d angle) {
+        if (!isHomed) {
+            setVoltage(0.0);
+            return;
+        }
         if (currentMode != LiftControlMode.CLOSED_LOOP) {
-            controller.reset(getArmAngle().getRadians(), leftEncoder.getVelocity());
+            controller.reset(getArmAngle().getRadians(), getVelocity());
         }
         currentMode = LiftControlMode.CLOSED_LOOP;
         // Limited to physical constraints
@@ -130,8 +137,13 @@ public class LiftSubsystem extends SubsystemBase implements Homeable {
     }
 
     public void setVoltage(double voltage) {
+        setVoltage(voltage, voltage);
+    }
+
+    public void setVoltage(double leftVoltage, double rightVoltage) {
         currentMode = LiftControlMode.RAW_VOLTAGE;
-        this.desiredVoltage = voltage;
+        this.desiredLeftVoltage = leftVoltage;
+        this.desiredRightVoltage = rightVoltage;
     }
 
     @Override
@@ -141,7 +153,7 @@ public class LiftSubsystem extends SubsystemBase implements Homeable {
         eventEntry.append("Homed mechanism");
     }
 
-    public void setEncoderPosition(Rotation2d position) {
+    private void setEncoderPosition(Rotation2d position) {
         leftEncoder.setPosition(position.getRadians());
         rightEncoder.setPosition(position.getRadians());
         controller.reset(position.getRadians(), leftEncoder.getVelocity());
@@ -163,9 +175,18 @@ public class LiftSubsystem extends SubsystemBase implements Homeable {
         return Rotation2d.fromRadians(leftEncoder.getPosition());
     }
 
+    public double getVelocity() {
+        return leftEncoder.getVelocity();
+    }
+
     @Override
-    public double getCurrent() {
+    public double getLeftCurrent() {
         return leftMotor.getOutputCurrent();
+    }
+
+    @Override
+    public double getRightCurrent() {
+        return rightMotor.getOutputCurrent();
     }
 
     @Override
@@ -173,20 +194,22 @@ public class LiftSubsystem extends SubsystemBase implements Homeable {
         Robot.startWNode("LifterSubsystem#periodic");
 
         if (DriverStation.isDisabled()) {
-            desiredVoltage = 0.0;
-            currentMode = LiftControlMode.RAW_VOLTAGE;
+            setVoltage(0.0);
         }
 
         if (currentMode == LiftControlMode.RAW_VOLTAGE) {
-            leftMotor.setVoltage(desiredVoltage);
+            leftMotor.setVoltage(desiredLeftVoltage);
+            rightMotor.setVoltage(desiredRightVoltage);
         } else if (currentMode == LiftControlMode.CLOSED_LOOP) {
             double feedbackOutput = controller.calculate(getArmAngle().getRadians());
 
             setpointMechanism2d.setAngle(Rotation2d.fromRadians(controller.getSetpoint().position));
 
             TrapezoidProfile.State currentSetpoint = controller.getSetpoint();
-            leftMotor.setVoltage(
-                    feedbackOutput + feedforward.calculate(currentSetpoint.position, currentSetpoint.velocity));
+            double combinedOutput =
+                    feedbackOutput + feedforward.calculate(currentSetpoint.position, currentSetpoint.velocity);
+            leftMotor.setVoltage(combinedOutput);
+            rightMotor.setVoltage(combinedOutput);
         }
 
         Robot.startWNode("logValues");
@@ -202,7 +225,8 @@ public class LiftSubsystem extends SubsystemBase implements Homeable {
         modeEntry.append(currentMode.logValue);
         homedEntry.append(isHomed);
         notHomedAlert.set(!isHomed);
-        rawVoltageVoltageEntry.append(desiredVoltage);
+        leftRawVoltageRequestEntry.append(desiredLeftVoltage);
+        rightRawVoltageRequestEntry.append(desiredRightVoltage);
 
         if (FF_GAINS.hasChanged()) {
             feedforward = FF_GAINS.createFeedforward();

@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import frc.robot.FieldConstants.Community;
 import frc.robot.FieldConstants.Grids;
+import frc.robot.FieldConstants.LoadingZone;
 import frc.robot.telemetry.tunable.gains.TunableArmFFGains;
 import frc.robot.telemetry.tunable.gains.TunableFFGains;
 import frc.robot.telemetry.tunable.gains.TunablePIDGains;
@@ -32,7 +33,7 @@ public final class Constants {
         public static final Transform3d FRONT_CAMERA_LOCATION = new Transform3d(
                 new Translation3d(
                         Units.inchesToMeters(2.26271), Units.inchesToMeters(11.55917), Units.inchesToMeters(35.851)),
-                new Rotation3d(0, Units.degreesToRadians(5.0), 0));
+                new Rotation3d(0, Units.degreesToRadians(10.0), 0));
 
         public static final String FRONT_CAMERA_NAME = "FrontCamera";
     }
@@ -173,28 +174,28 @@ public final class Constants {
         public static final int LEFT_MOTOR_PORT = 1;
         public static final int RIGHT_MOTOR_PORT = 2;
 
-        public static final boolean INVERT_LEADER = false;
-        public static final boolean INVERT_FOLLOWER_FROM_LEADER = false;
+        public static final boolean INVERT_LEFT = false;
+        public static final boolean INVERT_RIGHT = false;
 
         public static final double HORIZONTAL_BAR_LENGTH = Units.inchesToMeters(32.0);
-        public static final double VERTICAL_BAR_HEIGHT_FROM_FLOOR = Units.inchesToMeters(40.724);
-        public static final double HORIZONTAL_BAR_TO_CLAW = Units.inchesToMeters(5.274);
+        public static final double VERTICAL_BAR_HEIGHT_FROM_FLOOR = Units.inchesToMeters(43.5);
+        public static final double HORIZONTAL_BAR_TO_CLAW = Units.inchesToMeters(7.0);
 
         public static final Translation2d TOP_HORIZONTAL_TO_BOTTOM_HORIZONTAL =
                 new Translation2d(Units.inchesToMeters(-1.0), Units.inchesToMeters(-5.0));
 
-        public static final double GEAR_REDUCTION = 5.0 * 5.0 * 5.0 * 5.0;
+        public static final double GEAR_REDUCTION = 5.0 * 5.0 * 5.0 * 4.0;
 
         public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(-86.5);
-        public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(45.0);
+        public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(40.0);
 
         public static final TunablePIDGains PID_GAINS =
-                new TunablePIDGains("/gains/lifter", 7.4421, 0.0, 12.694, MiscConstants.TUNING_MODE);
+                new TunablePIDGains("/gains/lifter", 5.0852, 0.0, 4.2431, MiscConstants.TUNING_MODE);
         public static final TunableTrapezoidalProfileGains TRAPEZOIDAL_PROFILE_GAINS =
                 new TunableTrapezoidalProfileGains(
                         "/gains/lifter", Math.PI * 3.0 / 4.0, Math.PI / 4, MiscConstants.TUNING_MODE);
         public static final TunableArmFFGains FF_GAINS =
-                new TunableArmFFGains("/gains/lifter", 0.15734, 0.35255, 11.587, 0.54436, MiscConstants.TUNING_MODE);
+                new TunableArmFFGains("/gains/lifter", 0.09739, 0.1667, 10.015, 0.18726, MiscConstants.TUNING_MODE);
 
         public static final int STALL_CURRENT_LIMIT = 10;
         public static final int FREE_CURRENT_LIMIT = 40;
@@ -209,8 +210,8 @@ public final class Constants {
         public static final int LEFT_MOTOR_PORT = 3;
         public static final int RIGHT_MOTOR_PORT = 4;
 
-        public static final boolean INVERT_LEADER = true;
-        public static final boolean INVERT_FOLLOWER_FROM_LEADER = true;
+        public static final boolean INVERT_LEFT = true;
+        public static final boolean INVERT_RIGHT = false;
 
         public static final int STALL_CURRENT_LIMIT = 10;
         public static final int FREE_CURRENT_LIMIT = 20;
@@ -218,8 +219,11 @@ public final class Constants {
         public static final double GEAR_REDUCTION = 3.0 * 5.0;
         public static final double ROLLER_DIAMETER_METERS = Units.inchesToMeters(0.5);
 
-        //        // Offset from claw to center of robot when at "0"
-        //        public static final double X_OFFSET_METERS = Units.inchesToMeters(8);
+        // Offset from claw to center of robot when at "0"
+        public static final double X_OFFSET_METERS = Units.inchesToMeters(8.0);
+
+        public static final double MIN_POSITION = 0.0;
+        public static final double MAX_POSITION = Units.inchesToMeters(24.0);
 
         public static final TunablePIDGains PID_GAINS =
                 new TunablePIDGains("/gains/extension", 12.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
@@ -261,8 +265,8 @@ public final class Constants {
         private static final double BUMPER_OFFSET_FROM_LOW_EDGE = Units.inchesToMeters(2.0);
         private static final double CONE_X_OFFSET = Units.inchesToMeters(0.0);
         private static final double CUBE_X_OFFSET = Units.inchesToMeters(0.0);
-        private static final double CONE_Z_OFFSET = Units.inchesToMeters(4.0);
-        private static final double CUBE_Z_OFFSET = Units.inchesToMeters(3.0);
+        private static final double CONE_Z_OFFSET = Units.inchesToMeters(12.0);
+        private static final double CUBE_Z_OFFSET = Units.inchesToMeters(5.0);
         private static final double GROUND_OFFSET = Units.inchesToMeters(6.0);
 
         public static final double ROBOT_SCORING_X =
@@ -294,6 +298,9 @@ public final class Constants {
         public static final Rectangle ALLOWED_SCORING_AREA = new Rectangle(
                 new Translation2d(Community.innerX, Community.rightY),
                 new Translation2d(Community.chargingStationInnerX, Community.leftY));
+
+        public static final Translation2d SUBSTATION_LOCATION =
+                new Translation2d(Units.inchesToMeters(24.0), LoadingZone.doubleSubstationShelfZ + CONE_Z_OFFSET);
     }
 
     public static class MiscConstants {

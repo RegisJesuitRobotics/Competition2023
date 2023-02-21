@@ -5,6 +5,7 @@ import static frc.robot.utils.RaiderUtils.checkRevError;
 
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -12,15 +13,16 @@ import frc.robot.Constants.MiscConstants;
 import frc.robot.Robot;
 import frc.robot.telemetry.tunable.TunableTelemetryProfiledPIDController;
 import frc.robot.telemetry.types.BooleanTelemetryEntry;
+import frc.robot.telemetry.types.DoubleTelemetryEntry;
 import frc.robot.telemetry.types.EventTelemetryEntry;
 import frc.robot.telemetry.types.IntegerTelemetryEntry;
 import frc.robot.telemetry.wrappers.TelemetryCANSparkMax;
 import frc.robot.utils.Alert;
 import frc.robot.utils.Alert.AlertType;
 import frc.robot.utils.ConfigTimeout;
-import frc.robot.utils.Homeable;
+import frc.robot.utils.DualHomeable;
 
-public class ExtensionSubsystem extends SubsystemBase implements Homeable {
+public class ExtensionSubsystem extends SubsystemBase implements DualHomeable {
     enum ExtensionControlMode {
         CLOSED_LOOP(1),
         RAW_VOLTAGE(2);
@@ -46,10 +48,15 @@ public class ExtensionSubsystem extends SubsystemBase implements Homeable {
     private final EventTelemetryEntry eventEntry = new EventTelemetryEntry("/extension/events");
     private final IntegerTelemetryEntry modeEntry = new IntegerTelemetryEntry("/extension/mode", false);
     private final BooleanTelemetryEntry homedEntry = new BooleanTelemetryEntry("/extension/homed", false);
+    private final DoubleTelemetryEntry leftRawVoltageRequestEntry =
+            new DoubleTelemetryEntry("/extension/leftVoltageRequest", false);
+    private final DoubleTelemetryEntry rightRawVoltageRequestEntry =
+            new DoubleTelemetryEntry("/extension/rightVoltageRequest", false);
     private final Alert notHomedAlert = new Alert("Extension is Not Homed!", AlertType.WARNING);
 
     private boolean isHomed = false;
-    private double voltage = 0.0;
+    private double leftVoltage = 0.0;
+    private double rightVoltage = 0.0;
     private ExtensionControlMode currentMode = ExtensionControlMode.RAW_VOLTAGE;
 
     public ExtensionSubsystem() {
@@ -66,8 +73,8 @@ public class ExtensionSubsystem extends SubsystemBase implements Homeable {
             faultInitializing |= checkRevError(leftMotor.restoreFactoryDefaults());
             faultInitializing |= checkRevError(rightMotor.restoreFactoryDefaults());
 
-            leftMotor.setInverted(INVERT_LEADER);
-            faultInitializing |= checkRevError(rightMotor.follow(leftMotor, INVERT_FOLLOWER_FROM_LEADER));
+            leftMotor.setInverted(INVERT_LEFT);
+            rightMotor.setInverted(INVERT_RIGHT);
 
             double conversionFactor = (Math.PI * ROLLER_DIAMETER_METERS) / GEAR_REDUCTION;
             faultInitializing |= checkRevError(leftEncoder.setPositionConversionFactor(conversionFactor));
@@ -87,8 +94,17 @@ public class ExtensionSubsystem extends SubsystemBase implements Homeable {
     }
 
     public void setDesiredPosition(double distanceMeters) {
+        if (!isHomed) {
+            setVoltage(0.0);
+            return;
+        }
+        if (currentMode != ExtensionControlMode.CLOSED_LOOP) {
+            controller.reset(getPosition(), getVelocity());
+        }
+
+        distanceMeters = MathUtil.clamp(distanceMeters, MIN_POSITION, MAX_POSITION);
+
         currentMode = ExtensionControlMode.CLOSED_LOOP;
-        controller.reset(getPosition(), leftEncoder.getVelocity());
         controller.setGoal(distanceMeters);
     }
 
@@ -97,15 +113,25 @@ public class ExtensionSubsystem extends SubsystemBase implements Homeable {
     }
 
     public void setVoltage(double voltage) {
+        setVoltage(voltage, voltage);
+    }
+
+    @Override
+    public void setVoltage(double leftVoltage, double rightVoltage) {
         currentMode = ExtensionControlMode.RAW_VOLTAGE;
-        this.voltage = voltage;
+        this.leftVoltage = leftVoltage;
+        this.rightVoltage = rightVoltage;
     }
 
     public double getPosition() {
         return leftEncoder.getPosition();
     }
 
-    public void setPosition(double position) {
+    public double getVelocity() {
+        return leftEncoder.getVelocity();
+    }
+
+    private void setPosition(double position) {
         leftEncoder.setPosition(position);
         rightEncoder.setPosition(position);
     }
@@ -117,8 +143,13 @@ public class ExtensionSubsystem extends SubsystemBase implements Homeable {
     }
 
     @Override
-    public double getCurrent() {
+    public double getLeftCurrent() {
         return leftMotor.getOutputCurrent();
+    }
+
+    @Override
+    public double getRightCurrent() {
+        return rightMotor.getOutputCurrent();
     }
 
     public void stopMovement() {
@@ -130,12 +161,15 @@ public class ExtensionSubsystem extends SubsystemBase implements Homeable {
         Robot.startWNode("ExtensionSubsystem#periodic");
 
         if (currentMode == ExtensionControlMode.RAW_VOLTAGE) {
-            leftMotor.setVoltage(voltage);
+            leftMotor.setVoltage(leftVoltage);
+            rightMotor.setVoltage(rightVoltage);
         } else if (currentMode == ExtensionControlMode.CLOSED_LOOP) {
             double feedbackOutput = controller.calculate(getPosition());
 
             TrapezoidProfile.State currentSetpoint = controller.getSetpoint();
-            leftMotor.setVoltage(feedbackOutput + feedforward.calculate(currentSetpoint.velocity));
+            double combinedOutput = feedbackOutput + feedforward.calculate(currentSetpoint.velocity);
+            leftMotor.setVoltage(combinedOutput);
+            rightMotor.setVoltage(combinedOutput);
         }
 
         Robot.startWNode("LogValues");
@@ -150,6 +184,8 @@ public class ExtensionSubsystem extends SubsystemBase implements Homeable {
         modeEntry.append(currentMode.logValue);
         homedEntry.append(isHomed);
         notHomedAlert.set(!isHomed);
+        leftRawVoltageRequestEntry.append(leftVoltage);
+        rightRawVoltageRequestEntry.append(rightVoltage);
 
         if (FF_GAINS.hasChanged()) {
             feedforward = FF_GAINS.createFeedforward();

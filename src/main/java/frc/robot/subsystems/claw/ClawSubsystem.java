@@ -12,8 +12,8 @@ import frc.robot.utils.RaiderUtils;
 
 public class ClawSubsystem extends SubsystemBase {
     public enum ClawState {
-        OPEN(Value.kForward),
-        CLOSE(Value.kReverse);
+        OPEN(Value.kReverse),
+        CLOSE(Value.kForward);
 
         public final Value value;
 

@@ -473,7 +473,7 @@ public class SwerveModule {
 
     private void setSteerReference(double targetAngleRadians, boolean activeSteer) {
         activeSteerEntry.append(activeSteer);
-        steerPositionGoalEntry.append(Units.radiansToDegrees(targetAngleRadians));
+        steerPositionGoalEntry.append(targetAngleRadians);
 
         if (activeSteer) {
             steerMotor.set(

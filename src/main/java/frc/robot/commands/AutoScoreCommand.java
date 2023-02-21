@@ -1,5 +1,7 @@
 package frc.robot.commands;
 
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ProxyCommand;
@@ -8,7 +10,10 @@ import frc.robot.Constants.AutoScoreConstants;
 import frc.robot.Constants.AutoScoreConstants.ScoreLevel;
 import frc.robot.Constants.AutoScoreConstants.ScorePiece;
 import frc.robot.commands.drive.auto.SimpleToPointCommand;
+import frc.robot.subsystems.claw.ClawSubsystem;
+import frc.robot.subsystems.claw.ClawSubsystem.ClawState;
 import frc.robot.subsystems.extension.ExtensionSubsystem;
+import frc.robot.subsystems.intake.FlipperSubsystem;
 import frc.robot.subsystems.lift.LiftSubsystem;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.utils.RaiderUtils;
@@ -20,19 +25,31 @@ public class AutoScoreCommand extends SequentialCommandGroup {
             IntSupplier scorePositionSupplier,
             SwerveDriveSubsystem driveSubsystem,
             LiftSubsystem liftSubsystem,
-            ExtensionSubsystem extensionSubsystem) {
-        addCommands(Commands.parallel(
+            ExtensionSubsystem extensionSubsystem,
+            ClawSubsystem clawSubsystem,
+            FlipperSubsystem flipperSubsystem) {
+        addCommands(
+                Commands.parallel(
+                        Commands.runOnce(() -> clawSubsystem.setClawState(ClawState.CLOSE), clawSubsystem),
+                        Commands.runOnce(flipperSubsystem::setInStowedPosition, flipperSubsystem),
+                        new SimpleToPointCommand(
+                                () -> RaiderUtils.flipIfShould(
+                                        AutoScoreConstants.scoreFromLocations[scorePositionSupplier.getAsInt()].plus(
+                                                new Transform2d(
+                                                        new Translation2d(0.5, 0.0), Rotation2d.fromDegrees(0.0)))),
+                                driveSubsystem),
+                        new ProxyCommand(() -> new PositionClawCommand(
+                                getScoreClawTranslation(scoreLevel, getScorePiece(scorePositionSupplier.getAsInt())),
+                                liftSubsystem,
+                                extensionSubsystem))),
                 new SimpleToPointCommand(
                         () -> RaiderUtils.flipIfShould(
                                 AutoScoreConstants.scoreFromLocations[scorePositionSupplier.getAsInt()]),
                         driveSubsystem),
-                new ProxyCommand(() -> new PositionClawCommand(
-                        getScoreClawTranslation(scoreLevel, getScorePiece(scorePositionSupplier.getAsInt())),
-                        liftSubsystem,
-                        extensionSubsystem))));
+                Commands.runOnce(() -> clawSubsystem.setClawState(ClawState.OPEN)));
     }
 
-    public static Translation2d getScoreClawTranslation(ScoreLevel level, ScorePiece piece) {
+    private static Translation2d getScoreClawTranslation(ScoreLevel level, ScorePiece piece) {
         switch (level) {
             case LOW -> {
                 return piece == ScorePiece.CUBE ? AutoScoreConstants.CUBE_LOW : AutoScoreConstants.CONE_LOW;
@@ -47,7 +64,7 @@ public class AutoScoreCommand extends SequentialCommandGroup {
         }
     }
 
-    public static ScorePiece getScorePiece(int scorePosition) {
+    private static ScorePiece getScorePiece(int scorePosition) {
         if (scorePosition == 1 || scorePosition == 4 || scorePosition == 7) {
             return ScorePiece.CUBE;
         }
