@@ -174,7 +174,7 @@ public final class Constants {
         public static final int RIGHT_MOTOR_PORT = 2;
 
         public static final boolean INVERT_LEFT = false;
-        public static final boolean INVERT_RIGHT = false;
+        public static final boolean INVERT_RIGHT = true;
 
         public static final double HORIZONTAL_BAR_LENGTH = Units.inchesToMeters(32.0);
         public static final double VERTICAL_BAR_HEIGHT_FROM_FLOOR = Units.inchesToMeters(43.5);
