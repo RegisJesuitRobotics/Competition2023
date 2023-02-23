@@ -6,8 +6,10 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants.AutoConstants;
+import frc.robot.Constants.MiscConstants;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.tunable.TunableTelemetryProfiledPIDController;
+import frc.robot.telemetry.types.rich.Pose2dEntry;
 import java.util.function.Supplier;
 
 public class SimpleToPointCommand extends CommandBase {
@@ -22,6 +24,9 @@ public class SimpleToPointCommand extends CommandBase {
             "/simpleToPoint/rotationController",
             AutoConstants.ANGULAR_POSITION_PID_GAINS,
             AutoConstants.ANGULAR_POSITION_TRAPEZOIDAL_GAINS);
+
+    private final Pose2dEntry desiredPoseEntry =
+            new Pose2dEntry("/simpleToPoint/desiredPose", MiscConstants.TUNING_MODE);
 
     private Pose2d currentDesiredPose = new Pose2d();
 
@@ -39,6 +44,8 @@ public class SimpleToPointCommand extends CommandBase {
     @Override
     public void initialize() {
         currentDesiredPose = desiredPoseSupplier.get();
+        desiredPoseEntry.append(currentDesiredPose);
+
         // Aim for zero error in translation
         translationController.setGoal(0.0);
         rotationController.setGoal(currentDesiredPose.getRotation().getRadians());

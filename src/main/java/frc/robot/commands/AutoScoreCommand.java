@@ -1,7 +1,6 @@
 package frc.robot.commands;
 
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ProxyCommand;
@@ -33,10 +32,12 @@ public class AutoScoreCommand extends SequentialCommandGroup {
                         Commands.runOnce(() -> clawSubsystem.setClawState(ClawState.CLOSE), clawSubsystem),
                         Commands.runOnce(flipperSubsystem::setInStowedPosition, flipperSubsystem),
                         new SimpleToPointCommand(
-                                () -> RaiderUtils.flipIfShould(
-                                        AutoScoreConstants.scoreFromLocations[scorePositionSupplier.getAsInt()].plus(
-                                                new Transform2d(
-                                                        new Translation2d(0.5, 0.0), Rotation2d.fromDegrees(0.0)))),
+                                () -> RaiderUtils.flipIfShould(new Pose2d(
+                                        AutoScoreConstants.scoreFromLocations[scorePositionSupplier.getAsInt()]
+                                                .getTranslation()
+                                                .plus(new Translation2d(0.5, 0.0)),
+                                        AutoScoreConstants.scoreFromLocations[scorePositionSupplier.getAsInt()]
+                                                .getRotation())),
                                 driveSubsystem),
                         new ProxyCommand(() -> new PositionClawCommand(
                                 getScoreClawTranslation(scoreLevel, getScorePiece(scorePositionSupplier.getAsInt())),
