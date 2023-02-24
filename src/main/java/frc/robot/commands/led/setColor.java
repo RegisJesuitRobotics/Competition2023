@@ -3,7 +3,6 @@ package frc.robot.commands.led;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 
 public class setColor extends InstantCommand {
-    
 
     // private final ClawSubsystem clawSubsystem;
     // private final ClawState clawState;
