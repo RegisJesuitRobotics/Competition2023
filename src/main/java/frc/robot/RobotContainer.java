@@ -1,8 +1,6 @@
 package frc.robot;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.filter.SlewRateLimiter;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.IntegerEntry;
@@ -24,9 +22,7 @@ import frc.robot.commands.drive.characterize.DriveTestingCommand;
 import frc.robot.commands.drive.characterize.DriveTrainSysIDCompatibleLoggerCommand;
 import frc.robot.commands.drive.characterize.SteerTestingCommand;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
-import frc.robot.commands.extension.SetExtensionPositionCommand;
 import frc.robot.commands.flipper.FullyToggleFlipperCommand;
-import frc.robot.commands.lift.SetLiftPositionCommand;
 import frc.robot.hid.CommandXboxPlaystationController;
 import frc.robot.subsystems.claw.ClawSubsystem;
 import frc.robot.subsystems.extension.ExtensionSubsystem;
@@ -38,6 +34,7 @@ import frc.robot.telemetry.SendableTelemetryManager;
 import frc.robot.telemetry.tunable.gains.TunableDouble;
 import frc.robot.utils.*;
 import frc.robot.utils.Alert.AlertType;
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntSupplier;
 
@@ -87,7 +84,7 @@ public class RobotContainer {
                         "/autoChooser/generatePath",
                         Commands.runOnce(paths::generatePath)
                                 .ignoringDisable(true)
-                                .withName(""));
+                                .withName("Generate Path"));
 
         if (MiscConstants.TUNING_MODE) {
             autoCommandChooser.addOption("SysIDLogger", new DriveTrainSysIDCompatibleLoggerCommand(driveSubsystem));
@@ -110,22 +107,20 @@ public class RobotContainer {
         driverController.share().whileTrue(new LockModulesCommand(driveSubsystem).repeatedly());
         driverController
                 .options()
-                .onTrue(Commands.parallel(
-                        new SetLiftPositionCommand(
-                                LiftConstants.MIN_ANGLE.plus(Rotation2d.fromDegrees(1.0)), liftSubsystem),
-                        new SetExtensionPositionCommand(Units.inchesToMeters(0.5), extensionSubsystem)));
+                .onTrue(new PositionClawCommand(AutoScoreConstants.STOW, liftSubsystem, extensionSubsystem));
 
         driverController.leftTrigger().onTrue(Commands.runOnce(clawSubsystem::toggleClawState, clawSubsystem));
         driverController.rightTrigger().whileTrue(new FullyToggleFlipperCommand(flipper));
 
-        Trigger driverTakeControl = new Trigger(() ->
-                !RaiderMathUtils.inAbsRange(driverController.getLeftX(), TeleopConstants.DRIVER_TAKE_CONTROL_THRESHOLD)
+        Trigger driverTakeControl = new Trigger(() -> !RaiderMathUtils.inAbsRange(
+                                driverController.getLeftX(), TeleopConstants.DRIVER_TAKE_CONTROL_THRESHOLD)
                         || !RaiderMathUtils.inAbsRange(
                                 driverController.getLeftY(), TeleopConstants.DRIVER_TAKE_CONTROL_THRESHOLD)
                         || !RaiderMathUtils.inAbsRange(
                                 driverController.getRightX(), TeleopConstants.DRIVER_TAKE_CONTROL_THRESHOLD)
                         || !RaiderMathUtils.inAbsRange(
-                                driverController.getRightY(), TeleopConstants.DRIVER_TAKE_CONTROL_THRESHOLD));
+                                driverController.getRightY(), TeleopConstants.DRIVER_TAKE_CONTROL_THRESHOLD))
+                .debounce(0.1);
 
         IntSupplier gridSupplier = () -> {
             int grid = (int) gridEntry.get();
@@ -149,7 +144,7 @@ public class RobotContainer {
                                         extensionSubsystem,
                                         clawSubsystem,
                                         flipper)
-                                .until(driverTakeControl.debounce(0.1)))
+                                .until(driverTakeControl))
                         .otherwise(rumbleDriverControllerCommand()));
         driverController
                 .povRight()
@@ -163,7 +158,7 @@ public class RobotContainer {
                                         extensionSubsystem,
                                         clawSubsystem,
                                         flipper)
-                                .until(driverTakeControl.debounce(0.1)))
+                                .until(driverTakeControl))
                         .otherwise(rumbleDriverControllerCommand()));
         driverController
                 .povDown()
@@ -177,27 +172,32 @@ public class RobotContainer {
                                         extensionSubsystem,
                                         clawSubsystem,
                                         flipper)
-                                .until(driverTakeControl.debounce(0.1)))
+                                .until(driverTakeControl))
                         .otherwise(rumbleDriverControllerCommand()));
     }
 
     private void configureOperatorBindings() {
         operatorController
                 .povUp()
-                .whileTrue(new PositionClawCommand(AutoScoreConstants.CONE_HIGH, liftSubsystem, extensionSubsystem)
+                .whileTrue(new PositionClawCommand(AutoScoreConstants.HIGH, liftSubsystem, extensionSubsystem)
                         .andThen(rumbleOperatorControllerCommand()));
         operatorController
                 .povRight()
-                .whileTrue(new PositionClawCommand(AutoScoreConstants.CONE_MID, liftSubsystem, extensionSubsystem)
+                .whileTrue(new PositionClawCommand(AutoScoreConstants.MID, liftSubsystem, extensionSubsystem)
                         .andThen(rumbleOperatorControllerCommand()));
         operatorController
                 .povDown()
-                .whileTrue(new PositionClawCommand(AutoScoreConstants.CONE_LOW, liftSubsystem, extensionSubsystem)
+                .whileTrue(new PositionClawCommand(AutoScoreConstants.LOW, liftSubsystem, extensionSubsystem)
                         .andThen(rumbleOperatorControllerCommand()));
         operatorController
                 .povLeft()
                 .whileTrue(new PositionClawCommand(
                                 AutoScoreConstants.SUBSTATION_LOCATION, liftSubsystem, extensionSubsystem)
+                        .andThen(rumbleOperatorControllerCommand()));
+
+        operatorController
+                .x()
+                .whileTrue(new PositionClawCommand(AutoScoreConstants.STOW, liftSubsystem, extensionSubsystem)
                         .andThen(rumbleOperatorControllerCommand()));
 
         // Lift override, ranges from 0 to 6 volts
@@ -245,18 +245,31 @@ public class RobotContainer {
 
     private void configureDriving() {
         TunableDouble maxTranslationSpeedPercent = new TunableDouble("/speed/maxTranslation", 0.9, true);
-        TunableDouble maxMaxAngularSpeedPercent = new TunableDouble("/speed/maxAngular", 0.4, true);
+        TunableDouble maxMaxAngularSpeedPercent = new TunableDouble("/speed/maxAngular", 0.3, true);
+
+        BooleanSupplier armHigh = () -> liftSubsystem.getArmAngle().getRadians() > Units.degreesToRadians(-30.0);
 
         DoubleSupplier maxTranslationalSpeedSuppler = () -> maxTranslationSpeedPercent.get()
                 * DriveTrainConstants.MAX_VELOCITY_METERS_SECOND
                 * (driverController.leftBumper().getAsBoolean() ? 0.5 : 1);
-        DoubleSupplier maxAngularSpeedSupplier =
-                () -> maxMaxAngularSpeedPercent.get() * DriveTrainConstants.MAX_ANGULAR_VELOCITY_RADIANS_SECOND;
+        DoubleSupplier maxAngularSpeedSupplier = () -> maxMaxAngularSpeedPercent.get()
+                * DriveTrainConstants.MAX_ANGULAR_VELOCITY_RADIANS_SECOND
+                * (armHigh.getAsBoolean() ? 0.7 : 1.0);
 
-        SlewRateLimiter rotationLimiter =
-                new SlewRateLimiter(TeleopConstants.ANGULAR_RATE_LIMIT_RADIANS_SECOND_SQUARED);
-        VectorRateLimiter vectorRateLimiter =
-                new VectorRateLimiter(TeleopConstants.TRANSLATION_RATE_LIMIT_METERS_SECOND_SQUARED);
+        SupplierSlewRateLimiter rotationLimiter = new SupplierSlewRateLimiter(() -> {
+            if (armHigh.getAsBoolean()) {
+                return TeleopConstants.ANGULAR_RATE_LIMIT_RADIANS_SECOND_SQUARED * 0.4;
+            } else {
+                return TeleopConstants.ANGULAR_RATE_LIMIT_RADIANS_SECOND_SQUARED;
+            }
+        });
+        VectorRateLimiter vectorRateLimiter = new VectorRateLimiter(() -> {
+            if (armHigh.getAsBoolean()) {
+                return TeleopConstants.TRANSLATION_RATE_LIMIT_METERS_SECOND_SQUARED * 0.6;
+            } else {
+                return TeleopConstants.TRANSLATION_RATE_LIMIT_METERS_SECOND_SQUARED;
+            }
+        });
         driveCommandChooser.setDefaultOption(
                 "Hybrid (Default to Field Relative & absolute control but use robot centric when holding button)",
                 new SwerveDriveCommand(

@@ -1,5 +1,6 @@
 package frc.robot;
 
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -13,7 +14,6 @@ import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import frc.robot.FieldConstants.Community;
 import frc.robot.FieldConstants.Grids;
-import frc.robot.FieldConstants.LoadingZone;
 import frc.robot.telemetry.tunable.gains.TunableArmFFGains;
 import frc.robot.telemetry.tunable.gains.TunableFFGains;
 import frc.robot.telemetry.tunable.gains.TunablePIDGains;
@@ -32,7 +32,7 @@ public final class Constants {
         public static final Transform3d FRONT_CAMERA_LOCATION = new Transform3d(
                 new Translation3d(
                         Units.inchesToMeters(2.26271), Units.inchesToMeters(11.55917), Units.inchesToMeters(35.851)),
-                new Rotation3d(0, Units.degreesToRadians(10.0), 0));
+                new Rotation3d(Units.degreesToRadians(0.0), Units.degreesToRadians(13.5), Units.degreesToRadians(0.0)));
 
         public static final String FRONT_CAMERA_NAME = "FrontCamera";
     }
@@ -61,10 +61,10 @@ public final class Constants {
 
         // For talons PID full output is 1023 except for all FF gains
         public static final TunablePIDGains DRIVE_VELOCITY_PID_GAINS =
-                new TunablePIDGains("/gains/drive", 0.16556, 0.0, 0.0, MiscConstants.TUNING_MODE);
+                new TunablePIDGains("/gains/drive", 0.13477, 0.0, 0.0, MiscConstants.TUNING_MODE);
 
         public static final TunableFFGains DRIVE_VELOCITY_FF_GAINS =
-                new TunableFFGains("/gains/drive", 0.16649, 2.2457, 0.33446, MiscConstants.TUNING_MODE);
+                new TunableFFGains("/gains/drive", 0.19838, 2.264, 0.31127, MiscConstants.TUNING_MODE);
 
         public static final TunablePIDGains STEER_POSITION_PID_GAINS =
                 new TunablePIDGains("/gains/steer", 0.3, 0.0, 0.1, MiscConstants.TUNING_MODE);
@@ -258,34 +258,20 @@ public final class Constants {
             HIGH
         }
 
-        public enum ScorePiece {
-            CUBE,
-            CONE
-        }
-
         private static final double BUMPER_OFFSET_FROM_LOW_EDGE = Units.inchesToMeters(2.0);
-        private static final double CONE_X_OFFSET = Units.inchesToMeters(0.0);
-        private static final double CUBE_X_OFFSET = Units.inchesToMeters(0.0);
-        // FIXME: Make this do-able actual
-        private static final double CONE_Z_OFFSET = Units.inchesToMeters(12.0);
-        private static final double CUBE_Z_OFFSET = Units.inchesToMeters(5.0);
-        private static final double GROUND_OFFSET = Units.inchesToMeters(6.0);
 
         public static final double ROBOT_SCORING_X =
                 Grids.outerX + BUMPER_OFFSET_FROM_LOW_EDGE + (MiscConstants.FULL_ROBOT_LENGTH_METERS / 2.0);
 
-        public static final Translation2d CONE_HIGH =
-                new Translation2d(ROBOT_SCORING_X - Grids.highX + CONE_X_OFFSET, Grids.highConeZ + CONE_Z_OFFSET);
-        public static final Translation2d CONE_MID =
-                new Translation2d(ROBOT_SCORING_X - Grids.midX + CONE_X_OFFSET, Grids.midConeZ + CONE_Z_OFFSET);
-        public static final Translation2d CONE_LOW =
-                new Translation2d(ROBOT_SCORING_X - Grids.lowX + CONE_X_OFFSET, GROUND_OFFSET);
-        public static final Translation2d CUBE_HIGH =
-                new Translation2d(ROBOT_SCORING_X - Grids.highX + CUBE_X_OFFSET, Grids.highCubeZ + CUBE_Z_OFFSET);
-        public static final Translation2d CUBE_MID =
-                new Translation2d(ROBOT_SCORING_X - Grids.midX + CUBE_X_OFFSET, Grids.midCubeZ + CUBE_Z_OFFSET);
-        public static final Translation2d CUBE_LOW =
-                new Translation2d(ROBOT_SCORING_X - Grids.lowX + CUBE_X_OFFSET, GROUND_OFFSET);
+        // These are hard-coded right now because of the drift and stuff, but this will be changed once we get the
+        // encoder
+        public static final Pair<Rotation2d, Double> HIGH = Pair.of(Rotation2d.fromDegrees(31.04 + 9.0), 0.5685);
+        public static final Pair<Rotation2d, Double> MID = Pair.of(Rotation2d.fromDegrees(8.08 + 9.0), 0.02839);
+        public static final Pair<Rotation2d, Double> LOW = Pair.of(Rotation2d.fromDegrees(-72.39), 0.1903);
+        public static final Pair<Rotation2d, Double> SUBSTATION_LOCATION =
+                Pair.of(Rotation2d.fromDegrees(12.41 + 9.0), 0.1);
+        public static final Pair<Rotation2d, Double> STOW =
+                Pair.of(LiftConstants.MIN_ANGLE.plus(Rotation2d.fromDegrees(1.0)), Units.inchesToMeters(0.5));
 
         public static final Pose2d[] scoreFromLocations = new Pose2d[Grids.highTranslations.length];
 
@@ -300,9 +286,6 @@ public final class Constants {
         public static final Rectangle ALLOWED_SCORING_AREA = new Rectangle(
                 new Translation2d(Community.innerX, Community.rightY),
                 new Translation2d(Community.chargingStationInnerX, Community.leftY));
-
-        public static final Translation2d SUBSTATION_LOCATION =
-                new Translation2d(Units.inchesToMeters(24.0), LoadingZone.doubleSubstationShelfZ + CONE_Z_OFFSET);
     }
 
     public static class MiscConstants {

@@ -1,13 +1,14 @@
 package frc.robot.commands;
 
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ProxyCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.Constants.AutoScoreConstants;
 import frc.robot.Constants.AutoScoreConstants.ScoreLevel;
-import frc.robot.Constants.AutoScoreConstants.ScorePiece;
 import frc.robot.commands.drive.auto.SimpleToPointCommand;
 import frc.robot.subsystems.claw.ClawSubsystem;
 import frc.robot.subsystems.claw.ClawSubsystem.ClawState;
@@ -16,6 +17,7 @@ import frc.robot.subsystems.intake.FlipperSubsystem;
 import frc.robot.subsystems.lift.LiftSubsystem;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.utils.RaiderUtils;
+import java.util.function.BooleanSupplier;
 import java.util.function.IntSupplier;
 
 public class AutoScoreCommand extends SequentialCommandGroup {
@@ -27,6 +29,8 @@ public class AutoScoreCommand extends SequentialCommandGroup {
             ExtensionSubsystem extensionSubsystem,
             ClawSubsystem clawSubsystem,
             FlipperSubsystem flipperSubsystem) {
+        BooleanSupplier farEnoughBack = () ->
+                RaiderUtils.flipIfShould(driveSubsystem.getPose()).getX() >= AutoScoreConstants.ROBOT_SCORING_X + 0.75;
         addCommands(
                 Commands.parallel(
                         Commands.runOnce(() -> clawSubsystem.setClawState(ClawState.CLOSE), clawSubsystem),
@@ -35,40 +39,40 @@ public class AutoScoreCommand extends SequentialCommandGroup {
                                 () -> RaiderUtils.flipIfShould(new Pose2d(
                                         AutoScoreConstants.scoreFromLocations[scorePositionSupplier.getAsInt()]
                                                 .getTranslation()
-                                                .plus(new Translation2d(0.5, 0.0)),
+                                                .plus(new Translation2d(0.75, 0.0)),
                                         AutoScoreConstants.scoreFromLocations[scorePositionSupplier.getAsInt()]
                                                 .getRotation())),
                                 driveSubsystem),
-                        new ProxyCommand(() -> new PositionClawCommand(
-                                getScoreClawTranslation(scoreLevel, getScorePiece(scorePositionSupplier.getAsInt())),
-                                liftSubsystem,
-                                extensionSubsystem))),
+                        Commands.waitUntil(farEnoughBack)
+                                .andThen(new ProxyCommand(() -> new PositionClawCommand(
+                                        getScoreClawTranslation(scoreLevel), liftSubsystem, extensionSubsystem)))),
                 new SimpleToPointCommand(
                         () -> RaiderUtils.flipIfShould(
                                 AutoScoreConstants.scoreFromLocations[scorePositionSupplier.getAsInt()]),
                         driveSubsystem),
-                Commands.runOnce(() -> clawSubsystem.setClawState(ClawState.OPEN)));
+                Commands.runOnce(() -> clawSubsystem.setClawState(ClawState.OPEN)),
+                new SimpleToPointCommand(
+                        () -> RaiderUtils.flipIfShould(new Pose2d(
+                                AutoScoreConstants.scoreFromLocations[scorePositionSupplier.getAsInt()]
+                                        .getTranslation()
+                                        .plus(new Translation2d(0.75, 0.0)),
+                                AutoScoreConstants.scoreFromLocations[scorePositionSupplier.getAsInt()].getRotation())),
+                        driveSubsystem),
+                new PositionClawCommand(AutoScoreConstants.STOW, liftSubsystem, extensionSubsystem));
     }
 
-    private static Translation2d getScoreClawTranslation(ScoreLevel level, ScorePiece piece) {
+    private static Pair<Rotation2d, Double> getScoreClawTranslation(ScoreLevel level) {
         switch (level) {
             case LOW -> {
-                return piece == ScorePiece.CUBE ? AutoScoreConstants.CUBE_LOW : AutoScoreConstants.CONE_LOW;
+                return AutoScoreConstants.HIGH;
             }
             case MID -> {
-                return piece == ScorePiece.CUBE ? AutoScoreConstants.CUBE_MID : AutoScoreConstants.CONE_MID;
+                return AutoScoreConstants.MID;
             }
             case HIGH -> {
-                return piece == ScorePiece.CUBE ? AutoScoreConstants.CUBE_HIGH : AutoScoreConstants.CONE_HIGH;
+                return AutoScoreConstants.LOW;
             }
             default -> throw new IllegalArgumentException("Bad level: " + level);
         }
-    }
-
-    private static ScorePiece getScorePiece(int scorePosition) {
-        if (scorePosition == 1 || scorePosition == 4 || scorePosition == 7) {
-            return ScorePiece.CUBE;
-        }
-        return ScorePiece.CONE;
     }
 }
