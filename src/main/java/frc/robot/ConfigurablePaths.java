@@ -1,6 +1,7 @@
 package frc.robot;
 
 import static frc.robot.Constants.AutoScoreConstants.preScoreFromLocations;
+import static frc.robot.Constants.AutoScoreConstants.scoreFromLocations;
 import static frc.robot.FieldConstants.*;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -12,10 +13,8 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.AutoScoreConstants;
-import frc.robot.Constants.AutoScoreConstants.ScoreLevel;
 import frc.robot.Constants.ExtensionConstants;
 import frc.robot.Constants.LiftConstants;
-import frc.robot.commands.AutoScoreCommand;
 import frc.robot.commands.HomeHomeableCommand;
 import frc.robot.commands.PositionClawCommand;
 import frc.robot.commands.drive.auto.FollowPathCommand;
@@ -27,7 +26,6 @@ import frc.robot.subsystems.lift.LiftSubsystem;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.SendableTelemetryManager;
 import frc.robot.utils.ListenableSendableChooser;
-import frc.robot.utils.RaiderUtils;
 import frc.robot.utils.paths.WaypointsCommandPair;
 import frc.robot.utils.trajectory.HolonomicTrajectory;
 import frc.robot.utils.trajectory.HolonomicTrajectoryGenerator;
@@ -35,17 +33,17 @@ import frc.robot.utils.trajectory.Waypoint;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.IntSupplier;
 
 public class ConfigurablePaths {
 
-    private final ListenableSendableChooser<WaypointsCommandPair> startPositionChooser =
+    private final ListenableSendableChooser<List<WaypointsCommandPair>> startPositionChooser =
             new ListenableSendableChooser<>();
     private final ListenableSendableChooser<WaypointsCommandPair> aroundCharger = new ListenableSendableChooser<>();
     private final ListenableSendableChooser<WaypointsCommandPair> firstPiece = new ListenableSendableChooser<>();
-    private final ListenableSendableChooser<WaypointsCommandPair> firstTarget = new ListenableSendableChooser<>();
+    private final ListenableSendableChooser<List<WaypointsCommandPair>> firstTarget = new ListenableSendableChooser<>();
     private final ListenableSendableChooser<WaypointsCommandPair> secondPiece = new ListenableSendableChooser<>();
-    private final ListenableSendableChooser<WaypointsCommandPair> secondTarget = new ListenableSendableChooser<>();
+    private final ListenableSendableChooser<List<WaypointsCommandPair>> secondTarget =
+            new ListenableSendableChooser<>();
     private final ListenableSendableChooser<WaypointsCommandPair> balance = new ListenableSendableChooser<>();
 
     private final SwerveDriveSubsystem driveSubsystem;
@@ -100,23 +98,21 @@ public class ConfigurablePaths {
                         ExtensionConstants.HOME_VOLTAGE, ExtensionConstants.HOME_CURRENT, extensionSubsystem)));
         currentConfigHash = getHash();
 
-        List<WaypointsCommandPair> waypoints = new ArrayList<>();
-
         WaypointsCommandPair aroundChargerPair = aroundCharger.getSelected();
 
         WaypointsCommandPair firstPiecePair = firstPiece.getSelected();
-        WaypointsCommandPair firstTargetPair = firstTarget.getSelected();
+        List<WaypointsCommandPair> firstTargetPair = firstTarget.getSelected();
 
         WaypointsCommandPair secondPiecePair = secondPiece.getSelected();
-        WaypointsCommandPair secondTargetPair = secondTarget.getSelected();
+        List<WaypointsCommandPair> secondTargetPair = secondTarget.getSelected();
 
-        waypoints.add(startPositionChooser.getSelected());
+        List<WaypointsCommandPair> waypoints = new ArrayList<>(startPositionChooser.getSelected());
         if (firstPiecePair != null) {
             waypoints.add(aroundChargerPair);
             waypoints.add(firstPiecePair);
             if (firstTargetPair != null) {
                 waypoints.add(aroundChargerPair.reversed());
-                waypoints.add(firstTargetPair);
+                waypoints.addAll(firstTargetPair);
 
                 // First piece is a prerequisite for the second piece
                 if (secondPiecePair != null) {
@@ -124,7 +120,7 @@ public class ConfigurablePaths {
                     waypoints.add(secondPiecePair);
                     if (secondTargetPair != null) {
                         waypoints.add(aroundChargerPair.reversed());
-                        waypoints.add(secondTargetPair);
+                        waypoints.addAll(secondTargetPair);
                     }
                 }
             }
@@ -188,21 +184,13 @@ public class ConfigurablePaths {
         aroundCharger.setDefaultOption(
                 "Right",
                 new WaypointsCommandPair(List.of(
-                        Waypoint.fromHolonomicPose(
-                                Community.betweenChargingAndWall[0].minus(new Translation2d(1.0, 0.0)),
-                                Rotation2d.fromDegrees(90.0)),
-                        Waypoint.fromHolonomicPose(
-                                Community.betweenChargingAndWall[0].plus(new Translation2d(1.0, 0.0)),
-                                Rotation2d.fromDegrees(90.0)))));
+                        new Waypoint(Community.betweenChargingAndWall[0].minus(new Translation2d(2.0, 0.0))),
+                        new Waypoint(Community.betweenChargingAndWall[0].plus(new Translation2d(1.0, 0.0))))));
         aroundCharger.addOption(
                 "Left",
                 new WaypointsCommandPair(List.of(
-                        Waypoint.fromHolonomicPose(
-                                Community.betweenChargingAndWall[1].minus(new Translation2d(1.0, 0.0)),
-                                Rotation2d.fromDegrees(-90.0)),
-                        Waypoint.fromHolonomicPose(
-                                Community.betweenChargingAndWall[1].plus(new Translation2d(1.0, 0.0)),
-                                Rotation2d.fromDegrees(-90.0)))));
+                        new Waypoint(Community.betweenChargingAndWall[1].minus(new Translation2d(2.0, 0.0))),
+                        new Waypoint(Community.betweenChargingAndWall[1].plus(new Translation2d(1.0, 0.0))))));
 
         // TODO
         balance.setDefaultOption("True", null);
@@ -220,9 +208,10 @@ public class ConfigurablePaths {
     }
 
     private Command getPickupSequence() {
-        return Commands.sequence(
-                Commands.runOnce(() -> clawSubsystem.setClawState(ClawState.CLOSE)),
-                new PositionClawCommand(AutoScoreConstants.LOW, liftSubsystem, extensionSubsystem));
+        return new WaitCommand(0.5);
+        //        return Commands.sequence(
+        //                Commands.runOnce(() -> clawSubsystem.setClawState(ClawState.CLOSE)),
+        //                new PositionClawCommand(AutoScoreConstants.LOW, liftSubsystem, extensionSubsystem));
     }
 
     private void addPieceOptions(ListenableSendableChooser<WaypointsCommandPair> sendableChooser) {
@@ -241,73 +230,48 @@ public class ConfigurablePaths {
                 new WaypointsCommandPair(Waypoint.fromHolonomicPose(gamePiecePickUpLocations[3]), getPickupSequence()));
     }
 
-    private Command getScoreSequence(ScoreLevel scoreLevel, int i) {
-        IntSupplier scoreSupplier = () -> {
-            if (RaiderUtils.shouldFlip()) {
-                return i;
-            }
-            return 8 - i;
-        };
-
-        return Commands.parallel(
-                new AutoScoreCommand(
-                        scoreLevel,
-                        scoreSupplier,
-                        driveSubsystem,
-                        liftSubsystem,
-                        extensionSubsystem,
-                        clawSubsystem,
-                        flipperSubsystem),
-                Commands.runOnce(() -> clawSubsystem.setClawState(ClawState.OPEN)));
+    private Command getScoreSequence() {
+        return Commands.runOnce(() -> clawSubsystem.setClawState(ClawState.OPEN), clawSubsystem);
     }
 
-    private void addScoringOptions(ListenableSendableChooser<WaypointsCommandPair> sendableChooser, boolean allowNone) {
+    private Command getPreScoreSequence() {
+        return Commands.parallel(
+                new PositionClawCommand(AutoScoreConstants.HIGH, liftSubsystem, extensionSubsystem),
+                Commands.runOnce(() -> clawSubsystem.setClawState(ClawState.CLOSE), clawSubsystem));
+    }
+
+    private Command getPostScoreSequence() {
+        return Commands.parallel(
+                new PositionClawCommand(AutoScoreConstants.STOW, liftSubsystem, extensionSubsystem),
+                Commands.runOnce(() -> clawSubsystem.setClawState(ClawState.OPEN), clawSubsystem));
+    }
+
+    private List<WaypointsCommandPair> getPairListFromI(int i) {
+        return List.of(
+                new WaypointsCommandPair(Waypoint.fromHolonomicPose(preScoreFromLocations[i]), getPreScoreSequence()),
+                new WaypointsCommandPair(Waypoint.fromHolonomicPose(scoreFromLocations[i]), getScoreSequence()),
+                new WaypointsCommandPair(Waypoint.fromHolonomicPose(preScoreFromLocations[i]), getPostScoreSequence()));
+    }
+
+    private void addScoringOptions(
+            ListenableSendableChooser<List<WaypointsCommandPair>> sendableChooser, boolean allowNone) {
 
         if (allowNone) {
             sendableChooser.setDefaultOption("None", null);
             sendableChooser.addOption(
                     "Cone 1",
-                    new WaypointsCommandPair(
-                            Waypoint.fromHolonomicPose(preScoreFromLocations[0]),
-                            getScoreSequence(ScoreLevel.HIGH, 0)));
+                    List.of(new WaypointsCommandPair(
+                            Waypoint.fromHolonomicPose(preScoreFromLocations[0]), getPreScoreSequence())));
         } else {
-            sendableChooser.setDefaultOption(
-                    "Cone 1",
-                    new WaypointsCommandPair(
-                            Waypoint.fromHolonomicPose(preScoreFromLocations[0]),
-                            getScoreSequence(ScoreLevel.HIGH, 0)));
+            sendableChooser.setDefaultOption("Cone 1", getPairListFromI(0));
         }
-        sendableChooser.addOption(
-                "Cube 2",
-                new WaypointsCommandPair(
-                        Waypoint.fromHolonomicPose(preScoreFromLocations[1]), getScoreSequence(ScoreLevel.HIGH, 1)));
-        sendableChooser.addOption(
-                "Cone 3",
-                new WaypointsCommandPair(
-                        Waypoint.fromHolonomicPose(preScoreFromLocations[2]), getScoreSequence(ScoreLevel.HIGH, 2)));
-        sendableChooser.addOption(
-                "Cone 4",
-                new WaypointsCommandPair(
-                        Waypoint.fromHolonomicPose(preScoreFromLocations[3]), getScoreSequence(ScoreLevel.HIGH, 3)));
-        sendableChooser.addOption(
-                "Cube 5",
-                new WaypointsCommandPair(
-                        Waypoint.fromHolonomicPose(preScoreFromLocations[4]), getScoreSequence(ScoreLevel.HIGH, 4)));
-        sendableChooser.addOption(
-                "Cone 6",
-                new WaypointsCommandPair(
-                        Waypoint.fromHolonomicPose(preScoreFromLocations[5]), getScoreSequence(ScoreLevel.HIGH, 5)));
-        sendableChooser.addOption(
-                "Cone 7",
-                new WaypointsCommandPair(
-                        Waypoint.fromHolonomicPose(preScoreFromLocations[6]), getScoreSequence(ScoreLevel.HIGH, 6)));
-        sendableChooser.addOption(
-                "Cube 8",
-                new WaypointsCommandPair(
-                        Waypoint.fromHolonomicPose(preScoreFromLocations[7]), getScoreSequence(ScoreLevel.HIGH, 7)));
-        sendableChooser.addOption(
-                "Cone 9",
-                new WaypointsCommandPair(
-                        Waypoint.fromHolonomicPose(preScoreFromLocations[8]), getScoreSequence(ScoreLevel.HIGH, 8)));
+        sendableChooser.addOption("Cube 2", getPairListFromI(1));
+        sendableChooser.addOption("Cone 3", getPairListFromI(2));
+        sendableChooser.addOption("Cone 4", getPairListFromI(3));
+        sendableChooser.addOption("Cube 5", getPairListFromI(4));
+        sendableChooser.addOption("Cone 6", getPairListFromI(5));
+        sendableChooser.addOption("Cone 7", getPairListFromI(6));
+        sendableChooser.addOption("Cube 8", getPairListFromI(7));
+        sendableChooser.addOption("Cone 9", getPairListFromI(8));
     }
 }
