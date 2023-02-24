@@ -48,7 +48,7 @@ public class RobotContainer {
     private final PhotonSubsystem cameraWrapperSubsystem = new PhotonSubsystem();
     private final SwerveDriveSubsystem driveSubsystem =
             new SwerveDriveSubsystem(cameraWrapperSubsystem::getEstimatedGlobalPose);
-    private final FlipperSubsystem flipper = new FlipperSubsystem();
+    private final FlipperSubsystem flipperSubsystem = new FlipperSubsystem();
     private final ClawSubsystem clawSubsystem = new ClawSubsystem();
     private final LiftSubsystem liftSubsystem = new LiftSubsystem();
     private final ExtensionSubsystem extensionSubsystem = new ExtensionSubsystem();
@@ -75,7 +75,8 @@ public class RobotContainer {
     }
 
     private void configureAutos() {
-        ConfigurablePaths paths = new ConfigurablePaths(driveSubsystem);
+        ConfigurablePaths paths = new ConfigurablePaths(
+                driveSubsystem, liftSubsystem, extensionSubsystem, clawSubsystem, flipperSubsystem);
         autoCommandChooser.setDefaultOption(
                 "GeneratedAuto", new ProxyCommand(paths::getCurrentCommandAndUpdateIfNeeded));
         autoCommandChooser.addOption("Nothing", null);
@@ -110,7 +111,7 @@ public class RobotContainer {
                 .onTrue(new PositionClawCommand(AutoScoreConstants.STOW, liftSubsystem, extensionSubsystem));
 
         driverController.leftTrigger().onTrue(Commands.runOnce(clawSubsystem::toggleClawState, clawSubsystem));
-        driverController.rightTrigger().whileTrue(new FullyToggleFlipperCommand(flipper));
+        driverController.rightTrigger().whileTrue(new FullyToggleFlipperCommand(flipperSubsystem));
 
         Trigger driverTakeControl = new Trigger(() -> !RaiderMathUtils.inAbsRange(
                                 driverController.getLeftX(), TeleopConstants.DRIVER_TAKE_CONTROL_THRESHOLD)
@@ -143,7 +144,7 @@ public class RobotContainer {
                                         liftSubsystem,
                                         extensionSubsystem,
                                         clawSubsystem,
-                                        flipper)
+                                        flipperSubsystem)
                                 .until(driverTakeControl))
                         .otherwise(rumbleDriverControllerCommand()));
         driverController
@@ -157,7 +158,7 @@ public class RobotContainer {
                                         liftSubsystem,
                                         extensionSubsystem,
                                         clawSubsystem,
-                                        flipper)
+                                        flipperSubsystem)
                                 .until(driverTakeControl))
                         .otherwise(rumbleDriverControllerCommand()));
         driverController
@@ -171,7 +172,7 @@ public class RobotContainer {
                                         liftSubsystem,
                                         extensionSubsystem,
                                         clawSubsystem,
-                                        flipper)
+                                        flipperSubsystem)
                                 .until(driverTakeControl))
                         .otherwise(rumbleDriverControllerCommand()));
     }
@@ -226,8 +227,8 @@ public class RobotContainer {
                                 ExtensionConstants.HOME_VOLTAGE, ExtensionConstants.HOME_CURRENT, extensionSubsystem)
                         .andThen(rumbleOperatorControllerCommand()));
 
-        operatorController.leftTrigger().onTrue(Commands.runOnce(flipper::toggleInOutState));
-        operatorController.rightTrigger().onTrue(Commands.runOnce(flipper::toggleUpDownState));
+        operatorController.leftTrigger().onTrue(Commands.runOnce(flipperSubsystem::toggleInOutState));
+        operatorController.rightTrigger().onTrue(Commands.runOnce(flipperSubsystem::toggleUpDownState));
 
         gridEntry.set(0);
         // Decrement the grid entry

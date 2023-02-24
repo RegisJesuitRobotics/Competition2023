@@ -273,6 +273,7 @@ public final class Constants {
         public static final Pair<Rotation2d, Double> STOW =
                 Pair.of(LiftConstants.MIN_ANGLE.plus(Rotation2d.fromDegrees(1.0)), Units.inchesToMeters(0.5));
 
+        public static final Pose2d[] preScoreFromLocations = new Pose2d[Grids.highTranslations.length];
         public static final Pose2d[] scoreFromLocations = new Pose2d[Grids.highTranslations.length];
 
         static {
@@ -280,6 +281,9 @@ public final class Constants {
                 scoreFromLocations[i] = new Pose2d(
                         new Translation2d(ROBOT_SCORING_X, Grids.lowTranslations[i].getY()),
                         Rotation2d.fromDegrees(180.0));
+                preScoreFromLocations[i] = new Pose2d(
+                        scoreFromLocations[i].getTranslation().plus(new Translation2d(0.75, 0.0)),
+                        scoreFromLocations[i].getRotation());
             }
         }
 

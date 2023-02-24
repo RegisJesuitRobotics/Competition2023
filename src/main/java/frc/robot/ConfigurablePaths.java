@@ -1,21 +1,33 @@
 package frc.robot;
 
-import static frc.robot.Constants.AutoScoreConstants.scoreFromLocations;
+import static frc.robot.Constants.AutoScoreConstants.preScoreFromLocations;
 import static frc.robot.FieldConstants.*;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import edu.wpi.first.wpilibj2.command.ProxyCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
+import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.Constants.AutoConstants;
+import frc.robot.Constants.AutoScoreConstants;
+import frc.robot.Constants.AutoScoreConstants.ScoreLevel;
+import frc.robot.Constants.ExtensionConstants;
+import frc.robot.Constants.LiftConstants;
+import frc.robot.commands.AutoScoreCommand;
+import frc.robot.commands.HomeHomeableCommand;
+import frc.robot.commands.PositionClawCommand;
 import frc.robot.commands.drive.auto.FollowPathCommand;
+import frc.robot.subsystems.claw.ClawSubsystem;
+import frc.robot.subsystems.claw.ClawSubsystem.ClawState;
+import frc.robot.subsystems.extension.ExtensionSubsystem;
+import frc.robot.subsystems.intake.FlipperSubsystem;
+import frc.robot.subsystems.lift.LiftSubsystem;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.SendableTelemetryManager;
 import frc.robot.utils.ListenableSendableChooser;
+import frc.robot.utils.RaiderUtils;
 import frc.robot.utils.paths.WaypointsCommandPair;
 import frc.robot.utils.trajectory.HolonomicTrajectory;
 import frc.robot.utils.trajectory.HolonomicTrajectoryGenerator;
@@ -23,6 +35,7 @@ import frc.robot.utils.trajectory.Waypoint;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.IntSupplier;
 
 public class ConfigurablePaths {
 
@@ -36,12 +49,25 @@ public class ConfigurablePaths {
     private final ListenableSendableChooser<WaypointsCommandPair> balance = new ListenableSendableChooser<>();
 
     private final SwerveDriveSubsystem driveSubsystem;
+    private final LiftSubsystem liftSubsystem;
+    private final ExtensionSubsystem extensionSubsystem;
+    private final ClawSubsystem clawSubsystem;
+    private final FlipperSubsystem flipperSubsystem;
 
     private SequentialCommandGroup currentCommand;
     private int currentConfigHash = 0;
 
-    public ConfigurablePaths(SwerveDriveSubsystem driveSubsystem) {
+    public ConfigurablePaths(
+            SwerveDriveSubsystem driveSubsystem,
+            LiftSubsystem liftSubsystem,
+            ExtensionSubsystem extensionSubsystem,
+            ClawSubsystem clawSubsystem,
+            FlipperSubsystem flipperSubsystem) {
         this.driveSubsystem = driveSubsystem;
+        this.liftSubsystem = liftSubsystem;
+        this.extensionSubsystem = extensionSubsystem;
+        this.clawSubsystem = clawSubsystem;
+        this.flipperSubsystem = flipperSubsystem;
         addMapValues();
         putDashboardTables();
     }
@@ -68,7 +94,10 @@ public class ConfigurablePaths {
     }
 
     public void generatePath() {
-        currentCommand = new SequentialCommandGroup();
+        currentCommand = new SequentialCommandGroup(Commands.parallel(
+                new HomeHomeableCommand(LiftConstants.HOME_VOLTAGE, LiftConstants.HOME_CURRENT, liftSubsystem),
+                new HomeHomeableCommand(
+                        ExtensionConstants.HOME_VOLTAGE, ExtensionConstants.HOME_CURRENT, extensionSubsystem)));
         currentConfigHash = getHash();
 
         List<WaypointsCommandPair> waypoints = new ArrayList<>();
@@ -148,9 +177,6 @@ public class ConfigurablePaths {
     }
 
     private void addMapValues() {
-        // TODO: finish these
-
-        // WaitCommand to simulate placing preload
         addScoringOptions(startPositionChooser, false);
 
         addPieceOptions(firstPiece);
@@ -183,7 +209,7 @@ public class ConfigurablePaths {
         balance.addOption("False", null);
     }
 
-    static final Translation2d gamePieceOffset = new Translation2d(-0.2, 0.0);
+    static final Translation2d gamePieceOffset = new Translation2d(Units.inchesToMeters(-9.0), 0.0);
     static final Pose2d[] gamePiecePickUpLocations = new Pose2d[StagingLocations.translations.length];
 
     static {
@@ -193,60 +219,95 @@ public class ConfigurablePaths {
         }
     }
 
+    private Command getPickupSequence() {
+        return Commands.sequence(
+                Commands.runOnce(() -> clawSubsystem.setClawState(ClawState.CLOSE)),
+                new PositionClawCommand(AutoScoreConstants.LOW, liftSubsystem, extensionSubsystem));
+    }
+
     private void addPieceOptions(ListenableSendableChooser<WaypointsCommandPair> sendableChooser) {
         sendableChooser.setDefaultOption("None", null);
         sendableChooser.addOption(
                 "Far Right",
-                new WaypointsCommandPair(
-                        Waypoint.fromHolonomicPose(gamePiecePickUpLocations[0]), new WaitCommand(0.75)));
+                new WaypointsCommandPair(Waypoint.fromHolonomicPose(gamePiecePickUpLocations[0]), getPickupSequence()));
         sendableChooser.addOption(
                 "Middle Right",
-                new WaypointsCommandPair(
-                        Waypoint.fromHolonomicPose(gamePiecePickUpLocations[1]), new WaitCommand(0.75)));
+                new WaypointsCommandPair(Waypoint.fromHolonomicPose(gamePiecePickUpLocations[1]), getPickupSequence()));
         sendableChooser.addOption(
                 "Middle Left",
-                new WaypointsCommandPair(
-                        Waypoint.fromHolonomicPose(gamePiecePickUpLocations[2]), new WaitCommand(0.75)));
+                new WaypointsCommandPair(Waypoint.fromHolonomicPose(gamePiecePickUpLocations[2]), getPickupSequence()));
         sendableChooser.addOption(
                 "Far Left",
-                new WaypointsCommandPair(
-                        Waypoint.fromHolonomicPose(gamePiecePickUpLocations[3]), new WaitCommand(0.75)));
+                new WaypointsCommandPair(Waypoint.fromHolonomicPose(gamePiecePickUpLocations[3]), getPickupSequence()));
+    }
+
+    private Command getScoreSequence(ScoreLevel scoreLevel, int i) {
+        IntSupplier scoreSupplier = () -> {
+            if (RaiderUtils.shouldFlip()) {
+                return i;
+            }
+            return 8 - i;
+        };
+
+        return Commands.parallel(
+                new AutoScoreCommand(
+                        scoreLevel,
+                        scoreSupplier,
+                        driveSubsystem,
+                        liftSubsystem,
+                        extensionSubsystem,
+                        clawSubsystem,
+                        flipperSubsystem),
+                Commands.runOnce(() -> clawSubsystem.setClawState(ClawState.OPEN)));
     }
 
     private void addScoringOptions(ListenableSendableChooser<WaypointsCommandPair> sendableChooser, boolean allowNone) {
+
         if (allowNone) {
             sendableChooser.setDefaultOption("None", null);
             sendableChooser.addOption(
                     "Cone 1",
-                    new WaypointsCommandPair(Waypoint.fromHolonomicPose(scoreFromLocations[0]), new WaitCommand(0.75)));
+                    new WaypointsCommandPair(
+                            Waypoint.fromHolonomicPose(preScoreFromLocations[0]),
+                            getScoreSequence(ScoreLevel.HIGH, 0)));
         } else {
             sendableChooser.setDefaultOption(
                     "Cone 1",
-                    new WaypointsCommandPair(Waypoint.fromHolonomicPose(scoreFromLocations[0]), new WaitCommand(0.75)));
+                    new WaypointsCommandPair(
+                            Waypoint.fromHolonomicPose(preScoreFromLocations[0]),
+                            getScoreSequence(ScoreLevel.HIGH, 0)));
         }
         sendableChooser.addOption(
                 "Cube 2",
-                new WaypointsCommandPair(Waypoint.fromHolonomicPose(scoreFromLocations[1]), new WaitCommand(0.75)));
+                new WaypointsCommandPair(
+                        Waypoint.fromHolonomicPose(preScoreFromLocations[1]), getScoreSequence(ScoreLevel.HIGH, 1)));
         sendableChooser.addOption(
                 "Cone 3",
-                new WaypointsCommandPair(Waypoint.fromHolonomicPose(scoreFromLocations[2]), new WaitCommand(0.75)));
+                new WaypointsCommandPair(
+                        Waypoint.fromHolonomicPose(preScoreFromLocations[2]), getScoreSequence(ScoreLevel.HIGH, 2)));
         sendableChooser.addOption(
                 "Cone 4",
-                new WaypointsCommandPair(Waypoint.fromHolonomicPose(scoreFromLocations[3]), new WaitCommand(0.75)));
+                new WaypointsCommandPair(
+                        Waypoint.fromHolonomicPose(preScoreFromLocations[3]), getScoreSequence(ScoreLevel.HIGH, 3)));
         sendableChooser.addOption(
                 "Cube 5",
-                new WaypointsCommandPair(Waypoint.fromHolonomicPose(scoreFromLocations[4]), new WaitCommand(0.75)));
+                new WaypointsCommandPair(
+                        Waypoint.fromHolonomicPose(preScoreFromLocations[4]), getScoreSequence(ScoreLevel.HIGH, 4)));
         sendableChooser.addOption(
                 "Cone 6",
-                new WaypointsCommandPair(Waypoint.fromHolonomicPose(scoreFromLocations[5]), new WaitCommand(0.75)));
+                new WaypointsCommandPair(
+                        Waypoint.fromHolonomicPose(preScoreFromLocations[5]), getScoreSequence(ScoreLevel.HIGH, 5)));
         sendableChooser.addOption(
                 "Cone 7",
-                new WaypointsCommandPair(Waypoint.fromHolonomicPose(scoreFromLocations[6]), new WaitCommand(0.75)));
+                new WaypointsCommandPair(
+                        Waypoint.fromHolonomicPose(preScoreFromLocations[6]), getScoreSequence(ScoreLevel.HIGH, 6)));
         sendableChooser.addOption(
                 "Cube 8",
-                new WaypointsCommandPair(Waypoint.fromHolonomicPose(scoreFromLocations[7]), new WaitCommand(0.75)));
+                new WaypointsCommandPair(
+                        Waypoint.fromHolonomicPose(preScoreFromLocations[7]), getScoreSequence(ScoreLevel.HIGH, 7)));
         sendableChooser.addOption(
                 "Cone 9",
-                new WaypointsCommandPair(Waypoint.fromHolonomicPose(scoreFromLocations[8]), new WaitCommand(0.75)));
+                new WaypointsCommandPair(
+                        Waypoint.fromHolonomicPose(preScoreFromLocations[8]), getScoreSequence(ScoreLevel.HIGH, 8)));
     }
 }
