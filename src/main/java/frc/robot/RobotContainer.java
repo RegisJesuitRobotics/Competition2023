@@ -18,6 +18,7 @@ import frc.robot.commands.drive.teleop.SwerveDriveCommand;
 import frc.robot.hid.CommandXboxPlaystationController;
 import frc.robot.subsystems.claw.ClawSubsystem;
 import frc.robot.subsystems.intake.FlipperSubsystem;
+import frc.robot.subsystems.led.LEDSubsystem;
 import frc.robot.subsystems.photon.PhotonSubsystem;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.tunable.TunableDouble;
@@ -41,8 +42,10 @@ public class RobotContainer {
             new SwerveDriveSubsystem(cameraWrapperSubsystem::getEstimatedGlobalPose);
     private final FlipperSubsystem flipper = new FlipperSubsystem();
     private final ClawSubsystem clawSubsystem = new ClawSubsystem();
+    private final LEDSubsystem ledSubsystem = new LEDSubsystem();
 
     private final CommandXboxPlaystationController driverController = new CommandXboxPlaystationController(0);
+    private final CommandXboxPlaystationController operatorController = new CommandXboxPlaystationController(1);
     private final TeleopControlsStateManager teleopControlsStateManager = new TeleopControlsStateManager();
 
     private final ListenableSendableChooser<Command> driveCommandChooser = new ListenableSendableChooser<>();
@@ -149,6 +152,9 @@ public class RobotContainer {
         driverController.rightTrigger().onTrue(Commands.runOnce(flipper::toggleUpDownState, flipper));
         driverController.leftTrigger().onTrue(Commands.runOnce(flipper::toggleInOutState, flipper));
         driverController.share().onTrue(Commands.runOnce(clawSubsystem::toggleClawState, clawSubsystem));
+
+        operatorController.square().onTrue(Commands.runOnce(ledSubsystem::togglePurpleCube, ledSubsystem));
+        operatorController.triangle().onTrue(Commands.runOnce(ledSubsystem::toggleYellowCone, ledSubsystem));
     }
 
     private void evaluateDriveStyle(Command newCommand) {

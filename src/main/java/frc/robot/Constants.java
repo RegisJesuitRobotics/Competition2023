@@ -150,6 +150,15 @@ public final class Constants {
         public static final int[] LEFT_RIGHT_SOLENOID_PORTS = {4, 1};
     }
 
+    public static class LEDConstants {
+        public static final int PWM_PORT = 0;
+        public static final int BUFFER_SIZE = 50;
+        // HTML "Gold"
+        public static final int[] YELLOW_RGB = {255, 215, 0};
+        // HTML "RebeccaPurple"
+        public static final int[] PURPLE_RGB = {102, 51, 153};
+    }
+
     public static class TeleopConstants {
         private TeleopConstants() {}
 
