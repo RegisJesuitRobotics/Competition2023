@@ -153,6 +153,9 @@ public final class Constants {
                         DriveTrainConstants.MAX_ANGULAR_VELOCITY_RADIANS_SECOND,
                         DriveTrainConstants.MAX_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED,
                         MiscConstants.TUNING_MODE);
+
+        public static final double AUTO_BALANCE_TOLERANCE_RADIANS = Units.degreesToRadians(1.0);
+        public static final double AUTO_BALANCE_SPEED_METERS_SECOND = 0.5;
     }
 
     public static class ClawConstants {
