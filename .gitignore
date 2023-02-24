@@ -173,3 +173,4 @@ simgui.json
 /.glass/
 networktables.json
 **/.$*.*
+/.vscode/

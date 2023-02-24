@@ -1,9 +1,13 @@
 package frc.robot;
 
 import com.pathplanner.lib.PathConstraints;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import frc.robot.telemetry.tunable.TunableFFGains;
 import frc.robot.telemetry.tunable.TunablePIDGains;
@@ -14,6 +18,18 @@ import frc.robot.utils.SwerveModuleConfiguration.SharedSwerveModuleConfiguration
 /** File containing all constants for the robot. */
 public final class Constants {
     private Constants() {}
+
+    public static class VisionConstants {
+        private VisionConstants() {}
+
+        // TODO: update once cameras are mounted
+        public static final Transform3d FRONT_CAMERA_LOCATION = new Transform3d(
+                new Translation3d(
+                        Units.inchesToMeters(2.26271), Units.inchesToMeters(11.55917), Units.inchesToMeters(35.851)),
+                new Rotation3d(0, Units.degreesToRadians(5.0), 0));
+
+        public static final String FRONT_CAMERA_NAME = "FrontCamera";
+    }
 
     public static final double DT = 0.02;
 
@@ -124,6 +140,16 @@ public final class Constants {
                 DriveTrainConstants.MAX_VELOCITY_METERS_SECOND, MAX_PATH_ACCELERATION_METERS_PER_SECOND_SQUARED);
     }
 
+    public static class ClawConstants {
+        public static final int[] SOLENOID_PORTS = {6, 3};
+    }
+
+    // TODO: change names when theres a cad for intake and change ports
+    public static class IntakeConstants {
+        public static final int[] UP_DOWN_SOLENOID_PORTS = {5, 2};
+        public static final int[] LEFT_RIGHT_SOLENOID_PORTS = {4, 1};
+    }
+
     public static class TeleopConstants {
         private TeleopConstants() {}
 
@@ -141,6 +167,7 @@ public final class Constants {
         public static final int[] USED_CONTROLLER_PORTS = {0};
         public static final boolean TUNING_MODE = true;
 
+        public static final PneumaticsModuleType PNEUMATICS_MODULE_TYPE = PneumaticsModuleType.REVPH;
         public static final ModuleType POWER_MODULE_TYPE = ModuleType.kRev;
         public static final int POWER_MODULE_ID = 1;
     }
