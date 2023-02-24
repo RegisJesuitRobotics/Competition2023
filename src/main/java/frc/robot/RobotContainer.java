@@ -23,6 +23,7 @@ import frc.robot.commands.drive.characterize.DriveTrainSysIDCompatibleLoggerComm
 import frc.robot.commands.drive.characterize.SteerTestingCommand;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
 import frc.robot.commands.flipper.FullyToggleFlipperCommand;
+import frc.robot.hid.CommandNintendoSwitchController;
 import frc.robot.hid.CommandXboxPlaystationController;
 import frc.robot.subsystems.claw.ClawSubsystem;
 import frc.robot.subsystems.extension.ExtensionSubsystem;
@@ -53,7 +54,7 @@ public class RobotContainer {
     private final LiftSubsystem liftSubsystem = new LiftSubsystem();
     private final ExtensionSubsystem extensionSubsystem = new ExtensionSubsystem();
 
-    private final CommandXboxPlaystationController driverController = new CommandXboxPlaystationController(0);
+    private final CommandNintendoSwitchController driverController = new CommandNintendoSwitchController(0);
     private final CommandXboxPlaystationController operatorController = new CommandXboxPlaystationController(1);
     private final TeleopControlsStateManager teleopControlsStateManager = new TeleopControlsStateManager();
 
@@ -105,13 +106,13 @@ public class RobotContainer {
     private void configureDriverBindings() {
         configureDriving();
 
-        driverController.share().whileTrue(new LockModulesCommand(driveSubsystem).repeatedly());
+        driverController.minus().whileTrue(new LockModulesCommand(driveSubsystem).repeatedly());
         driverController
-                .options()
+                .leftStick()
                 .onTrue(new PositionClawCommand(AutoScoreConstants.STOW, liftSubsystem, extensionSubsystem));
 
-        driverController.leftTrigger().onTrue(Commands.runOnce(clawSubsystem::toggleClawState, clawSubsystem));
-        driverController.rightTrigger().whileTrue(new FullyToggleFlipperCommand(flipperSubsystem));
+        driverController.rightStick().onTrue(Commands.runOnce(clawSubsystem::toggleClawState, clawSubsystem));
+        driverController.rightTrigger().whileTrue(new FullyToggleFlipperCommand(flipper));
 
         Trigger driverTakeControl = new Trigger(() -> !RaiderMathUtils.inAbsRange(
                                 driverController.getLeftX(), TeleopConstants.DRIVER_TAKE_CONTROL_THRESHOLD)
@@ -282,14 +283,14 @@ public class RobotContainer {
                                 RaiderMathUtils.deadZoneAndCubeJoystick(-driverController.getRightX())
                                         * maxAngularSpeedSupplier.getAsDouble()),
                         driverController
-                                .triangle()
-                                .or(driverController.circle())
-                                .or(driverController.x())
-                                .or(driverController.square()),
+                                .x()
+                                .or(driverController.a())
+                                .or(driverController.b())
+                                .or(driverController.y()),
                         () -> {
-                            if (driverController.square().getAsBoolean()) return Math.PI / 2;
-                            if (driverController.x().getAsBoolean()) return Math.PI;
-                            if (driverController.circle().getAsBoolean()) return -Math.PI / 2;
+                            if (driverController.y().getAsBoolean()) return Math.PI / 2;
+                            if (driverController.b().getAsBoolean()) return Math.PI;
+                            if (driverController.a().getAsBoolean()) return -Math.PI / 2;
                             return 0.0;
                         },
                         driverController.rightBumper().negate(),

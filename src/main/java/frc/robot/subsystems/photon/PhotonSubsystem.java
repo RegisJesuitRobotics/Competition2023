@@ -47,6 +47,7 @@ public class PhotonSubsystem extends SubsystemBase {
 
         poseEstimators.add(new PhotonPoseEstimator(
                 fieldLayout, PoseStrategy.MULTI_TAG_PNP, cameras.get(0), VisionConstants.FRONT_CAMERA_LOCATION));
+        poseEstimators.get(0).setMultiTagFallbackStrategy(PoseStrategy.CLOSEST_TO_CAMERA_HEIGHT);
 
         for (int i = 0; i < poseEstimators.size(); i++) {
             estimatedPoseEntries.add(new Pose3dEntry("/photon/estimatedPoses/" + i, MiscConstants.TUNING_MODE));
