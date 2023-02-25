@@ -94,4 +94,12 @@ public class RaiderMathUtils {
         return new ChassisSpeeds(
                 velocityTwist.dx / Constants.DT, velocityTwist.dy / Constants.DT, velocityTwist.dtheta / Constants.DT);
     }
+
+    public static long longClamp(long value, long low, long high) {
+        return Math.max(low, Math.min(value, high));
+    }
+
+    public static boolean inAbsRange(double value, double range) {
+        return Math.abs(value) < range;
+    }
 }

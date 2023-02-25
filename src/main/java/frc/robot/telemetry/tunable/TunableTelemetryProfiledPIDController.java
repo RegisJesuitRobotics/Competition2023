@@ -2,6 +2,8 @@ package frc.robot.telemetry.tunable;
 
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
+import frc.robot.telemetry.tunable.gains.TunablePIDGains;
+import frc.robot.telemetry.tunable.gains.TunableTrapezoidalProfileGains;
 import frc.robot.telemetry.types.DoubleTelemetryEntry;
 import frc.robot.telemetry.types.rich.TrapezoidalStateEntry;
 

@@ -23,8 +23,8 @@ public class SwerveDriveCommand extends CommandBase {
 
     private final TunableTelemetryProfiledPIDController snapPIDController = new TunableTelemetryProfiledPIDController(
             "/drive/snapController",
-            AutoConstants.SNAP_ANGULAR_POSITION_PID_GAINS,
-            AutoConstants.SNAP_ANGULAR_POSITION_TRAPEZOIDAL_GAINS);
+            AutoConstants.ANGULAR_POSITION_PID_GAINS,
+            AutoConstants.ANGULAR_POSITION_TRAPEZOIDAL_GAINS);
     private final SwerveDriveSubsystem driveSubsystem;
 
     private boolean isSnapping = false;

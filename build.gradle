@@ -2,7 +2,7 @@ import java.text.SimpleDateFormat
 
 plugins {
     id "java"
-    id "edu.wpi.first.GradleRIO" version "2023.3.2"
+    id "edu.wpi.first.GradleRIO" version "2023.4.1"
     id 'com.diffplug.spotless' version '6.11.0'
 }
 
@@ -119,6 +119,13 @@ spotless {
         indentWithSpaces(4)
         trimTrailingWhitespace()
         endWithNewline()
+    }
+    typescript {
+        target fileTree('fwc-plugin') {
+            include '**/*.ts'
+            exclude 'node_modules/**'
+        }
+        prettier()
     }
     format 'xml', {
         target fileTree('.') {
