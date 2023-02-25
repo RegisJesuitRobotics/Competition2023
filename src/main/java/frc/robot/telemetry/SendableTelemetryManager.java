@@ -26,7 +26,7 @@ public class SendableTelemetryManager {
 
     public void addSendable(String name, Sendable sendable) {
         SendableBuilderImpl sendableBuilder = new SendableBuilderImpl();
-        sendableBuilder.setTable(NetworkTableInstance.getDefault().getTable("/toLog/" + name));
+        sendableBuilder.setTable(NetworkTableInstance.getDefault().getTable("/toLog" + name));
         SendableRegistry.publish(sendable, sendableBuilder);
         sendableBuilder.startListeners();
 

@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class TreeTracer {
-    private static final long MIN_PRINT_PERIOD = 1000000;
+    private static final long MIN_PRINT_PERIOD = 0;
 
     private long lastEpochsPrintTime;
 
