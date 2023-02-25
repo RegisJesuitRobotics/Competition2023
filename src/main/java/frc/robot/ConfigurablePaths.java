@@ -212,7 +212,7 @@ public class ConfigurablePaths {
     private Command getPickupSequence() {
         return Commands.sequence(
                 Commands.runOnce(() -> clawSubsystem.setClawState(ClawState.CLOSE)),
-                new PositionClawCommand(AutoScoreConstants.LOW, liftSubsystem, extensionSubsystem));
+                new PositionClawCommand(AutoScoreConstants.LOW, true, liftSubsystem, extensionSubsystem));
     }
 
     private void addPieceOptions(ListenableSendableChooser<WaypointsCommandPair> sendableChooser) {
@@ -237,13 +237,13 @@ public class ConfigurablePaths {
 
     private Command getPreScoreSequence() {
         return Commands.parallel(
-                new PositionClawCommand(AutoScoreConstants.HIGH, liftSubsystem, extensionSubsystem),
+                new PositionClawCommand(AutoScoreConstants.HIGH, true, liftSubsystem, extensionSubsystem),
                 Commands.runOnce(() -> clawSubsystem.setClawState(ClawState.CLOSE), clawSubsystem));
     }
 
     private Command getPostScoreSequence() {
         return Commands.parallel(
-                new PositionClawCommand(AutoScoreConstants.STOW, liftSubsystem, extensionSubsystem),
+                new PositionClawCommand(AutoScoreConstants.STOW, false, liftSubsystem, extensionSubsystem),
                 Commands.runOnce(() -> clawSubsystem.setClawState(ClawState.OPEN), clawSubsystem));
     }
 

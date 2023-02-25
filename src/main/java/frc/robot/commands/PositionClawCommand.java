@@ -13,15 +13,17 @@ import frc.robot.subsystems.lift.LiftSubsystem;
 
 public class PositionClawCommand extends ParallelCommandGroup {
     public PositionClawCommand(
-            Pair<Rotation2d, Double> positions, LiftSubsystem liftSubsystem, ExtensionSubsystem extensionSubsystem) {
-        this(positions.getFirst(), positions.getSecond(), liftSubsystem, extensionSubsystem);
+            Pair<Rotation2d, Double> positions, boolean liftFirst, LiftSubsystem liftSubsystem, ExtensionSubsystem extensionSubsystem) {
+        this(positions.getFirst(), positions.getSecond(), liftFirst, liftSubsystem, extensionSubsystem);
     }
 
     public PositionClawCommand(
             Rotation2d liftAngle,
             double extensionPosition,
+            boolean liftFirst,
             LiftSubsystem liftSubsystem,
             ExtensionSubsystem extensionSubsystem) {
+        if (liftFirst) {
         addCommands(
                 new SetLiftPositionCommand(liftAngle, liftSubsystem),
                 Commands.sequence(
@@ -33,5 +35,19 @@ public class PositionClawCommand extends ParallelCommandGroup {
                             return new WaitCommand(waitTime);
                         }),
                         new SetExtensionPositionCommand(extensionPosition, extensionSubsystem)));
+        } else {
+            addCommands(
+                new SetExtensionPositionCommand(extensionPosition, extensionSubsystem),
+                Commands.sequence(
+                    new ProxyCommand(() -> {
+                        double waitTime = Math.max(
+                                0.2,
+                                extensionSubsystem.getEstimatedTimeForPosition(extensionPosition)) / 2.0;
+                        return new WaitCommand(waitTime);
+                    }),
+                    new SetLiftPositionCommand(liftAngle, liftSubsystem)
+                )
+            );
+        }
     }
 }

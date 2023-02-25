@@ -170,7 +170,7 @@ public class LiftSubsystem extends SubsystemBase implements DualHomeable {
 
     public void stopMovement() {
         // Only if we are homed do we hold the position with FF
-        if (isHomed) {
+        if (false) {
             setDesiredArmAngle(getArmAngle());
         } else {
             setVoltage(0.0);

@@ -10,6 +10,8 @@ import frc.robot.Robot;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.tunable.TunableTelemetryProfiledPIDController;
 import frc.robot.utils.RaiderMathUtils;
+import frc.robot.utils.RaiderUtils;
+
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
@@ -77,6 +79,10 @@ public class SwerveDriveCommand extends CommandBase {
         ChassisSpeeds chassisSpeeds = new ChassisSpeeds(translation.getX(), translation.getY(), omega);
 
         if (isFieldRelative) {
+            Rotation2d driveRotation = driveSubsystem.getPose().getRotation();
+            if (RaiderUtils.shouldFlip()) {
+                driveRotation = RaiderUtils.allianceFlip(driveRotation);
+            }
             chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
                     chassisSpeeds, driveSubsystem.getPose().getRotation());
         }

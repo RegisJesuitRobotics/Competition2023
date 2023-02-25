@@ -51,11 +51,15 @@ public class RaiderUtils {
         return pose;
     }
 
+    public static Rotation2d allianceFlip(Rotation2d rotation2d) {
+        return new Rotation2d(-rotation2d.getCos(), rotation2d.getSin());
+    }
+
     public static Pose2d allianceFlip(Pose2d pose) {
         return new Pose2d(
                 new Translation2d(
                         FieldConstants.fieldLength - pose.getTranslation().getX(),
                         pose.getTranslation().getY()),
-                new Rotation2d(-pose.getRotation().getCos(), pose.getRotation().getSin()));
+                allianceFlip(pose.getRotation()));
     }
 }
