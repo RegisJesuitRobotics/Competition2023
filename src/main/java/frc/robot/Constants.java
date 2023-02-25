@@ -131,7 +131,7 @@ public final class Constants {
         private AutoConstants() {}
 
         public static final double MAX_AUTO_ACCELERATION_METERS_PER_SECOND_SQUARED =
-                DriveTrainConstants.MAX_VELOCITY_METERS_SECOND / 2.0;
+                DriveTrainConstants.MAX_VELOCITY_METERS_SECOND / 3.0;
         public static final double MAX_AUTO_VELOCITY_METERS_SECOND =
                 DriveTrainConstants.MAX_VELOCITY_METERS_SECOND / 1.25;
         public static final TrajectoryConfig TRAJECTORY_CONSTRAINTS =
@@ -192,7 +192,7 @@ public final class Constants {
         public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(40.0);
 
         public static final TunablePIDGains PID_GAINS =
-                new TunablePIDGains("/gains/lifter", 5.0852, 0.0, 4.2431, MiscConstants.TUNING_MODE);
+                new TunablePIDGains("/gains/lifter", 6.0, 0.0, 4.2431, MiscConstants.TUNING_MODE);
         public static final TunableTrapezoidalProfileGains TRAPEZOIDAL_PROFILE_GAINS =
                 new TunableTrapezoidalProfileGains(
                         "/gains/lifter", Math.PI * 3.0 / 4.0, Math.PI / 4, MiscConstants.TUNING_MODE);
@@ -204,6 +204,9 @@ public final class Constants {
 
         public static final double HOME_CURRENT = 0.3;
         public static final double HOME_VOLTAGE = -0.3;
+
+        public static final double POSITION_TOLERANCE_RADIANS = Units.degreesToRadians(2.0);
+        public static final double VELOCITY_TOLERANCE_RADIANS_SECOND = Units.degreesToRadians(10.0);
     }
 
     public static class ExtensionConstants {
@@ -238,6 +241,9 @@ public final class Constants {
 
         public static final double HOME_CURRENT = 5;
         public static final double HOME_VOLTAGE = -1;
+
+        public static final double POSITION_TOLERANCE_METERS = Units.inchesToMeters(0.02);
+        public static final double VELOCITY_TOLERANCE_METERS_SECOND = Units.inchesToMeters(0.05);
     }
 
     public static class TeleopConstants {
@@ -284,8 +290,14 @@ public final class Constants {
                 scoreFromLocations[i] = new Pose2d(
                         new Translation2d(ROBOT_SCORING_X, Grids.lowTranslations[i].getY()),
                         Rotation2d.fromDegrees(180.0));
+                double yOffset = 0.0;
+                if (i == 1) {
+                    yOffset = Units.inchesToMeters(-6.0);
+                } else if (i == 7) {
+                    yOffset = Units.inchesToMeters(6.0);
+                }
                 preScoreFromLocations[i] = new Pose2d(
-                        scoreFromLocations[i].getTranslation().plus(new Translation2d(0.75, 0.0)),
+                        scoreFromLocations[i].getTranslation().plus(new Translation2d(0.75, yOffset)),
                         scoreFromLocations[i].getRotation());
             }
         }

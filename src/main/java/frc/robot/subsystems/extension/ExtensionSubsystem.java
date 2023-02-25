@@ -62,6 +62,7 @@ public class ExtensionSubsystem extends SubsystemBase implements DualHomeable {
     public ExtensionSubsystem() {
         configMotors();
 
+        controller.setTolerance(POSITION_TOLERANCE_METERS, VELOCITY_TOLERANCE_METERS_SECOND);
         eventEntry.append("Extension initialized");
     }
 
@@ -91,6 +92,14 @@ public class ExtensionSubsystem extends SubsystemBase implements DualHomeable {
             eventEntry.append("Motors timed out initializing");
         }
         failedConfigurationAlert.set(faultInitializing);
+    }
+
+    public double getEstimatedTimeForPosition(double position) {
+        return new TrapezoidProfile(
+                        TRAPEZOIDAL_PROFILE_GAINS.createConstraints(),
+                        new TrapezoidProfile.State(position, 0.0),
+                        new TrapezoidProfile.State(getPosition(), getVelocity()))
+                .totalTime();
     }
 
     public void setDesiredPosition(double distanceMeters) {

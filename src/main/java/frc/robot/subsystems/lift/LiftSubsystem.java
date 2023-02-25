@@ -78,6 +78,7 @@ public class LiftSubsystem extends SubsystemBase implements DualHomeable {
                 .addSendable("/lifter/LifterSetpointMechanism2d", setpointMechanism2d.getMechanism2dObject());
 
         configMotors();
+        controller.setTolerance(POSITION_TOLERANCE_RADIANS, VELOCITY_TOLERANCE_RADIANS_SECOND);
         eventEntry.append("Lifter initialized");
     }
 
@@ -114,6 +115,14 @@ public class LiftSubsystem extends SubsystemBase implements DualHomeable {
 
         leftMotor.burnFlashIfShould();
         rightMotor.burnFlashIfShould();
+    }
+
+    public double getEstimatedTimeForPosition(Rotation2d position) {
+        return new TrapezoidProfile(
+                        TRAPEZOIDAL_PROFILE_GAINS.createConstraints(),
+                        new TrapezoidProfile.State(position.getRadians(), 0.0),
+                        new TrapezoidProfile.State(getArmAngle().getRadians(), getVelocity()))
+                .totalTime();
     }
 
     /**

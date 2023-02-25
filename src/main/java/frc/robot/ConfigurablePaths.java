@@ -17,6 +17,7 @@ import frc.robot.Constants.ExtensionConstants;
 import frc.robot.Constants.LiftConstants;
 import frc.robot.commands.HomeHomeableCommand;
 import frc.robot.commands.PositionClawCommand;
+import frc.robot.commands.UnScheduledProxyCommand;
 import frc.robot.commands.drive.auto.FollowPathCommand;
 import frc.robot.subsystems.claw.ClawSubsystem;
 import frc.robot.subsystems.claw.ClawSubsystem.ClawState;
@@ -107,6 +108,7 @@ public class ConfigurablePaths {
         List<WaypointsCommandPair> secondTargetPair = secondTarget.getSelected();
 
         List<WaypointsCommandPair> waypoints = new ArrayList<>(startPositionChooser.getSelected());
+        System.out.println(firstPiecePair);
         if (firstPiecePair != null) {
             waypoints.add(aroundChargerPair);
             waypoints.add(firstPiecePair);
@@ -151,7 +153,7 @@ public class ConfigurablePaths {
                     currentTrajectoryPoints.add(currentWaypoints.get(currentWaypoints.size() - 1));
                     currentCommand.addCommands(new FollowPathCommand(holonomicTrajectory, driveSubsystem));
                 }
-                currentCommand.addCommands(new ProxyCommand(waypointsCommandPair.getCommand()));
+                currentCommand.addCommands(new UnScheduledProxyCommand(waypointsCommandPair.getCommand()));
             }
             firstRun = false;
         }
@@ -208,10 +210,9 @@ public class ConfigurablePaths {
     }
 
     private Command getPickupSequence() {
-        return new WaitCommand(0.5);
-        //        return Commands.sequence(
-        //                Commands.runOnce(() -> clawSubsystem.setClawState(ClawState.CLOSE)),
-        //                new PositionClawCommand(AutoScoreConstants.LOW, liftSubsystem, extensionSubsystem));
+        return Commands.sequence(
+                Commands.runOnce(() -> clawSubsystem.setClawState(ClawState.CLOSE)),
+                new PositionClawCommand(AutoScoreConstants.LOW, liftSubsystem, extensionSubsystem));
     }
 
     private void addPieceOptions(ListenableSendableChooser<WaypointsCommandPair> sendableChooser) {
@@ -259,11 +260,11 @@ public class ConfigurablePaths {
         if (allowNone) {
             sendableChooser.setDefaultOption("None", null);
             sendableChooser.addOption(
-                    "Cone 1",
+                    "Cone 1 (Rightist)",
                     List.of(new WaypointsCommandPair(
                             Waypoint.fromHolonomicPose(preScoreFromLocations[0]), getPreScoreSequence())));
         } else {
-            sendableChooser.setDefaultOption("Cone 1", getPairListFromI(0));
+            sendableChooser.setDefaultOption("Cone 1 (Rightist)", getPairListFromI(0));
         }
         sendableChooser.addOption("Cube 2", getPairListFromI(1));
         sendableChooser.addOption("Cone 3", getPairListFromI(2));
@@ -272,6 +273,6 @@ public class ConfigurablePaths {
         sendableChooser.addOption("Cone 6", getPairListFromI(5));
         sendableChooser.addOption("Cone 7", getPairListFromI(6));
         sendableChooser.addOption("Cube 8", getPairListFromI(7));
-        sendableChooser.addOption("Cone 9", getPairListFromI(8));
+        sendableChooser.addOption("Cone 9 (Leftist)", getPairListFromI(8));
     }
 }

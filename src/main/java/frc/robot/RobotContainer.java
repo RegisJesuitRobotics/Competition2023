@@ -72,7 +72,8 @@ public class RobotContainer {
         configureAutos();
 
         Shuffleboard.getTab("UtilsRaw").add(CommandScheduler.getInstance());
-        liftSubsystem.setDefaultCommand(Commands.run(() -> liftSubsystem.setVoltage(0.0), liftSubsystem));
+        liftSubsystem.setDefaultCommand(Commands.run(liftSubsystem::stopMovement, liftSubsystem));
+        extensionSubsystem.setDefaultCommand(Commands.run(extensionSubsystem::stopMovement, extensionSubsystem));
     }
 
     private void configureAutos() {
@@ -112,7 +113,7 @@ public class RobotContainer {
                 .onTrue(new PositionClawCommand(AutoScoreConstants.STOW, liftSubsystem, extensionSubsystem));
 
         driverController.rightStick().onTrue(Commands.runOnce(clawSubsystem::toggleClawState, clawSubsystem));
-        driverController.rightTrigger().whileTrue(new FullyToggleFlipperCommand(flipper));
+        driverController.rightTrigger().whileTrue(new FullyToggleFlipperCommand(flipperSubsystem));
 
         Trigger driverTakeControl = new Trigger(() -> !RaiderMathUtils.inAbsRange(
                                 driverController.getLeftX(), TeleopConstants.DRIVER_TAKE_CONTROL_THRESHOLD)

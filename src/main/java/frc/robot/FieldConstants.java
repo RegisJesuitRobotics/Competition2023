@@ -70,7 +70,7 @@ public final class FieldConstants {
 
         public static final Translation2d[] betweenChargingAndWall = new Translation2d[] {
             new Translation2d(outerX, (chargingStationRightY - 0.0) / 2.0),
-            new Translation2d(outerX, (leftY - chargingStationLeftY) / 2.0),
+            new Translation2d(outerX, chargingStationLeftY + (leftY - chargingStationLeftY) / 2.0),
         };
     }
 
