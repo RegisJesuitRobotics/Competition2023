@@ -172,4 +172,5 @@ simgui.json
 /src/main/deploy/buildTime.txt
 /.glass/
 networktables.json
+**/.$*.*
 /.vscode/
