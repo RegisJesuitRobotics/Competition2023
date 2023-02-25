@@ -2,6 +2,7 @@ package frc.robot;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.IntegerEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -18,6 +19,8 @@ import frc.robot.commands.HomeHomeableCommand;
 import frc.robot.commands.PositionClawCommand;
 import frc.robot.commands.drive.GreaseGearsCommand;
 import frc.robot.commands.drive.LockModulesCommand;
+import frc.robot.commands.drive.auto.balance.CorrectBalanceAndLockCommand;
+import frc.robot.commands.drive.auto.balance.SimpleVelocityCommand;
 import frc.robot.commands.drive.characterize.DriveTestingCommand;
 import frc.robot.commands.drive.characterize.DriveTrainSysIDCompatibleLoggerCommand;
 import frc.robot.commands.drive.characterize.SteerTestingCommand;
@@ -79,15 +82,32 @@ public class RobotContainer {
     private void configureAutos() {
         ConfigurablePaths paths = new ConfigurablePaths(
                 driveSubsystem, liftSubsystem, extensionSubsystem, clawSubsystem, flipperSubsystem);
-        autoCommandChooser.setDefaultOption(
-                "GeneratedAuto", new ProxyCommand(paths::getCurrentCommandAndUpdateIfNeeded));
-        autoCommandChooser.addOption("Nothing", null);
         SendableTelemetryManager.getInstance()
                 .addSendable(
                         "/autoChooser/generatePath",
                         Commands.runOnce(paths::generatePath)
                                 .ignoringDisable(true)
                                 .withName("Generate Path"));
+
+        autoCommandChooser.addOption("Nothing", null);
+        autoCommandChooser.setDefaultOption(
+                "Only Home",
+                Commands.parallel(
+                        new HomeHomeableCommand(LiftConstants.HOME_VOLTAGE, LiftConstants.HOME_CURRENT, liftSubsystem),
+                        new HomeHomeableCommand(
+                                ExtensionConstants.HOME_VOLTAGE, ExtensionConstants.HOME_CURRENT, extensionSubsystem)));
+        autoCommandChooser.addOption("GeneratedAuto", new ProxyCommand(paths::getCurrentCommandAndUpdateIfNeeded));
+        autoCommandChooser.addOption(
+                "SimpleAutoBalance (Bot Faces Driver's Left)",
+                Commands.parallel(
+                        new HomeHomeableCommand(LiftConstants.HOME_VOLTAGE, LiftConstants.HOME_CURRENT, liftSubsystem),
+                        new HomeHomeableCommand(
+                                ExtensionConstants.HOME_VOLTAGE, ExtensionConstants.HOME_CURRENT, extensionSubsystem),
+                        // 1.391895m is the required distance if bumpers are right next to the charging station
+                        Commands.sequence(
+                                new SimpleVelocityCommand(new ChassisSpeeds(0.0, 0.5, 0.0), driveSubsystem)
+                                        .withTimeout(2.70),
+                                new CorrectBalanceAndLockCommand(driveSubsystem))));
 
         if (MiscConstants.TUNING_MODE) {
             autoCommandChooser.addOption("SysIDLogger", new DriveTrainSysIDCompatibleLoggerCommand(driveSubsystem));
