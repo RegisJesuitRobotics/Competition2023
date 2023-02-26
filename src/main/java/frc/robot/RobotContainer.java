@@ -19,6 +19,7 @@ import frc.robot.commands.HomeHomeableCommand;
 import frc.robot.commands.PositionClawCommand;
 import frc.robot.commands.drive.GreaseGearsCommand;
 import frc.robot.commands.drive.LockModulesCommand;
+import frc.robot.commands.drive.LockModulesParallelCommand;
 import frc.robot.commands.drive.auto.balance.CorrectBalanceAndLockCommand;
 import frc.robot.commands.drive.auto.balance.SimpleVelocityCommand;
 import frc.robot.commands.drive.characterize.DriveTestingCommand;
@@ -128,12 +129,13 @@ public class RobotContainer {
         configureDriving();
 
         driverController.minus().whileTrue(new LockModulesCommand(driveSubsystem).repeatedly());
+        // driverController.plus().whileTrue(new LockModulesParallelCommand(driveSubsystem).repeatedly());
         driverController
                 .leftStick()
-                .onTrue(new PositionClawCommand(AutoScoreConstants.STOW, liftSubsystem, extensionSubsystem));
+                .onTrue(new PositionClawCommand(AutoScoreConstants.STOW, false, liftSubsystem, extensionSubsystem));
 
         driverController.rightStick().onTrue(Commands.runOnce(clawSubsystem::toggleClawState, clawSubsystem));
-        driverController.rightTrigger().whileTrue(new FullyToggleFlipperCommand(flipperSubsystem));
+        driverController.leftTrigger().whileTrue(new FullyToggleFlipperCommand(flipperSubsystem));
 
         Trigger driverTakeControl = new Trigger(() -> !RaiderMathUtils.inAbsRange(
                                 driverController.getLeftX(), TeleopConstants.DRIVER_TAKE_CONTROL_THRESHOLD)
@@ -202,25 +204,25 @@ public class RobotContainer {
     private void configureOperatorBindings() {
         operatorController
                 .povUp()
-                .whileTrue(new PositionClawCommand(AutoScoreConstants.HIGH, liftSubsystem, extensionSubsystem)
+                .whileTrue(new PositionClawCommand(AutoScoreConstants.HIGH, true, liftSubsystem, extensionSubsystem)
                         .andThen(rumbleOperatorControllerCommand()));
         operatorController
                 .povRight()
-                .whileTrue(new PositionClawCommand(AutoScoreConstants.MID, liftSubsystem, extensionSubsystem)
+                .whileTrue(new PositionClawCommand(AutoScoreConstants.MID, true, liftSubsystem, extensionSubsystem)
                         .andThen(rumbleOperatorControllerCommand()));
         operatorController
                 .povDown()
-                .whileTrue(new PositionClawCommand(AutoScoreConstants.LOW, liftSubsystem, extensionSubsystem)
+                .whileTrue(new PositionClawCommand(AutoScoreConstants.LOW, true, liftSubsystem, extensionSubsystem)
                         .andThen(rumbleOperatorControllerCommand()));
         operatorController
                 .povLeft()
                 .whileTrue(new PositionClawCommand(
-                                AutoScoreConstants.SUBSTATION_LOCATION, liftSubsystem, extensionSubsystem)
+                                AutoScoreConstants.SUBSTATION_LOCATION, true, liftSubsystem, extensionSubsystem)
                         .andThen(rumbleOperatorControllerCommand()));
 
         operatorController
                 .x()
-                .whileTrue(new PositionClawCommand(AutoScoreConstants.STOW, liftSubsystem, extensionSubsystem)
+                .whileTrue(new PositionClawCommand(AutoScoreConstants.STOW, false, liftSubsystem, extensionSubsystem)
                         .andThen(rumbleOperatorControllerCommand()));
 
         // Lift override, ranges from 0 to 6 volts
@@ -342,11 +344,12 @@ public class RobotContainer {
     }
 
     private Command rumbleDriverControllerCommand() {
-        return Commands.runEnd(
-                        () -> driverController.getHID().setRumble(RumbleType.kBothRumble, 1.0),
-                        () -> driverController.getHID().setRumble(RumbleType.kBothRumble, 0.0))
-                .withTimeout(0.5)
-                .ignoringDisable(true);
+        // return Commands.runEnd(
+        //                 () -> driverController.getHID().setRumble(RumbleType.kBothRumble, 1.0),
+        //                 () -> driverController.getHID().setRumble(RumbleType.kBothRumble, 0.0))
+        //         .withTimeout(0.5)
+        //         .ignoringDisable(true);
+        return Commands.none();
     }
 
     private Command rumbleOperatorControllerCommand() {

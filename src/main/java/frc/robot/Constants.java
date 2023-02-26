@@ -155,7 +155,7 @@ public final class Constants {
                         MiscConstants.TUNING_MODE);
 
         public static final double AUTO_BALANCE_TOLERANCE_RADIANS = Units.degreesToRadians(1.0);
-        public static final double AUTO_BALANCE_SPEED_METERS_SECOND = 0.4;
+        public static final double AUTO_BALANCE_SPEED_METERS_SECOND = 0.5;
     }
 
     public static class ClawConstants {
