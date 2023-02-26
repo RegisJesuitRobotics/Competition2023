@@ -19,7 +19,6 @@ import frc.robot.commands.HomeHomeableCommand;
 import frc.robot.commands.PositionClawCommand;
 import frc.robot.commands.drive.GreaseGearsCommand;
 import frc.robot.commands.drive.LockModulesCommand;
-import frc.robot.commands.drive.LockModulesParallelCommand;
 import frc.robot.commands.drive.auto.balance.CorrectBalanceAndLockCommand;
 import frc.robot.commands.drive.auto.balance.SimpleVelocityCommand;
 import frc.robot.commands.drive.characterize.DriveTestingCommand;

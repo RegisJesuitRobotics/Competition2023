@@ -51,6 +51,13 @@ public class RaiderUtils {
         return pose;
     }
 
+    public static Rotation2d flipIfShould(Rotation2d rotation2d) {
+        if (shouldFlip()) {
+            return allianceFlip(rotation2d);
+        }
+        return rotation2d;
+    }
+
     public static Rotation2d allianceFlip(Rotation2d rotation2d) {
         return new Rotation2d(-rotation2d.getCos(), rotation2d.getSin());
     }
