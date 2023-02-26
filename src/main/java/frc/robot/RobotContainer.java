@@ -131,7 +131,7 @@ public class RobotContainer {
         // driverController.plus().whileTrue(new LockModulesParallelCommand(driveSubsystem).repeatedly());
         driverController
                 .leftStick()
-                .onTrue(new PositionClawCommand(AutoScoreConstants.STOW, false, liftSubsystem, extensionSubsystem));
+                .onTrue(new PositionClawCommand(AutoScoreConstants.STOW, liftSubsystem, extensionSubsystem));
 
         driverController.rightStick().onTrue(Commands.runOnce(clawSubsystem::toggleClawState, clawSubsystem));
         driverController.leftTrigger().whileTrue(new FullyToggleFlipperCommand(flipperSubsystem));
@@ -203,25 +203,25 @@ public class RobotContainer {
     private void configureOperatorBindings() {
         operatorController
                 .povUp()
-                .whileTrue(new PositionClawCommand(AutoScoreConstants.HIGH, true, liftSubsystem, extensionSubsystem)
+                .whileTrue(new PositionClawCommand(AutoScoreConstants.HIGH, liftSubsystem, extensionSubsystem)
                         .andThen(rumbleOperatorControllerCommand()));
         operatorController
                 .povRight()
-                .whileTrue(new PositionClawCommand(AutoScoreConstants.MID, true, liftSubsystem, extensionSubsystem)
+                .whileTrue(new PositionClawCommand(AutoScoreConstants.MID, liftSubsystem, extensionSubsystem)
                         .andThen(rumbleOperatorControllerCommand()));
         operatorController
                 .povDown()
-                .whileTrue(new PositionClawCommand(AutoScoreConstants.LOW, true, liftSubsystem, extensionSubsystem)
+                .whileTrue(new PositionClawCommand(AutoScoreConstants.LOW, liftSubsystem, extensionSubsystem)
                         .andThen(rumbleOperatorControllerCommand()));
         operatorController
                 .povLeft()
                 .whileTrue(new PositionClawCommand(
-                                AutoScoreConstants.SUBSTATION_LOCATION, true, liftSubsystem, extensionSubsystem)
+                                AutoScoreConstants.SUBSTATION_LOCATION, liftSubsystem, extensionSubsystem)
                         .andThen(rumbleOperatorControllerCommand()));
 
         operatorController
                 .x()
-                .whileTrue(new PositionClawCommand(AutoScoreConstants.STOW, false, liftSubsystem, extensionSubsystem)
+                .whileTrue(new PositionClawCommand(AutoScoreConstants.STOW, liftSubsystem, extensionSubsystem)
                         .andThen(rumbleOperatorControllerCommand()));
 
         // Lift override, ranges from 0 to 6 volts
