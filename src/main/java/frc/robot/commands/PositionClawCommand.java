@@ -2,6 +2,7 @@ package frc.robot.commands;
 
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.commands.extension.SetExtensionPositionCommand;
 import frc.robot.commands.lift.SetLiftPositionCommand;
@@ -35,8 +36,8 @@ public class PositionClawCommand extends ParallelCommandGroup {
                                         new WaitUntilCommand(() -> liftSubsystem.getEstimatedTimeForPosition(liftAngle)
                                                         - extensionSubsystem.getEstimatedTimeForPosition(
                                                                 extensionPosition)
-                                                > 0.2),
-                                        new SetExtensionPositionCommand(0.0, extensionSubsystem)),
+                                                < 0.2),
+                                        new SetExtensionPositionCommand(Units.inchesToMeters(0.5), extensionSubsystem)),
                                 new SetExtensionPositionCommand(extensionPosition, extensionSubsystem)));
             }
         }));

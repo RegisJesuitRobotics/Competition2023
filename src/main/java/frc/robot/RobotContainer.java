@@ -6,8 +6,10 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.IntegerEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.*;
@@ -135,6 +137,12 @@ public class RobotContainer {
 
         driverController.rightStick().onTrue(Commands.runOnce(clawSubsystem::toggleClawState, clawSubsystem));
         driverController.leftTrigger().whileTrue(new FullyToggleFlipperCommand(flipperSubsystem));
+        driverController
+                .rightTrigger()
+                .onTrue(new PositionClawCommand(AutoScoreConstants.CARRY, liftSubsystem, extensionSubsystem));
+
+        new Trigger(() -> DriverStation.isTeleop() && Timer.getMatchTime() < 0.5)
+                .onTrue(new LockModulesCommand(driveSubsystem).withTimeout(1.0));
 
         Trigger driverTakeControl = new Trigger(() -> !RaiderMathUtils.inAbsRange(
                                 driverController.getLeftX(), TeleopConstants.DRIVER_TAKE_CONTROL_THRESHOLD)

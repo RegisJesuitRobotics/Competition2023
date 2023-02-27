@@ -281,6 +281,8 @@ public final class Constants {
                 Pair.of(Rotation2d.fromDegrees(12.41 + 9.0), 0.1);
         public static final Pair<Rotation2d, Double> STOW =
                 Pair.of(LiftConstants.MIN_ANGLE.plus(Rotation2d.fromDegrees(1.0)), Units.inchesToMeters(0.5));
+        public static final Pair<Rotation2d, Double> CARRY =
+                Pair.of(LiftConstants.MIN_ANGLE.plus(Rotation2d.fromDegrees(20.0)), Units.inchesToMeters(0.5));
 
         public static final Pose2d[] preScoreFromLocations = new Pose2d[Grids.highTranslations.length];
         public static final Pose2d[] scoreFromLocations = new Pose2d[Grids.highTranslations.length];
