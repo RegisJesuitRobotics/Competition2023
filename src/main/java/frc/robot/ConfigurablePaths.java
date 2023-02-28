@@ -14,7 +14,6 @@ import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.AutoScoreConstants;
 import frc.robot.Constants.ExtensionConstants;
-import frc.robot.Constants.LiftConstants;
 import frc.robot.commands.HomeHomeableCommand;
 import frc.robot.commands.PositionClawCommand;
 import frc.robot.commands.UnScheduledProxyCommand;
@@ -93,10 +92,8 @@ public class ConfigurablePaths {
     }
 
     public void generatePath() {
-        currentCommand = new SequentialCommandGroup(Commands.parallel(
-                new HomeHomeableCommand(LiftConstants.HOME_VOLTAGE, LiftConstants.HOME_CURRENT, liftSubsystem),
-                new HomeHomeableCommand(
-                        ExtensionConstants.HOME_VOLTAGE, ExtensionConstants.HOME_CURRENT, extensionSubsystem)));
+        currentCommand = new SequentialCommandGroup(Commands.parallel(new HomeHomeableCommand(
+                ExtensionConstants.HOME_VOLTAGE, ExtensionConstants.HOME_CURRENT, extensionSubsystem)));
         currentConfigHash = getHash();
 
         WaypointsCommandPair aroundChargerPair = aroundCharger.getSelected();

@@ -94,15 +94,12 @@ public class RobotContainer {
         autoCommandChooser.addOption("Nothing", null);
         autoCommandChooser.setDefaultOption(
                 "Only Home",
-                Commands.parallel(
-                        new HomeHomeableCommand(LiftConstants.HOME_VOLTAGE, LiftConstants.HOME_CURRENT, liftSubsystem),
-                        new HomeHomeableCommand(
-                                ExtensionConstants.HOME_VOLTAGE, ExtensionConstants.HOME_CURRENT, extensionSubsystem)));
+                Commands.parallel(new HomeHomeableCommand(
+                        ExtensionConstants.HOME_VOLTAGE, ExtensionConstants.HOME_CURRENT, extensionSubsystem)));
         autoCommandChooser.addOption("GeneratedAuto", new ProxyCommand(paths::getCurrentCommandAndUpdateIfNeeded));
         autoCommandChooser.addOption(
                 "SimpleAutoBalance (Bot Faces Driver's Left)",
                 Commands.parallel(
-                        new HomeHomeableCommand(LiftConstants.HOME_VOLTAGE, LiftConstants.HOME_CURRENT, liftSubsystem),
                         new HomeHomeableCommand(
                                 ExtensionConstants.HOME_VOLTAGE, ExtensionConstants.HOME_CURRENT, extensionSubsystem),
                         // 1.391895m is the required distance if bumpers are right next to the charging station
@@ -248,10 +245,6 @@ public class RobotContainer {
                         () -> extensionSubsystem.setVoltage(0.0),
                         extensionSubsystem));
 
-        operatorController
-                .share()
-                .onTrue(new HomeHomeableCommand(LiftConstants.HOME_VOLTAGE, LiftConstants.HOME_CURRENT, liftSubsystem)
-                        .andThen(rumbleOperatorControllerCommand()));
         operatorController
                 .options()
                 .onTrue(new HomeHomeableCommand(

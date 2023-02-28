@@ -11,13 +11,13 @@ import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.MiscConstants;
 import frc.robot.Robot;
 import frc.robot.telemetry.SendableTelemetryManager;
 import frc.robot.telemetry.tunable.TunableTelemetryProfiledPIDController;
-import frc.robot.telemetry.types.BooleanTelemetryEntry;
 import frc.robot.telemetry.types.DoubleTelemetryEntry;
 import frc.robot.telemetry.types.EventTelemetryEntry;
 import frc.robot.telemetry.types.IntegerTelemetryEntry;
@@ -25,9 +25,8 @@ import frc.robot.telemetry.wrappers.TelemetryCANSparkMax;
 import frc.robot.utils.Alert;
 import frc.robot.utils.Alert.AlertType;
 import frc.robot.utils.ConfigTimeout;
-import frc.robot.utils.DualHomeable;
 
-public class LiftSubsystem extends SubsystemBase implements DualHomeable {
+public class LiftSubsystem extends SubsystemBase {
     enum LiftControlMode {
         CLOSED_LOOP(1),
         RAW_VOLTAGE(2);
@@ -47,6 +46,7 @@ public class LiftSubsystem extends SubsystemBase implements DualHomeable {
 
     private final RelativeEncoder leftEncoder = leftMotor.getEncoder();
     private final RelativeEncoder rightEncoder = rightMotor.getEncoder();
+    private final DutyCycleEncoder absoluteEncoder = new DutyCycleEncoder(ENCODER_PORT);
 
     private final TunableTelemetryProfiledPIDController controller =
             new TunableTelemetryProfiledPIDController("/lifter/controller", PID_GAINS, TRAPEZOIDAL_PROFILE_GAINS);
@@ -56,10 +56,10 @@ public class LiftSubsystem extends SubsystemBase implements DualHomeable {
     private final LiftMechanism2d setpointMechanism2d = new LiftMechanism2d(new Color8Bit(0, 255, 0));
 
     private final Alert failedConfigurationAlert = new Alert("Lifter Arm Failed to Configure Motor", AlertType.ERROR);
-    private final Alert notHomedAlert = new Alert("Lifter is Not Homed!", AlertType.WARNING);
+    private final DoubleTelemetryEntry absoluteEncoderEntry =
+            new DoubleTelemetryEntry("/lifter/encoder", MiscConstants.TUNING_MODE);
     private final EventTelemetryEntry eventEntry = new EventTelemetryEntry("/lifter/events");
     private final IntegerTelemetryEntry modeEntry = new IntegerTelemetryEntry("/lifter/mode", false);
-    private final BooleanTelemetryEntry homedEntry = new BooleanTelemetryEntry("/lifter/homed", true);
     private final DoubleTelemetryEntry leftRawVoltageRequestEntry =
             new DoubleTelemetryEntry("/lifter/leftVoltageRequest", false);
     private final DoubleTelemetryEntry rightRawVoltageRequestEntry =
@@ -69,13 +69,16 @@ public class LiftSubsystem extends SubsystemBase implements DualHomeable {
     // Only for voltage mode
     private double desiredLeftVoltage = 0.0;
     private double desiredRightVoltage = 0.0;
-    private boolean isHomed = false;
 
     public LiftSubsystem() {
         SendableTelemetryManager.getInstance()
                 .addSendable("/lifter/LifterMechanism2d", mechanism2d.getMechanism2dObject());
         SendableTelemetryManager.getInstance()
                 .addSendable("/lifter/LifterSetpointMechanism2d", setpointMechanism2d.getMechanism2dObject());
+
+        absoluteEncoder.setPositionOffset(ENCODER_OFFSET_FROM_ZERO);
+        absoluteEncoder.setDutyCycleRange(1.0 / 1024.0, 1023.0 / 1024.0);
+        absoluteEncoder.setDistancePerRotation(Math.PI / 2.0);
 
         configMotors();
         controller.setTolerance(POSITION_TOLERANCE_RADIANS, VELOCITY_TOLERANCE_RADIANS_SECOND);
@@ -129,10 +132,6 @@ public class LiftSubsystem extends SubsystemBase implements DualHomeable {
      * @param angle the rotation in the robot's frame of reference (0 is parallel to the floor)
      */
     public void setDesiredArmAngle(Rotation2d angle) {
-        if (!isHomed) {
-            setVoltage(0.0);
-            return;
-        }
         if (currentMode != LiftControlMode.CLOSED_LOOP) {
             controller.reset(getArmAngle().getRadians(), getVelocity());
         }
@@ -155,47 +154,21 @@ public class LiftSubsystem extends SubsystemBase implements DualHomeable {
         this.desiredRightVoltage = rightVoltage;
     }
 
-    @Override
-    public void setInHome() {
-        setEncoderPosition(MIN_ANGLE);
-        isHomed = true;
-        eventEntry.append("Homed mechanism");
-    }
-
-    private void setEncoderPosition(Rotation2d position) {
-        leftEncoder.setPosition(position.getRadians());
-        rightEncoder.setPosition(position.getRadians());
-        controller.reset(position.getRadians(), leftEncoder.getVelocity());
-    }
-
     public void stopMovement() {
         // Only if we are homed do we hold the position with FF
-        if (false) {
-            setDesiredArmAngle(getArmAngle());
-        } else {
-            setVoltage(0.0);
-        }
+        //        setDesiredArmAngle(getArmAngle());
+        setVoltage(0.0);
     }
 
     /**
      * @return the rotation from the default frame perimeter position
      */
     public Rotation2d getArmAngle() {
-        return Rotation2d.fromRadians(leftEncoder.getPosition());
+        return Rotation2d.fromRadians(absoluteEncoder.getDistance());
     }
 
     public double getVelocity() {
         return leftEncoder.getVelocity();
-    }
-
-    @Override
-    public double getLeftCurrent() {
-        return leftMotor.getOutputCurrent();
-    }
-
-    @Override
-    public double getRightCurrent() {
-        return rightMotor.getOutputCurrent();
     }
 
     @Override
@@ -231,9 +204,8 @@ public class LiftSubsystem extends SubsystemBase implements DualHomeable {
         mechanism2d.setAngle(getArmAngle());
         leftMotor.logValues();
         rightMotor.logValues();
+        absoluteEncoderEntry.append(absoluteEncoder.getDistance());
         modeEntry.append(currentMode.logValue);
-        homedEntry.append(isHomed);
-        notHomedAlert.set(!isHomed);
         leftRawVoltageRequestEntry.append(desiredLeftVoltage);
         rightRawVoltageRequestEntry.append(desiredRightVoltage);
 

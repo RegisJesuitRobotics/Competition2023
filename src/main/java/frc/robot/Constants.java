@@ -173,6 +173,7 @@ public final class Constants {
     public static class LiftConstants {
         private LiftConstants() {}
 
+        public static final int ENCODER_PORT = 0;
         public static final int LEFT_MOTOR_PORT = 1;
         public static final int RIGHT_MOTOR_PORT = 2;
 
@@ -190,6 +191,8 @@ public final class Constants {
 
         public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(-86.5);
         public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(40.0);
+
+        public static final double ENCODER_OFFSET_FROM_ZERO = 0.0;
 
         public static final TunablePIDGains PID_GAINS =
                 new TunablePIDGains("/gains/lifter", 6.0, 0.0, 4.2431, MiscConstants.TUNING_MODE);
