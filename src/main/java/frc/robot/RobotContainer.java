@@ -128,6 +128,7 @@ public class RobotContainer {
 
         driverController.minus().whileTrue(new LockModulesCommand(driveSubsystem).repeatedly());
         // driverController.plus().whileTrue(new LockModulesParallelCommand(driveSubsystem).repeatedly());
+        driverController.circle().onTrue(Commands.runOnce(driveSubsystem::zeroHeading));
         driverController
                 .leftStick()
                 .onTrue(new PositionClawCommand(AutoScoreConstants.STOW, liftSubsystem, extensionSubsystem));

@@ -173,7 +173,6 @@ public final class Constants {
     public static class LiftConstants {
         private LiftConstants() {}
 
-        public static final int ENCODER_PORT = 0;
         public static final int LEFT_MOTOR_PORT = 1;
         public static final int RIGHT_MOTOR_PORT = 2;
 
@@ -189,10 +188,16 @@ public final class Constants {
 
         public static final double GEAR_REDUCTION = 5.0 * 5.0 * 5.0 * 4.0;
 
-        public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(-86.5);
+        public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(-87.0);
         public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(40.0);
 
-        public static final double ENCODER_OFFSET_FROM_ZERO = 0.0;
+        public static final int ABSOLUTE_ENCODER_PORT = 0;
+        public static final double ABSOLUTE_ENCODER_OFFSET_FROM_ZERO = 1.382 + MIN_ANGLE.getRadians();
+        public static final boolean INVERT_ABSOLUTE_ENCODER = true;
+
+        public static final int RELATIVE_ENCODER_PORT_A = 2;
+        public static final int RELATIVE_ENCODER_PORT_B = 1;
+        public static final boolean INVERT_RELATIVE_ENCODER = false;
 
         public static final TunablePIDGains PID_GAINS =
                 new TunablePIDGains("/gains/lifter", 6.0, 0.0, 4.2431, MiscConstants.TUNING_MODE);
@@ -200,13 +205,10 @@ public final class Constants {
                 new TunableTrapezoidalProfileGains(
                         "/gains/lifter", Math.PI * 3.0 / 4.0, Math.PI / 4, MiscConstants.TUNING_MODE);
         public static final TunableArmFFGains FF_GAINS =
-                new TunableArmFFGains("/gains/lifter", 0.09739, 0.1667, 10.015, 0.18726, MiscConstants.TUNING_MODE);
+                new TunableArmFFGains("/gains/lifter", 0.13788, 0.22606, 9.6942, 0.18249, MiscConstants.TUNING_MODE);
 
         public static final int STALL_CURRENT_LIMIT = 10;
         public static final int FREE_CURRENT_LIMIT = 40;
-
-        public static final double HOME_CURRENT = 0.3;
-        public static final double HOME_VOLTAGE = -0.3;
 
         public static final double POSITION_TOLERANCE_RADIANS = Units.degreesToRadians(2.0);
         public static final double VELOCITY_TOLERANCE_RADIANS_SECOND = Units.degreesToRadians(10.0);
@@ -227,13 +229,13 @@ public final class Constants {
         public static final double GEAR_REDUCTION = 3.0 * 5.0;
 
         // It's a 0.5in hex shaft
-        public static final double METERS_PER_REV = Units.inchesToMeters(0.2887 * 6);
+        public static final double METERS_PER_REV = Units.inchesToMeters(0.294 * 6);
 
         // Offset from claw to center of robot when at "0"
         public static final double X_OFFSET_METERS = Units.inchesToMeters(8.0);
 
         public static final double MIN_POSITION = 0.0;
-        public static final double MAX_POSITION = Units.inchesToMeters(24.0);
+        public static final double MAX_POSITION = Units.inchesToMeters(22.0);
 
         public static final TunablePIDGains PID_GAINS =
                 new TunablePIDGains("/gains/extension", 12.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
@@ -277,11 +279,10 @@ public final class Constants {
 
         // These are hard-coded right now because of the drift and stuff, but this will be changed once we get the
         // encoder
-        public static final Pair<Rotation2d, Double> HIGH = Pair.of(Rotation2d.fromDegrees(31.04 + 9.0), 0.5685);
-        public static final Pair<Rotation2d, Double> MID = Pair.of(Rotation2d.fromDegrees(8.08 + 9.0), 0.02839);
+        public static final Pair<Rotation2d, Double> HIGH = Pair.of(Rotation2d.fromDegrees(31.04), 0.5685);
+        public static final Pair<Rotation2d, Double> MID = Pair.of(Rotation2d.fromDegrees(8.08), 0.02839);
         public static final Pair<Rotation2d, Double> LOW = Pair.of(Rotation2d.fromDegrees(-72.39), 0.1903);
-        public static final Pair<Rotation2d, Double> SUBSTATION_LOCATION =
-                Pair.of(Rotation2d.fromDegrees(12.41 + 9.0), 0.1);
+        public static final Pair<Rotation2d, Double> SUBSTATION_LOCATION = Pair.of(Rotation2d.fromDegrees(12.41), 0.1);
         public static final Pair<Rotation2d, Double> STOW =
                 Pair.of(LiftConstants.MIN_ANGLE.plus(Rotation2d.fromDegrees(1.0)), Units.inchesToMeters(0.5));
         public static final Pair<Rotation2d, Double> CARRY =

@@ -10,14 +10,17 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
+import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.MiscConstants;
 import frc.robot.Robot;
 import frc.robot.telemetry.SendableTelemetryManager;
 import frc.robot.telemetry.tunable.TunableTelemetryProfiledPIDController;
+import frc.robot.telemetry.types.BooleanTelemetryEntry;
 import frc.robot.telemetry.types.DoubleTelemetryEntry;
 import frc.robot.telemetry.types.EventTelemetryEntry;
 import frc.robot.telemetry.types.IntegerTelemetryEntry;
@@ -46,7 +49,9 @@ public class LiftSubsystem extends SubsystemBase {
 
     private final RelativeEncoder leftEncoder = leftMotor.getEncoder();
     private final RelativeEncoder rightEncoder = rightMotor.getEncoder();
-    private final DutyCycleEncoder absoluteEncoder = new DutyCycleEncoder(ENCODER_PORT);
+    private final DutyCycleEncoder absoluteEncoder = new DutyCycleEncoder(ABSOLUTE_ENCODER_PORT);
+    private final Encoder relativeEncoder =
+            new Encoder(RELATIVE_ENCODER_PORT_A, RELATIVE_ENCODER_PORT_B, INVERT_RELATIVE_ENCODER);
 
     private final TunableTelemetryProfiledPIDController controller =
             new TunableTelemetryProfiledPIDController("/lifter/controller", PID_GAINS, TRAPEZOIDAL_PROFILE_GAINS);
@@ -56,14 +61,31 @@ public class LiftSubsystem extends SubsystemBase {
     private final LiftMechanism2d setpointMechanism2d = new LiftMechanism2d(new Color8Bit(0, 255, 0));
 
     private final Alert failedConfigurationAlert = new Alert("Lifter Arm Failed to Configure Motor", AlertType.ERROR);
+    private final Alert absoluteEncoderNotConnectedAlert =
+            new Alert("Lifter Absolute Encoder is Not Connected. Cannot Zero", AlertType.ERROR);
+    private final Alert relativeEncoderNotConnectedAlert =
+            new Alert("Lifter Relative Encoder is Not Connected", AlertType.ERROR);
+
+    private final BooleanTelemetryEntry isZeroedEntry = new BooleanTelemetryEntry("/lifter/isZeroed", false);
+    private final BooleanTelemetryEntry absoluteEncoderConnectedEntry =
+            new BooleanTelemetryEntry("/lifter/absoluteEncoderConnected", false);
+    private final BooleanTelemetryEntry relativeEncoderConnectedEntry =
+            new BooleanTelemetryEntry("/lifter/relativeEncoderStopped", false);
     private final DoubleTelemetryEntry absoluteEncoderEntry =
-            new DoubleTelemetryEntry("/lifter/encoder", MiscConstants.TUNING_MODE);
+            new DoubleTelemetryEntry("/lifter/absoluteEncoder", MiscConstants.TUNING_MODE);
+    private final DoubleTelemetryEntry relativeEncoderEntry =
+            new DoubleTelemetryEntry("/lifter/relativeEncoderPosition", MiscConstants.TUNING_MODE);
+    private final DoubleTelemetryEntry relativeEncoderVelocityEntry =
+            new DoubleTelemetryEntry("/lifter/relativeEncoderVelocity", MiscConstants.TUNING_MODE);
     private final EventTelemetryEntry eventEntry = new EventTelemetryEntry("/lifter/events");
     private final IntegerTelemetryEntry modeEntry = new IntegerTelemetryEntry("/lifter/mode", false);
     private final DoubleTelemetryEntry leftRawVoltageRequestEntry =
             new DoubleTelemetryEntry("/lifter/leftVoltageRequest", false);
     private final DoubleTelemetryEntry rightRawVoltageRequestEntry =
             new DoubleTelemetryEntry("/lifter/leftVoltageRequest", false);
+
+    private boolean isZeroed = false;
+    private double relativeEncoderOffsetRadians = 0.0;
 
     private LiftControlMode currentMode = LiftControlMode.RAW_VOLTAGE;
     // Only for voltage mode
@@ -76,9 +98,8 @@ public class LiftSubsystem extends SubsystemBase {
         SendableTelemetryManager.getInstance()
                 .addSendable("/lifter/LifterSetpointMechanism2d", setpointMechanism2d.getMechanism2dObject());
 
-        absoluteEncoder.setPositionOffset(ENCODER_OFFSET_FROM_ZERO);
-        absoluteEncoder.setDutyCycleRange(1.0 / 1024.0, 1023.0 / 1024.0);
-        absoluteEncoder.setDistancePerRotation(Math.PI / 2.0);
+        absoluteEncoder.setDutyCycleRange(1.0 / 1025.0, 1024.0 / 1025.0);
+        relativeEncoder.setDistancePerPulse((Math.PI * 2) / 2048.0);
 
         configMotors();
         controller.setTolerance(POSITION_TOLERANCE_RADIANS, VELOCITY_TOLERANCE_RADIANS_SECOND);
@@ -164,11 +185,20 @@ public class LiftSubsystem extends SubsystemBase {
      * @return the rotation from the default frame perimeter position
      */
     public Rotation2d getArmAngle() {
-        return Rotation2d.fromRadians(absoluteEncoder.getDistance());
+        return Rotation2d.fromRadians(getRelativeEncoder());
+    }
+
+    private double getAbsoluteEncoder() {
+        return Units.rotationsToRadians(absoluteEncoder.get()) * (INVERT_ABSOLUTE_ENCODER ? -1 : 1)
+                + ABSOLUTE_ENCODER_OFFSET_FROM_ZERO;
+    }
+
+    private double getRelativeEncoder() {
+        return relativeEncoder.getDistance() + relativeEncoderOffsetRadians;
     }
 
     public double getVelocity() {
-        return leftEncoder.getVelocity();
+        return relativeEncoder.getRate();
     }
 
     @Override
@@ -177,6 +207,18 @@ public class LiftSubsystem extends SubsystemBase {
 
         if (DriverStation.isDisabled()) {
             setVoltage(0.0);
+        }
+
+        if (!isZeroed) {
+            if (absoluteEncoder.isConnected()) {
+                double absoluteEncoderRadians = getAbsoluteEncoder();
+                relativeEncoderOffsetRadians = absoluteEncoderRadians - getRelativeEncoder();
+
+                leftEncoder.setPosition(absoluteEncoderRadians);
+                rightEncoder.setPosition(absoluteEncoderRadians);
+
+                isZeroed = true;
+            }
         }
 
         if (currentMode == LiftControlMode.RAW_VOLTAGE) {
@@ -204,10 +246,21 @@ public class LiftSubsystem extends SubsystemBase {
         mechanism2d.setAngle(getArmAngle());
         leftMotor.logValues();
         rightMotor.logValues();
-        absoluteEncoderEntry.append(absoluteEncoder.getDistance());
+        absoluteEncoderEntry.append(getAbsoluteEncoder());
+        relativeEncoderEntry.append(getRelativeEncoder());
+        relativeEncoderVelocityEntry.append(getVelocity());
+
         modeEntry.append(currentMode.logValue);
+
         leftRawVoltageRequestEntry.append(desiredLeftVoltage);
         rightRawVoltageRequestEntry.append(desiredRightVoltage);
+
+        absoluteEncoderNotConnectedAlert.set(!absoluteEncoder.isConnected());
+        absoluteEncoderConnectedEntry.append(absoluteEncoder.isConnected());
+        relativeEncoderNotConnectedAlert.set(!relativeEncoder.getStopped());
+        relativeEncoderConnectedEntry.append(relativeEncoder.getStopped());
+
+        isZeroedEntry.append(isZeroed);
 
         if (FF_GAINS.hasChanged()) {
             feedforward = FF_GAINS.createFeedforward();
