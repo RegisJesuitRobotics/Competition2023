@@ -197,7 +197,7 @@ public final class Constants {
                 new TunableTrapezoidalProfileGains(
                         "/gains/lifter", Math.PI * 3.0 / 4.0, Math.PI / 4, MiscConstants.TUNING_MODE);
         public static final TunableArmFFGains FF_GAINS =
-                new TunableArmFFGains("/gains/lifter", 0.09739, 0.1667, 10.015, 0.18726, MiscConstants.TUNING_MODE);
+                new TunableArmFFGains("/gains/lifter", 0.13788, 0.22606, 9.6942, 0.18249, MiscConstants.TUNING_MODE);
 
         public static final int STALL_CURRENT_LIMIT = 10;
         public static final int FREE_CURRENT_LIMIT = 40;
@@ -230,7 +230,7 @@ public final class Constants {
         public static final double X_OFFSET_METERS = Units.inchesToMeters(8.0);
 
         public static final double MIN_POSITION = 0.0;
-        public static final double MAX_POSITION = Units.inchesToMeters(24.0);
+        public static final double MAX_POSITION = Units.inchesToMeters(22.0);
 
         public static final TunablePIDGains PID_GAINS =
                 new TunablePIDGains("/gains/extension", 12.0, 0.0, 0.0, MiscConstants.TUNING_MODE);

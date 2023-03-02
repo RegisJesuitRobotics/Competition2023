@@ -129,6 +129,9 @@ public class RobotContainer {
     private void configureDriverBindings() {
         configureDriving();
 
+        driverController
+                .circle()
+                .onTrue(Commands.runOnce(driveSubsystem::zeroHeading).ignoringDisable(true));
         driverController.minus().whileTrue(new LockModulesCommand(driveSubsystem).repeatedly());
         // driverController.plus().whileTrue(new LockModulesParallelCommand(driveSubsystem).repeatedly());
         driverController

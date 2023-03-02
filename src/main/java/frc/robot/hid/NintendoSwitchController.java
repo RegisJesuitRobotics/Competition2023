@@ -21,8 +21,8 @@ public class NintendoSwitchController extends GenericHID {
         A(2),
         B(3),
         X(4),
-        Circle(13),
-        Home(14);
+        Circle(14),
+        Home(13);
 
         public final int value;
 
@@ -581,7 +581,7 @@ public class NintendoSwitchController extends GenericHID {
      *     loop.
      */
     public BooleanEvent circle(EventLoop loop) {
-        return new BooleanEvent(loop, this::getPlusButton);
+        return new BooleanEvent(loop, this::getCircleButton);
     }
 
     /**
