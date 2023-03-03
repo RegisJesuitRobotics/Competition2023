@@ -12,7 +12,7 @@ public class HomeHomeableCommand extends CommandBase {
     private final MedianFilter leftFilter = new MedianFilter(4);
     private final MedianFilter rightFilter = new MedianFilter(4);
 
-    private boolean done = false;
+    boolean leftDone, rightDone;
 
     public HomeHomeableCommand(double homeVoltage, double homeCurrent, DualHomeable dualHomeable) {
         this.homeVoltage = homeVoltage;
@@ -24,7 +24,8 @@ public class HomeHomeableCommand extends CommandBase {
 
     @Override
     public void initialize() {
-        done = false;
+        leftDone = false;
+        rightDone = false;
         leftFilter.reset();
         rightFilter.reset();
     }
@@ -32,18 +33,17 @@ public class HomeHomeableCommand extends CommandBase {
     @Override
     public void execute() {
         double leftVoltage, rightVoltage;
-        if (leftFilter.calculate(dualHomeable.getLeftCurrent()) > homeCurrent) {
+        if (leftDone || leftFilter.calculate(dualHomeable.getLeftCurrent()) > homeCurrent) {
             leftVoltage = 0.0;
-            done = true;
+            leftDone = true;
         } else {
             leftVoltage = homeVoltage;
-            done = false;
         }
-        if (rightFilter.calculate(dualHomeable.getRightCurrent()) > homeCurrent) {
+        if (rightDone || rightFilter.calculate(dualHomeable.getRightCurrent()) > homeCurrent) {
             rightVoltage = 0.0;
+            rightDone = true;
         } else {
             rightVoltage = homeVoltage;
-            done = false;
         }
 
         dualHomeable.setVoltage(leftVoltage, rightVoltage);
@@ -59,6 +59,6 @@ public class HomeHomeableCommand extends CommandBase {
 
     @Override
     public boolean isFinished() {
-        return done;
+        return leftDone && rightDone;
     }
 }

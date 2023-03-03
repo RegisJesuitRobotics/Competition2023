@@ -203,7 +203,7 @@ public final class Constants {
                 new TunablePIDGains("/gains/lifter", 6.0, 0.0, 4.2431, MiscConstants.TUNING_MODE);
         public static final TunableTrapezoidalProfileGains TRAPEZOIDAL_PROFILE_GAINS =
                 new TunableTrapezoidalProfileGains(
-                        "/gains/lifter", Math.PI * 3.0 / 4.0, Math.PI / 4, MiscConstants.TUNING_MODE);
+                        "/gains/lifter", Math.PI * 3.0 / 4.0, 1.2, MiscConstants.TUNING_MODE);
         public static final TunableArmFFGains FF_GAINS =
                 new TunableArmFFGains("/gains/lifter", 0.13788, 0.22606, 9.6942, 0.18249, MiscConstants.TUNING_MODE);
 
@@ -240,11 +240,11 @@ public final class Constants {
         public static final TunablePIDGains PID_GAINS =
                 new TunablePIDGains("/gains/extension", 12.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
         public static final TunableTrapezoidalProfileGains TRAPEZOIDAL_PROFILE_GAINS =
-                new TunableTrapezoidalProfileGains("/gains/extension", 0.75, 0.4, MiscConstants.TUNING_MODE);
+                new TunableTrapezoidalProfileGains("/gains/extension", 0.75, 0.6, MiscConstants.TUNING_MODE);
         public static final TunableFFGains FF_GAINS =
                 new TunableFFGains("/gains/extension", 0.27288, 20.188, 2.1074, MiscConstants.TUNING_MODE);
 
-        public static final double HOME_CURRENT = 5;
+        public static final double HOME_CURRENT = 10;
         public static final double HOME_VOLTAGE = -1;
 
         public static final double POSITION_TOLERANCE_METERS = Units.inchesToMeters(0.02);
