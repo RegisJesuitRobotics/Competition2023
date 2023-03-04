@@ -1,7 +1,7 @@
 package frc.robot.utils;
 
-import frc.robot.telemetry.tunable.TunableFFGains;
-import frc.robot.telemetry.tunable.TunablePIDGains;
+import frc.robot.telemetry.tunable.gains.TunableFFGains;
+import frc.robot.telemetry.tunable.gains.TunablePIDGains;
 
 public record SwerveModuleConfiguration(
         int driveMotorPort,

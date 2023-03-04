@@ -4,7 +4,6 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import frc.robot.telemetry.types.BooleanTelemetryEntry;
 import frc.robot.telemetry.types.DoubleTelemetryEntry;
-import frc.robot.telemetry.types.IntegerTelemetryEntry;
 
 public class TelemetryTalonFX extends TalonFX {
     private final DoubleTelemetryEntry outputAmpsEntry;
@@ -12,24 +11,27 @@ public class TelemetryTalonFX extends TalonFX {
     private final DoubleTelemetryEntry outputPercentEntry;
     private final DoubleTelemetryEntry temperatureEntry;
     private final BooleanTelemetryEntry inBrakeModeEntry;
+    private final DoubleTelemetryEntry positionEntry;
+    private final DoubleTelemetryEntry velocityEntry;
 
-    public TelemetryTalonFX(int deviceNumber, String logTable, String canbus) {
+    private double loggingPositionConversionFactor = 1.0;
+    private double loggingVelocityConversionFactor = 1.0;
+
+    public TelemetryTalonFX(int deviceNumber, String telemetryPath, String canbus, boolean tuningMode) {
         super(deviceNumber, canbus);
 
-        logTable += "/";
-        outputAmpsEntry = new DoubleTelemetryEntry(logTable + "outputAmps", true);
-        inputAmpsEntry = new DoubleTelemetryEntry(logTable + "inputAmps", false);
-        outputPercentEntry = new DoubleTelemetryEntry(logTable + "outputPercent", true);
-        temperatureEntry = new DoubleTelemetryEntry(logTable + "temperature", false);
-        inBrakeModeEntry = new BooleanTelemetryEntry(logTable + "inBrakeMode", true);
-
-        IntegerTelemetryEntry firmwareVersionEntry = new IntegerTelemetryEntry(logTable + "firmwareVersion", false);
-        firmwareVersionEntry.append(super.getFirmwareVersion());
-        firmwareVersionEntry.close();
+        telemetryPath += "/";
+        outputAmpsEntry = new DoubleTelemetryEntry(telemetryPath + "outputAmps", tuningMode);
+        inputAmpsEntry = new DoubleTelemetryEntry(telemetryPath + "inputAmps", tuningMode);
+        outputPercentEntry = new DoubleTelemetryEntry(telemetryPath + "outputPercent", tuningMode);
+        temperatureEntry = new DoubleTelemetryEntry(telemetryPath + "temperature", tuningMode);
+        inBrakeModeEntry = new BooleanTelemetryEntry(telemetryPath + "inBrakeMode", tuningMode);
+        positionEntry = new DoubleTelemetryEntry(telemetryPath + "position", tuningMode);
+        velocityEntry = new DoubleTelemetryEntry(telemetryPath + "velocity", tuningMode);
     }
 
-    public TelemetryTalonFX(int deviceNumber, String logTable) {
-        this(deviceNumber, logTable, "");
+    public TelemetryTalonFX(int deviceNumber, String logTable, boolean tuningMode) {
+        this(deviceNumber, logTable, "", tuningMode);
     }
 
     @Override
@@ -38,10 +40,20 @@ public class TelemetryTalonFX extends TalonFX {
         super.setNeutralMode(neutralMode);
     }
 
+    public void setLoggingPositionConversionFactor(double loggingPositionConversionFactor) {
+        this.loggingPositionConversionFactor = loggingPositionConversionFactor;
+    }
+
+    public void setLoggingVelocityConversionFactor(double loggingVelocityConversionFactor) {
+        this.loggingVelocityConversionFactor = loggingVelocityConversionFactor;
+    }
+
     public void logValues() {
         outputAmpsEntry.append(super.getStatorCurrent());
         inputAmpsEntry.append(super.getSupplyCurrent());
         outputPercentEntry.append(super.getMotorOutputPercent());
         temperatureEntry.append(super.getTemperature());
+        positionEntry.append(super.getSelectedSensorPosition() * loggingPositionConversionFactor);
+        velocityEntry.append(super.getSelectedSensorVelocity() * loggingVelocityConversionFactor);
     }
 }

@@ -1,34 +1,43 @@
 package frc.robot;
 
-import com.pathplanner.lib.server.PathPlannerServer;
-import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.IntegerEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.Constants.DriveTrainConstants;
-import frc.robot.Constants.MiscConstants;
-import frc.robot.Constants.TeleopConstants;
+import frc.robot.Constants.*;
+import frc.robot.Constants.AutoScoreConstants.ScoreLevel;
+import frc.robot.commands.AutoScoreCommand;
+import frc.robot.commands.HomeHomeableCommand;
+import frc.robot.commands.PositionClawCommand;
+import frc.robot.commands.drive.GreaseGearsCommand;
 import frc.robot.commands.drive.LockModulesCommand;
-import frc.robot.commands.drive.auto.Autos;
+import frc.robot.commands.drive.characterize.DriveTestingCommand;
+import frc.robot.commands.drive.characterize.DriveTrainSysIDCompatibleLoggerCommand;
+import frc.robot.commands.drive.characterize.SteerTestingCommand;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
+import frc.robot.commands.flipper.FullyToggleFlipperCommand;
+import frc.robot.hid.CommandNintendoSwitchController;
 import frc.robot.hid.CommandXboxPlaystationController;
 import frc.robot.subsystems.claw.ClawSubsystem;
+import frc.robot.subsystems.extension.ExtensionSubsystem;
 import frc.robot.subsystems.intake.FlipperSubsystem;
-import frc.robot.subsystems.led.LEDSubsystem;
+import frc.robot.subsystems.lift.LiftSubsystem;
 import frc.robot.subsystems.photon.PhotonSubsystem;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
-import frc.robot.telemetry.tunable.TunableDouble;
-import frc.robot.utils.Alert;
+import frc.robot.telemetry.SendableTelemetryManager;
+import frc.robot.telemetry.tunable.gains.TunableDouble;
+import frc.robot.utils.*;
 import frc.robot.utils.Alert.AlertType;
-import frc.robot.utils.ListenableSendableChooser;
-import frc.robot.utils.RaiderMathUtils;
-import frc.robot.utils.VectorRateLimiter;
-import java.util.Map.Entry;
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
+import java.util.function.IntSupplier;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -40,11 +49,12 @@ public class RobotContainer {
     private final PhotonSubsystem cameraWrapperSubsystem = new PhotonSubsystem();
     private final SwerveDriveSubsystem driveSubsystem =
             new SwerveDriveSubsystem(cameraWrapperSubsystem::getEstimatedGlobalPose);
-    private final FlipperSubsystem flipper = new FlipperSubsystem();
+    private final FlipperSubsystem flipperSubsystem = new FlipperSubsystem();
     private final ClawSubsystem clawSubsystem = new ClawSubsystem();
-    private final LEDSubsystem ledSubsystem = new LEDSubsystem();
+    private final LiftSubsystem liftSubsystem = new LiftSubsystem();
+    private final ExtensionSubsystem extensionSubsystem = new ExtensionSubsystem();
 
-    private final CommandXboxPlaystationController driverController = new CommandXboxPlaystationController(0);
+    private final CommandNintendoSwitchController driverController = new CommandNintendoSwitchController(0);
     private final CommandXboxPlaystationController operatorController = new CommandXboxPlaystationController(1);
     private final TeleopControlsStateManager teleopControlsStateManager = new TeleopControlsStateManager();
 
@@ -52,22 +62,38 @@ public class RobotContainer {
     private final ListenableSendableChooser<Command> autoCommandChooser = new ListenableSendableChooser<>();
     private final Alert noAutoSelectedAlert = new Alert("No Auto Routine Selected", AlertType.WARNING);
 
+    private final IntegerEntry gridEntry = NetworkTableInstance.getDefault()
+            .getIntegerTopic("/toLog/autoScore/grid")
+            .getEntry(0);
+
     public RobotContainer() {
-        configureButtonBindings();
+        configureDriverBindings();
+        configureOperatorBindings();
         configureAutos();
 
         Shuffleboard.getTab("UtilsRaw").add(CommandScheduler.getInstance());
+        liftSubsystem.setDefaultCommand(Commands.run(liftSubsystem::stopMovement, liftSubsystem));
+        extensionSubsystem.setDefaultCommand(Commands.run(extensionSubsystem::stopMovement, extensionSubsystem));
     }
 
     private void configureAutos() {
-        if (MiscConstants.TUNING_MODE) {
-            PathPlannerServer.startServer(5811);
-        }
+        ConfigurablePaths paths = new ConfigurablePaths(
+                driveSubsystem, liftSubsystem, extensionSubsystem, clawSubsystem, flipperSubsystem);
+        autoCommandChooser.setDefaultOption(
+                "GeneratedAuto", new ProxyCommand(paths::getCurrentCommandAndUpdateIfNeeded));
+        autoCommandChooser.addOption("Nothing", null);
+        SendableTelemetryManager.getInstance()
+                .addSendable(
+                        "/autoChooser/generatePath",
+                        Commands.runOnce(paths::generatePath)
+                                .ignoringDisable(true)
+                                .withName("Generate Path"));
 
-        autoCommandChooser.setDefaultOption("Nothing", null);
-        Autos autos = new Autos(driveSubsystem);
-        for (Entry<String, Command> auto : autos.getAutos().entrySet()) {
-            autoCommandChooser.addOption(auto.getKey(), auto.getValue());
+        if (MiscConstants.TUNING_MODE) {
+            autoCommandChooser.addOption("SysIDLogger", new DriveTrainSysIDCompatibleLoggerCommand(driveSubsystem));
+            autoCommandChooser.addOption("GreaseGears", new GreaseGearsCommand(driveSubsystem));
+            autoCommandChooser.addOption("DriveTestingCommand", new DriveTestingCommand(1.0, true, driveSubsystem));
+            autoCommandChooser.addOption("SteerTesting", new SteerTestingCommand(driveSubsystem));
         }
 
         new Trigger(autoCommandChooser::hasNewValue)
@@ -75,23 +101,178 @@ public class RobotContainer {
                         .ignoringDisable(true)
                         .withName("Auto Alert Checker"));
 
-        Shuffleboard.getTab("DriveTrainRaw").add("Auto Chooser", autoCommandChooser);
+        SendableTelemetryManager.getInstance().addSendable("/autoChooser/AutoChooser", autoCommandChooser);
     }
 
-    private void configureButtonBindings() {
+    private void configureDriverBindings() {
+        configureDriving();
+
+        driverController.minus().whileTrue(new LockModulesCommand(driveSubsystem).repeatedly());
+        driverController
+                .leftStick()
+                .onTrue(new PositionClawCommand(AutoScoreConstants.STOW, liftSubsystem, extensionSubsystem));
+
+        driverController.rightStick().onTrue(Commands.runOnce(clawSubsystem::toggleClawState, clawSubsystem));
+        driverController.rightTrigger().whileTrue(new FullyToggleFlipperCommand(flipperSubsystem));
+
+        Trigger driverTakeControl = new Trigger(() -> !RaiderMathUtils.inAbsRange(
+                                driverController.getLeftX(), TeleopConstants.DRIVER_TAKE_CONTROL_THRESHOLD)
+                        || !RaiderMathUtils.inAbsRange(
+                                driverController.getLeftY(), TeleopConstants.DRIVER_TAKE_CONTROL_THRESHOLD)
+                        || !RaiderMathUtils.inAbsRange(
+                                driverController.getRightX(), TeleopConstants.DRIVER_TAKE_CONTROL_THRESHOLD)
+                        || !RaiderMathUtils.inAbsRange(
+                                driverController.getRightY(), TeleopConstants.DRIVER_TAKE_CONTROL_THRESHOLD))
+                .debounce(0.1);
+
+        IntSupplier gridSupplier = () -> {
+            int grid = (int) gridEntry.get();
+            if (RaiderUtils.shouldFlip()) {
+                return grid;
+            }
+            return 8 - grid;
+        };
+        Trigger inAllowedArea = new Trigger(() -> AutoScoreConstants.ALLOWED_SCORING_AREA.isPointInside(
+                RaiderUtils.flipIfShould(driveSubsystem.getPose()).getTranslation()));
+
+        driverController
+                .povUp()
+                .debounce(0.1)
+                .onTrue(RaiderCommands.ifCondition(inAllowedArea)
+                        .then(new AutoScoreCommand(
+                                        ScoreLevel.HIGH,
+                                        gridSupplier,
+                                        driveSubsystem,
+                                        liftSubsystem,
+                                        extensionSubsystem,
+                                        clawSubsystem,
+                                        flipperSubsystem)
+                                .until(driverTakeControl))
+                        .otherwise(rumbleDriverControllerCommand()));
+        driverController
+                .povRight()
+                .debounce(0.1)
+                .onTrue(RaiderCommands.ifCondition(inAllowedArea)
+                        .then(new AutoScoreCommand(
+                                        ScoreLevel.MID,
+                                        gridSupplier,
+                                        driveSubsystem,
+                                        liftSubsystem,
+                                        extensionSubsystem,
+                                        clawSubsystem,
+                                        flipperSubsystem)
+                                .until(driverTakeControl))
+                        .otherwise(rumbleDriverControllerCommand()));
+        driverController
+                .povDown()
+                .debounce(0.1)
+                .onTrue(RaiderCommands.ifCondition(inAllowedArea)
+                        .then(new AutoScoreCommand(
+                                        ScoreLevel.LOW,
+                                        gridSupplier,
+                                        driveSubsystem,
+                                        liftSubsystem,
+                                        extensionSubsystem,
+                                        clawSubsystem,
+                                        flipperSubsystem)
+                                .until(driverTakeControl))
+                        .otherwise(rumbleDriverControllerCommand()));
+    }
+
+    private void configureOperatorBindings() {
+        operatorController
+                .povUp()
+                .whileTrue(new PositionClawCommand(AutoScoreConstants.HIGH, liftSubsystem, extensionSubsystem)
+                        .andThen(rumbleOperatorControllerCommand()));
+        operatorController
+                .povRight()
+                .whileTrue(new PositionClawCommand(AutoScoreConstants.MID, liftSubsystem, extensionSubsystem)
+                        .andThen(rumbleOperatorControllerCommand()));
+        operatorController
+                .povDown()
+                .whileTrue(new PositionClawCommand(AutoScoreConstants.LOW, liftSubsystem, extensionSubsystem)
+                        .andThen(rumbleOperatorControllerCommand()));
+        operatorController
+                .povLeft()
+                .whileTrue(new PositionClawCommand(
+                                AutoScoreConstants.SUBSTATION_LOCATION, liftSubsystem, extensionSubsystem)
+                        .andThen(rumbleOperatorControllerCommand()));
+
+        operatorController
+                .x()
+                .whileTrue(new PositionClawCommand(AutoScoreConstants.STOW, liftSubsystem, extensionSubsystem)
+                        .andThen(rumbleOperatorControllerCommand()));
+
+        // Lift override, ranges from 0 to 6 volts
+        new Trigger(() -> !RaiderMathUtils.inAbsRange(operatorController.getLeftY(), 0.1))
+                .whileTrue(Commands.runEnd(
+                        () -> liftSubsystem.setVoltage(
+                                MathUtil.applyDeadband(operatorController.getLeftY(), 0.1) * -6.0),
+                        () -> liftSubsystem.setVoltage(0.0),
+                        liftSubsystem));
+
+        // Extension override, ranges from 0 - 6 volts
+        new Trigger(() -> !RaiderMathUtils.inAbsRange(operatorController.getRightX(), 0.1))
+                .whileTrue(Commands.runEnd(
+                        () -> extensionSubsystem.setVoltage(
+                                MathUtil.applyDeadband(operatorController.getRightX(), 0.1) * -6.0),
+                        () -> extensionSubsystem.setVoltage(0.0),
+                        extensionSubsystem));
+
+        operatorController
+                .share()
+                .onTrue(new HomeHomeableCommand(LiftConstants.HOME_VOLTAGE, LiftConstants.HOME_CURRENT, liftSubsystem)
+                        .andThen(rumbleOperatorControllerCommand()));
+        operatorController
+                .options()
+                .onTrue(new HomeHomeableCommand(
+                                ExtensionConstants.HOME_VOLTAGE, ExtensionConstants.HOME_CURRENT, extensionSubsystem)
+                        .andThen(rumbleOperatorControllerCommand()));
+
+        operatorController.leftTrigger().onTrue(Commands.runOnce(flipperSubsystem::toggleInOutState));
+        operatorController.rightTrigger().onTrue(Commands.runOnce(flipperSubsystem::toggleUpDownState));
+
+        gridEntry.set(0);
+        // Decrement the grid entry
+        operatorController
+                .leftBumper()
+                .onTrue(Commands.runOnce(() -> gridEntry.set(RaiderMathUtils.longClamp(gridEntry.get() - 1, 0, 8)))
+                        .ignoringDisable(true));
+
+        // Increment the grid entry
+        operatorController
+                .rightBumper()
+                .onTrue(Commands.runOnce(() -> gridEntry.set(RaiderMathUtils.longClamp(gridEntry.get() + 1, 0, 8)))
+                        .ignoringDisable(true));
+    }
+
+    private void configureDriving() {
         TunableDouble maxTranslationSpeedPercent = new TunableDouble("/speed/maxTranslation", 0.9, true);
-        TunableDouble maxMaxAngularSpeedPercent = new TunableDouble("/speed/maxAngular", 0.5, true);
+        TunableDouble maxMaxAngularSpeedPercent = new TunableDouble("/speed/maxAngular", 0.3, true);
+
+        BooleanSupplier armHigh = () -> liftSubsystem.getArmAngle().getRadians() > Units.degreesToRadians(-30.0);
 
         DoubleSupplier maxTranslationalSpeedSuppler = () -> maxTranslationSpeedPercent.get()
                 * DriveTrainConstants.MAX_VELOCITY_METERS_SECOND
                 * (driverController.leftBumper().getAsBoolean() ? 0.5 : 1);
-        DoubleSupplier maxAngularSpeedSupplier =
-                () -> maxMaxAngularSpeedPercent.get() * DriveTrainConstants.MAX_ANGULAR_VELOCITY_RADIANS_SECOND;
+        DoubleSupplier maxAngularSpeedSupplier = () -> maxMaxAngularSpeedPercent.get()
+                * DriveTrainConstants.MAX_ANGULAR_VELOCITY_RADIANS_SECOND
+                * (armHigh.getAsBoolean() ? 0.7 : 1.0);
 
-        SlewRateLimiter rotationLimiter =
-                new SlewRateLimiter(TeleopConstants.ANGULAR_RATE_LIMIT_RADIANS_SECOND_SQUARED);
-        VectorRateLimiter vectorRateLimiter =
-                new VectorRateLimiter(TeleopConstants.TRANSLATION_RATE_LIMIT_METERS_SECOND_SQUARED);
+        SupplierSlewRateLimiter rotationLimiter = new SupplierSlewRateLimiter(() -> {
+            if (armHigh.getAsBoolean()) {
+                return TeleopConstants.ANGULAR_RATE_LIMIT_RADIANS_SECOND_SQUARED * 0.4;
+            } else {
+                return TeleopConstants.ANGULAR_RATE_LIMIT_RADIANS_SECOND_SQUARED;
+            }
+        });
+        VectorRateLimiter vectorRateLimiter = new VectorRateLimiter(() -> {
+            if (armHigh.getAsBoolean()) {
+                return TeleopConstants.TRANSLATION_RATE_LIMIT_METERS_SECOND_SQUARED * 0.6;
+            } else {
+                return TeleopConstants.TRANSLATION_RATE_LIMIT_METERS_SECOND_SQUARED;
+            }
+        });
         driveCommandChooser.setDefaultOption(
                 "Hybrid (Default to Field Relative & absolute control but use robot centric when holding button)",
                 new SwerveDriveCommand(
@@ -103,14 +284,14 @@ public class RobotContainer {
                                 RaiderMathUtils.deadZoneAndCubeJoystick(-driverController.getRightX())
                                         * maxAngularSpeedSupplier.getAsDouble()),
                         driverController
-                                .triangle()
-                                .or(driverController.circle())
-                                .or(driverController.x())
-                                .or(driverController.square()),
+                                .x()
+                                .or(driverController.a())
+                                .or(driverController.b())
+                                .or(driverController.y()),
                         () -> {
-                            if (driverController.square().getAsBoolean()) return Math.PI / 2;
-                            if (driverController.x().getAsBoolean()) return Math.PI;
-                            if (driverController.circle().getAsBoolean()) return -Math.PI / 2;
+                            if (driverController.y().getAsBoolean()) return Math.PI / 2;
+                            if (driverController.b().getAsBoolean()) return Math.PI;
+                            if (driverController.a().getAsBoolean()) return -Math.PI / 2;
                             return 0.0;
                         },
                         driverController.rightBumper().negate(),
@@ -138,23 +319,22 @@ public class RobotContainer {
                 .onTrue(Commands.runOnce(() -> evaluateDriveStyle(driveCommandChooser.getSelected()))
                         .ignoringDisable(true)
                         .withName("Drive Style Checker"));
+    }
 
-        driverController
-                .options()
-                .onTrue(Commands.runOnce(driveSubsystem::resetOdometry)
-                        .ignoringDisable(true)
-                        .withName("Reset Odometry"));
+    private Command rumbleDriverControllerCommand() {
+        return Commands.runEnd(
+                        () -> driverController.getHID().setRumble(RumbleType.kBothRumble, 1.0),
+                        () -> driverController.getHID().setRumble(RumbleType.kBothRumble, 0.0))
+                .withTimeout(0.5)
+                .ignoringDisable(true);
+    }
 
-        driverController
-                .povUp()
-                .whileTrue(new LockModulesCommand(driveSubsystem).repeatedly().withName("Lock Modules"));
-
-        driverController.rightTrigger().onTrue(Commands.runOnce(flipper::toggleUpDownState, flipper));
-        driverController.leftTrigger().onTrue(Commands.runOnce(flipper::toggleInOutState, flipper));
-        driverController.share().onTrue(Commands.runOnce(clawSubsystem::toggleClawState, clawSubsystem));
-
-        operatorController.square().onTrue(Commands.runOnce(ledSubsystem::togglePurpleCube, ledSubsystem));
-        operatorController.triangle().onTrue(Commands.runOnce(ledSubsystem::toggleYellowCone, ledSubsystem));
+    private Command rumbleOperatorControllerCommand() {
+        return Commands.runEnd(
+                        () -> operatorController.getHID().setRumble(RumbleType.kBothRumble, 1.0),
+                        () -> operatorController.getHID().setRumble(RumbleType.kBothRumble, 0.0))
+                .withTimeout(0.5)
+                .ignoringDisable(true);
     }
 
     private void evaluateDriveStyle(Command newCommand) {
@@ -176,4 +356,10 @@ public class RobotContainer {
     public Command getAutonomousCommand() {
         return autoCommandChooser.getSelected();
     }
+
+    /**
+     * Called from Robot.java when the alliance is detected to have changed.
+     * @param newAlliance the new alliance
+     */
+    public void onAllianceChange(Alliance newAlliance) {}
 }

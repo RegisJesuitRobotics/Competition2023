@@ -1,4 +1,4 @@
-package frc.robot.telemetry.tunable;
+package frc.robot.telemetry.tunable.gains;
 // Modified from 6328 Mechanical Advantage
 
 import edu.wpi.first.networktables.DoubleEntry;
@@ -21,7 +21,7 @@ public class TunableDouble {
      *
      * @param networkName Name for network tables
      * @param defaultValue Default value
-     * @param tuningMode If true, will get value from dashboard
+     * @param tuningMode If false the value will be unchangeable
      */
     public TunableDouble(String networkName, double defaultValue, boolean tuningMode) {
         this.networkEntry =

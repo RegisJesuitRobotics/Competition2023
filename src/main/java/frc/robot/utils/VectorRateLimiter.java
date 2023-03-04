@@ -2,16 +2,21 @@ package frc.robot.utils;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.util.WPIUtilJNI;
+import java.util.function.DoubleSupplier;
 
 public class VectorRateLimiter {
-    private final double limit;
+    private final DoubleSupplier limit;
     private Translation2d lastVector;
     private double lastTime;
 
-    public VectorRateLimiter(double limit) {
+    public VectorRateLimiter(DoubleSupplier limit) {
         this.limit = limit;
 
         reset();
+    }
+
+    public VectorRateLimiter(double limit) {
+        this(() -> limit);
     }
 
     public Translation2d calculate(Translation2d vector) {
@@ -19,8 +24,9 @@ public class VectorRateLimiter {
         double elapsedTime = currentTime - lastTime;
         Translation2d delta = vector.minus(lastVector);
 
-        if (delta.getNorm() > limit * elapsedTime) {
-            delta = new Translation2d(limit * elapsedTime, delta.getAngle());
+        double currentLimit = limit.getAsDouble();
+        if (delta.getNorm() > currentLimit * elapsedTime) {
+            delta = new Translation2d(currentLimit * elapsedTime, delta.getAngle());
         }
 
         lastTime = currentTime;

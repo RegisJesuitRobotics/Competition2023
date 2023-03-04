@@ -1,6 +1,7 @@
-package frc.robot.telemetry.tunable;
+package frc.robot.telemetry.tunable.gains;
 
 import com.ctre.phoenix.motorcontrol.can.SlotConfiguration;
+import frc.robot.telemetry.tunable.TunableTelemetryPIDController;
 
 public class TunablePIDGains {
     public final TunableDouble p;
@@ -12,7 +13,7 @@ public class TunablePIDGains {
      * @param p the p gain
      * @param i the i gain
      * @param d the d gain
-     * @param tuningMode if false, the gains will be not be changeable
+     * @param tuningMode if false the gains will be not be changeable
      */
     public TunablePIDGains(String networkName, double p, double i, double d, boolean tuningMode) {
         networkName += "/";

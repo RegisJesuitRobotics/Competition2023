@@ -5,7 +5,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants.DriveTrainConstants;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
-import frc.robot.telemetry.tunable.TunableDouble;
+import frc.robot.telemetry.tunable.gains.TunableDouble;
 
 public class SteerTestingCommand extends CommandBase {
     private final SwerveDriveSubsystem driveSubsystem;

@@ -1,4 +1,4 @@
-package frc.robot.telemetry.tunable;
+package frc.robot.telemetry.tunable.gains;
 
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 
