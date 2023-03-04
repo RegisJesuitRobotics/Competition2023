@@ -9,7 +9,9 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.*;
+import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.*;
 import frc.robot.Constants.AutoScoreConstants.ScoreLevel;
@@ -23,11 +25,13 @@ import frc.robot.commands.drive.characterize.DriveTrainSysIDCompatibleLoggerComm
 import frc.robot.commands.drive.characterize.SteerTestingCommand;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
 import frc.robot.commands.flipper.FullyToggleFlipperCommand;
+import frc.robot.commands.led.LEDCommandFactory;
 import frc.robot.hid.CommandNintendoSwitchController;
 import frc.robot.hid.CommandXboxPlaystationController;
 import frc.robot.subsystems.claw.ClawSubsystem;
 import frc.robot.subsystems.extension.ExtensionSubsystem;
 import frc.robot.subsystems.intake.FlipperSubsystem;
+import frc.robot.subsystems.led.LEDSubsystem;
 import frc.robot.subsystems.lift.LiftSubsystem;
 import frc.robot.subsystems.photon.PhotonSubsystem;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
@@ -35,6 +39,7 @@ import frc.robot.telemetry.SendableTelemetryManager;
 import frc.robot.telemetry.tunable.gains.TunableDouble;
 import frc.robot.utils.*;
 import frc.robot.utils.Alert.AlertType;
+import frc.robot.utils.led.AlternatePattern;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntSupplier;
@@ -53,6 +58,7 @@ public class RobotContainer {
     private final ClawSubsystem clawSubsystem = new ClawSubsystem();
     private final LiftSubsystem liftSubsystem = new LiftSubsystem();
     private final ExtensionSubsystem extensionSubsystem = new ExtensionSubsystem();
+    private final LEDSubsystem ledSubsystem = new LEDSubsystem();
 
     private final CommandNintendoSwitchController driverController = new CommandNintendoSwitchController(0);
     private final CommandXboxPlaystationController operatorController = new CommandXboxPlaystationController(1);
@@ -74,6 +80,15 @@ public class RobotContainer {
         Shuffleboard.getTab("UtilsRaw").add(CommandScheduler.getInstance());
         liftSubsystem.setDefaultCommand(Commands.run(liftSubsystem::stopMovement, liftSubsystem));
         extensionSubsystem.setDefaultCommand(Commands.run(extensionSubsystem::stopMovement, extensionSubsystem));
+        ledSubsystem.setDefaultCommand(
+                LEDCommandFactory.slideAlternateColorCommand(8.0, Color.kWhite, Color.kDarkRed, ledSubsystem));
+
+        // On fault, set the LED to red
+        new Trigger(() -> Alert.getDefaultGroup().hasAnyErrors())
+                .whileTrue(LEDCommandFactory.alternateColorCommand(2.0, Color.kRed, Color.kBlack, ledSubsystem));
+        // When flipped trigger party mode
+        new Trigger(() -> Math.abs(driveSubsystem.getRoll()) > 50.0 || Math.abs(driveSubsystem.getPitch()) > 50.0)
+                .whileTrue(LEDCommandFactory.partyModeCommand(5.0, ledSubsystem));
     }
 
     private void configureAutos() {
@@ -244,6 +259,18 @@ public class RobotContainer {
                 .rightBumper()
                 .onTrue(Commands.runOnce(() -> gridEntry.set(RaiderMathUtils.longClamp(gridEntry.get() + 1, 0, 8)))
                         .ignoringDisable(true));
+
+        // Cancel incoming as this is the highest priority
+        operatorController
+                .square()
+                .toggleOnTrue(RaiderCommands.startNoEnd(() ->
+                                ledSubsystem.setAllPattern(new AlternatePattern(0.5, Color.kPurple, Color.kBlack)))
+                        .withInterruptBehavior(InterruptionBehavior.kCancelIncoming));
+        operatorController
+                .triangle()
+                .toggleOnTrue(RaiderCommands.startNoEnd(
+                                () -> ledSubsystem.setAllPattern(new AlternatePattern(0.5, Color.kGold, Color.kBlack)))
+                        .withInterruptBehavior(InterruptionBehavior.kCancelIncoming));
     }
 
     private void configureDriving() {
