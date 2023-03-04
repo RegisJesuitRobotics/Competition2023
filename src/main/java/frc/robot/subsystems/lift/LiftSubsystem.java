@@ -28,8 +28,9 @@ import frc.robot.telemetry.wrappers.TelemetryCANSparkMax;
 import frc.robot.utils.Alert;
 import frc.robot.utils.Alert.AlertType;
 import frc.robot.utils.ConfigTimeout;
+import frc.robot.utils.DualHomeable;
 
-public class LiftSubsystem extends SubsystemBase {
+public class LiftSubsystem extends SubsystemBase implements DualHomeable {
     enum LiftControlMode {
         CLOSED_LOOP(1),
         RAW_VOLTAGE(2);
@@ -63,9 +64,6 @@ public class LiftSubsystem extends SubsystemBase {
     private final Alert failedConfigurationAlert = new Alert("Lifter Arm Failed to Configure Motor", AlertType.ERROR);
     private final Alert absoluteEncoderNotConnectedAlert =
             new Alert("Lifter Absolute Encoder is Not Connected. Cannot Zero", AlertType.ERROR);
-    private final Alert relativeEncoderNotConnectedAlert =
-            new Alert("Lifter Relative Encoder is Not Connected", AlertType.ERROR);
-
     private final BooleanTelemetryEntry isZeroedEntry = new BooleanTelemetryEntry("/lifter/isZeroed", false);
     private final BooleanTelemetryEntry absoluteEncoderConnectedEntry =
             new BooleanTelemetryEntry("/lifter/absoluteEncoderConnected", false);
@@ -169,6 +167,29 @@ public class LiftSubsystem extends SubsystemBase {
         setVoltage(voltage, voltage);
     }
 
+    @Override
+    public void setInHome() {
+        setEncoderPosition(MIN_ANGLE);
+        isZeroed = true;
+        eventEntry.append("Homed mechanism");
+    }
+
+    private void setEncoderPosition(Rotation2d position) {
+        leftEncoder.setPosition(position.getRadians());
+        rightEncoder.setPosition(position.getRadians());
+        controller.reset(position.getRadians(), leftEncoder.getVelocity());
+    }
+
+    @Override
+    public double getLeftCurrent() {
+        return leftMotor.getOutputCurrent();
+    }
+
+    @Override
+    public double getRightCurrent() {
+        return rightMotor.getOutputCurrent();
+    }
+
     public void setVoltage(double leftVoltage, double rightVoltage) {
         currentMode = LiftControlMode.RAW_VOLTAGE;
         this.desiredLeftVoltage = leftVoltage;
@@ -257,7 +278,6 @@ public class LiftSubsystem extends SubsystemBase {
 
         absoluteEncoderNotConnectedAlert.set(!absoluteEncoder.isConnected());
         absoluteEncoderConnectedEntry.append(absoluteEncoder.isConnected());
-        relativeEncoderNotConnectedAlert.set(!relativeEncoder.getStopped());
         relativeEncoderConnectedEntry.append(relativeEncoder.getStopped());
 
         isZeroedEntry.append(isZeroed);

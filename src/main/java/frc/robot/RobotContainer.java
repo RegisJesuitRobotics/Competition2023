@@ -2,7 +2,6 @@ package frc.robot;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.IntegerEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -17,12 +16,10 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.*;
 import frc.robot.Constants.AutoScoreConstants.ScoreLevel;
 import frc.robot.commands.AutoScoreCommand;
-import frc.robot.commands.HomeHomeableCommand;
+import frc.robot.commands.HomeCommandFactory;
 import frc.robot.commands.PositionClawCommand;
 import frc.robot.commands.drive.GreaseGearsCommand;
 import frc.robot.commands.drive.LockModulesCommand;
-import frc.robot.commands.drive.auto.balance.CorrectBalanceAndLockCommand;
-import frc.robot.commands.drive.auto.balance.SimpleVelocityCommand;
 import frc.robot.commands.drive.characterize.DriveTestingCommand;
 import frc.robot.commands.drive.characterize.DriveTrainSysIDCompatibleLoggerCommand;
 import frc.robot.commands.drive.characterize.SteerTestingCommand;
@@ -94,19 +91,10 @@ public class RobotContainer {
         autoCommandChooser.addOption("Nothing", null);
         autoCommandChooser.setDefaultOption(
                 "Only Home",
-                Commands.parallel(new HomeHomeableCommand(
-                        ExtensionConstants.HOME_VOLTAGE, ExtensionConstants.HOME_CURRENT, extensionSubsystem)));
-        autoCommandChooser.addOption("GeneratedAuto", new ProxyCommand(paths::getCurrentCommandAndUpdateIfNeeded));
-        autoCommandChooser.addOption(
-                "SimpleAutoBalance (Bot Faces Driver's Left)",
                 Commands.parallel(
-                        new HomeHomeableCommand(
-                                ExtensionConstants.HOME_VOLTAGE, ExtensionConstants.HOME_CURRENT, extensionSubsystem),
-                        // 1.391895m is the required distance if bumpers are right next to the charging station
-                        Commands.sequence(
-                                new SimpleVelocityCommand(new ChassisSpeeds(0.0, 0.5, 0.0), driveSubsystem)
-                                        .withTimeout(2.70),
-                                new CorrectBalanceAndLockCommand(driveSubsystem))));
+                        HomeCommandFactory.homeLiftCommand(liftSubsystem),
+                        HomeCommandFactory.homeExtensionCommand(extensionSubsystem)));
+        autoCommandChooser.addOption("GeneratedAuto", new ProxyCommand(paths::getCurrentCommandAndUpdateIfNeeded));
 
         if (MiscConstants.TUNING_MODE) {
             autoCommandChooser.addOption("SysIDLogger", new DriveTrainSysIDCompatibleLoggerCommand(driveSubsystem));
@@ -250,9 +238,11 @@ public class RobotContainer {
                         extensionSubsystem));
 
         operatorController
+                .share()
+                .onTrue(HomeCommandFactory.homeLiftCommand(liftSubsystem).andThen(rumbleOperatorControllerCommand()));
+        operatorController
                 .options()
-                .onTrue(new HomeHomeableCommand(
-                                ExtensionConstants.HOME_VOLTAGE, ExtensionConstants.HOME_CURRENT, extensionSubsystem)
+                .onTrue(HomeCommandFactory.homeExtensionCommand(extensionSubsystem)
                         .andThen(rumbleOperatorControllerCommand()));
 
         operatorController.leftTrigger().onTrue(Commands.runOnce(flipperSubsystem::toggleInOutState));

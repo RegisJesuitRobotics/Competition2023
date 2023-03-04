@@ -210,6 +210,9 @@ public final class Constants {
         public static final int STALL_CURRENT_LIMIT = 10;
         public static final int FREE_CURRENT_LIMIT = 40;
 
+        public static final double HOME_CURRENT = 0.3;
+        public static final double HOME_VOLTAGE = -0.3;
+
         public static final double POSITION_TOLERANCE_RADIANS = Units.degreesToRadians(2.0);
         public static final double VELOCITY_TOLERANCE_RADIANS_SECOND = Units.degreesToRadians(10.0);
     }
@@ -325,7 +328,7 @@ public final class Constants {
         public static final int POWER_MODULE_ID = 1;
         public static final double CONFIGURATION_TIMEOUT_SECONDS = 5.0;
 
-        public static final double BUMPER_WIDTH_METERS = Units.inchesToMeters(0.75 + 2.3);
+        public static final double BUMPER_WIDTH_METERS = Units.inchesToMeters(0.75 + 2.5);
         // With bumpers
         public static final double FULL_ROBOT_LENGTH_METERS = Units.inchesToMeters(26.0) + (BUMPER_WIDTH_METERS * 2);
         public static final double FULL_ROBOT_WIDTH_METERS = Units.inchesToMeters(33.866) + (BUMPER_WIDTH_METERS * 2);
