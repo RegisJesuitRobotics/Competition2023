@@ -11,7 +11,6 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.*;
-import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.*;
 import frc.robot.Constants.AutoScoreConstants.ScoreLevel;
@@ -39,7 +38,6 @@ import frc.robot.telemetry.SendableTelemetryManager;
 import frc.robot.telemetry.tunable.gains.TunableDouble;
 import frc.robot.utils.*;
 import frc.robot.utils.Alert.AlertType;
-import frc.robot.utils.led.AlternatePattern;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntSupplier;
@@ -266,8 +264,7 @@ public class RobotContainer {
                 .toggleOnTrue(LEDCommandFactory.alternateColorCommand(0.5, Color.kPurple, Color.kBlack, ledSubsystem));
         operatorController
                 .triangle()
-                .toggleOnTrue(LEDCommandFactory.alternateColorCommand(0.5, Color.kGold, Color.kBlack, ledSubsystem)
-                        );
+                .toggleOnTrue(LEDCommandFactory.alternateColorCommand(0.5, Color.kGold, Color.kBlack, ledSubsystem));
     }
 
     private void configureDriving() {
