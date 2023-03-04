@@ -263,14 +263,11 @@ public class RobotContainer {
         // Cancel incoming as this is the highest priority
         operatorController
                 .square()
-                .toggleOnTrue(RaiderCommands.startNoEnd(() ->
-                                ledSubsystem.setAllPattern(new AlternatePattern(0.5, Color.kPurple, Color.kBlack)))
-                        .withInterruptBehavior(InterruptionBehavior.kCancelIncoming));
+                .toggleOnTrue(LEDCommandFactory.alternateColorCommand(0.5, Color.kPurple, Color.kBlack, ledSubsystem));
         operatorController
                 .triangle()
-                .toggleOnTrue(RaiderCommands.startNoEnd(
-                                () -> ledSubsystem.setAllPattern(new AlternatePattern(0.5, Color.kGold, Color.kBlack)))
-                        .withInterruptBehavior(InterruptionBehavior.kCancelIncoming));
+                .toggleOnTrue(LEDCommandFactory.alternateColorCommand(0.5, Color.kGold, Color.kBlack, ledSubsystem)
+                        );
     }
 
     private void configureDriving() {

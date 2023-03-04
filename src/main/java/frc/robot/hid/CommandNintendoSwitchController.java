@@ -4,7 +4,7 @@
 
 package frc.robot.hid;
 
-import edu.wpi.first.wpilibj.NintendoSwitchController;
+import frc.robot.hid.NintendoSwitchController;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.event.EventLoop;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
