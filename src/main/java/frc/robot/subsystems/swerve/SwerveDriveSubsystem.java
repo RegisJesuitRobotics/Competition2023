@@ -124,6 +124,16 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         pitchOffset = gyro.getPitch();
     }
 
+    double rollOffset = 0.0;
+
+    public double getRoll() {
+        return gyro.getRoll() - rollOffset;
+    }
+
+    public void resetRoll() {
+        rollOffset = gyro.getRoll();
+    }
+
     /**
      * Set the odometry perceived location to the provided heading
      *

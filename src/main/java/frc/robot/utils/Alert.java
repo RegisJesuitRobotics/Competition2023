@@ -11,7 +11,11 @@ import java.util.function.Predicate;
 
 /** Class for managing persistent alerts to be sent over NetworkTables. */
 public class Alert {
-    private static final Map<String, SendableAlerts> groups = new HashMap<>();
+    private static final Map<String, AlertsGroup> groups = new HashMap<>();
+
+    public static AlertsGroup getDefaultGroup() {
+        return groups.get("Alerts");
+    }
 
     private final AlertType type;
 
@@ -40,7 +44,7 @@ public class Alert {
      */
     public Alert(String group, String text, AlertType type) {
         if (!groups.containsKey(group)) {
-            groups.put(group, new SendableAlerts());
+            groups.put(group, new AlertsGroup());
             Shuffleboard.getTab("AlertsRaw").add(group, groups.get(group));
         }
 
@@ -62,8 +66,10 @@ public class Alert {
         this.text = text;
     }
 
-    private static class SendableAlerts implements Sendable {
+    public static class AlertsGroup implements Sendable {
         public final List<Alert> alerts = new ArrayList<>();
+
+        private AlertsGroup() {}
 
         public String[] getStrings(AlertType type) {
             Predicate<Alert> activeFilter = (Alert x) -> x.type == type && x.active;
@@ -73,6 +79,10 @@ public class Alert {
                     .sorted(timeSorter)
                     .map((Alert a) -> a.text)
                     .toArray(String[]::new);
+        }
+
+        public boolean hasAnyErrors() {
+            return alerts.stream().anyMatch((Alert a) -> a.type == AlertType.ERROR && a.active);
         }
 
         @Override
