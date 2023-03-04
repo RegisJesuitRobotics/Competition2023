@@ -2,6 +2,7 @@ package frc.robot.telemetry;
 
 import edu.wpi.first.hal.can.CANStatus;
 import edu.wpi.first.math.filter.LinearFilter;
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.RobotController;
@@ -47,6 +48,7 @@ public class MiscRobotTelemetryAndAlerts {
             char[] date = new char[19];
             int read = buildTimeReader.read(date);
             if (read == 19) {
+                DataLogManager.log("Code was built on " + new String(date));
                 buildTimeAlert = new Alert("Robot code was built " + new String(date) + ".", AlertType.INFO);
             }
         } catch (IOException ignored) {

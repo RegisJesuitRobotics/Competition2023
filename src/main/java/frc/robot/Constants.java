@@ -306,7 +306,7 @@ public final class Constants {
                     yOffset = Units.inchesToMeters(6.0);
                 }
                 preScoreFromLocations[i] = new Pose2d(
-                        scoreFromLocations[i].getTranslation().plus(new Translation2d(0.75, yOffset)),
+                        scoreFromLocations[i].getTranslation().plus(new Translation2d(0.6, yOffset)),
                         scoreFromLocations[i].getRotation());
             }
         }
