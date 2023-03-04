@@ -15,10 +15,10 @@ import java.util.List;
 
 public class LEDSubsystem extends SubsystemBase {
     private final AddressableLED led = new AddressableLED(LEDConstants.PWM_PORT);
-    private final ParentAddressableLEDBuffer ledBuffer = new ParentAddressableLEDBuffer(LEDConstants.FRONT_LEFT_SIZE
-            + LEDConstants.FRONT_RIGHT_SIZE
-            + LEDConstants.BACK_LEFT_SIZE
-            + LEDConstants.BACK_RIGHT_SIZE);
+    private final ParentAddressableLEDBuffer ledBuffer = new ParentAddressableLEDBuffer(LEDConstants.BACK_LEFT_SIZE
+            + LEDConstants.FRONT_LEFT_SIZE
+            + LEDConstants.BACK_RIGHT_SIZE
+            + LEDConstants.FRONT_RIGHT_SIZE);
     private final RaiderAddressableLEDBuffer[] splitBuffers;
     private final Pattern[] patterns;
     private double patternStartTime = 0.0;
@@ -26,38 +26,38 @@ public class LEDSubsystem extends SubsystemBase {
     public LEDSubsystem() {
         splitBuffers = new RaiderAddressableLEDBuffer[4];
         int maxSize = Collections.max(List.of(
-                LEDConstants.FRONT_LEFT_SIZE,
-                LEDConstants.FRONT_RIGHT_SIZE,
                 LEDConstants.BACK_LEFT_SIZE,
-                LEDConstants.BACK_RIGHT_SIZE));
+                LEDConstants.FRONT_LEFT_SIZE,
+                LEDConstants.BACK_RIGHT_SIZE,
+                LEDConstants.FRONT_RIGHT_SIZE));
         // All buffers are same length and 0 is bottom
         int i = 0;
-        splitBuffers[0] = ledBuffer.split(0, LEDConstants.FRONT_LEFT_SIZE);
-        if (LEDConstants.FRONT_LEFT_SIZE < maxSize) {
-            splitBuffers[0] = splitBuffers[0].preConcatenate(new FakeLEDBuffer(maxSize - LEDConstants.FRONT_LEFT_SIZE));
-        }
-        i += LEDConstants.FRONT_LEFT_SIZE;
-
-        splitBuffers[1] = ledBuffer.split(i, i + LEDConstants.FRONT_RIGHT_SIZE);
-        splitBuffers[1] = splitBuffers[1].reversed();
-        if (LEDConstants.FRONT_RIGHT_SIZE < maxSize) {
-            splitBuffers[1] =
-                    splitBuffers[1].preConcatenate(new FakeLEDBuffer(maxSize - LEDConstants.FRONT_RIGHT_SIZE));
-        }
-        i += LEDConstants.FRONT_RIGHT_SIZE;
-
-        splitBuffers[2] = ledBuffer.split(i, i + LEDConstants.BACK_LEFT_SIZE);
+        splitBuffers[0] = ledBuffer.split(0, LEDConstants.BACK_LEFT_SIZE);
         if (LEDConstants.BACK_LEFT_SIZE < maxSize) {
-            splitBuffers[2] = splitBuffers[2].preConcatenate(new FakeLEDBuffer(maxSize - LEDConstants.BACK_LEFT_SIZE));
+            splitBuffers[0] = splitBuffers[0].preConcatenate(new FakeLEDBuffer(maxSize - LEDConstants.BACK_LEFT_SIZE));
         }
         i += LEDConstants.BACK_LEFT_SIZE;
 
-        splitBuffers[3] = ledBuffer.split(i, i + LEDConstants.BACK_RIGHT_SIZE);
-        splitBuffers[3] = splitBuffers[3].reversed();
+        splitBuffers[1] = ledBuffer.split(i, i + LEDConstants.FRONT_LEFT_SIZE);
+        splitBuffers[1] = splitBuffers[1].reversed();
+        if (LEDConstants.FRONT_LEFT_SIZE < maxSize) {
+            splitBuffers[1] =
+                    splitBuffers[1].preConcatenate(new FakeLEDBuffer(maxSize - LEDConstants.FRONT_LEFT_SIZE));
+        }
+        i += LEDConstants.FRONT_LEFT_SIZE;
+
+        splitBuffers[2] = ledBuffer.split(i, i + LEDConstants.BACK_RIGHT_SIZE);
         if (LEDConstants.BACK_RIGHT_SIZE < maxSize) {
-            splitBuffers[3] = splitBuffers[3].preConcatenate(new FakeLEDBuffer(maxSize - LEDConstants.BACK_RIGHT_SIZE));
+            splitBuffers[2] = splitBuffers[2].preConcatenate(new FakeLEDBuffer(maxSize - LEDConstants.BACK_RIGHT_SIZE));
         }
         i += LEDConstants.BACK_RIGHT_SIZE;
+
+        splitBuffers[3] = ledBuffer.split(i, i + LEDConstants.FRONT_RIGHT_SIZE);
+        splitBuffers[3] = splitBuffers[3].reversed();
+        if (LEDConstants.FRONT_RIGHT_SIZE < maxSize) {
+            splitBuffers[3] = splitBuffers[3].preConcatenate(new FakeLEDBuffer(maxSize - LEDConstants.FRONT_RIGHT_SIZE));
+        }
+        i += LEDConstants.FRONT_RIGHT_SIZE;
 
         patterns = new Pattern[splitBuffers.length];
         for (int j = 0; j < patterns.length; j++) {

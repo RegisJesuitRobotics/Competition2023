@@ -248,10 +248,10 @@ public final class Constants {
 
     public static class LEDConstants {
         public static final int PWM_PORT = 0;
-        public static final int FRONT_LEFT_SIZE = 24;
-        public static final int FRONT_RIGHT_SIZE = 24;
-        public static final int BACK_LEFT_SIZE = 24;
-        public static final int BACK_RIGHT_SIZE = 24;
+        public static final int FRONT_LEFT_SIZE = 18;
+        public static final int FRONT_RIGHT_SIZE = 18;
+        public static final int BACK_LEFT_SIZE = 17;
+        public static final int BACK_RIGHT_SIZE = 12;
     }
 
     public static class TeleopConstants {
