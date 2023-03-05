@@ -3,10 +3,13 @@ package frc.robot.telemetry.wrappers;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import frc.robot.telemetry.types.DoubleArrayTelemetryEntry;
 import frc.robot.telemetry.types.DoubleTelemetryEntry;
+import frc.robot.utils.Alert;
+import frc.robot.utils.Alert.AlertType;
 
 public class TelemetryPowerDistribution extends PowerDistribution {
     private static final String tableName = "/power/";
 
+    private final Alert lowBatteryVoltageAlert = new Alert("Low Battery Voltage", AlertType.WARNING);
     private final DoubleTelemetryEntry totalEnergyEntry;
     private final DoubleTelemetryEntry totalPowerEntry;
     private final DoubleTelemetryEntry totalCurrentEntry;
@@ -34,7 +37,10 @@ public class TelemetryPowerDistribution extends PowerDistribution {
         totalPowerEntry.append(super.getTotalPower());
         totalCurrentEntry.append(super.getTotalCurrent());
         temperatureEntry.append(super.getTemperature());
-        inputVoltageEntry.append(super.getVoltage());
+        double voltage = super.getVoltage();
+        inputVoltageEntry.append(voltage);
+
+        lowBatteryVoltageAlert.set(voltage < 11.0);
 
         for (int i = 0; i < currents.length; i++) {
             currents[i] = getCurrent(i);

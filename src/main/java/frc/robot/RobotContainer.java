@@ -15,7 +15,7 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.*;
-import frc.robot.Constants.AutoScoreConstants.ScoreLevel;
+import frc.robot.FieldConstants.Grids;
 import frc.robot.commands.AutoScoreCommand;
 import frc.robot.commands.HomeCommandFactory;
 import frc.robot.commands.PositionClawCommand;
@@ -27,6 +27,8 @@ import frc.robot.commands.drive.characterize.SteerTestingCommand;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
 import frc.robot.commands.flipper.FullyToggleFlipperCommand;
 import frc.robot.commands.led.LEDCommandFactory;
+import frc.robot.commands.led.LEDStateMachineCommand;
+import frc.robot.commands.led.LEDStateMachineCommand.LEDState;
 import frc.robot.hid.CommandNintendoSwitchController;
 import frc.robot.hid.CommandXboxPlaystationController;
 import frc.robot.subsystems.claw.ClawSubsystem;
@@ -40,6 +42,11 @@ import frc.robot.telemetry.SendableTelemetryManager;
 import frc.robot.telemetry.tunable.gains.TunableDouble;
 import frc.robot.utils.*;
 import frc.robot.utils.Alert.AlertType;
+import frc.robot.utils.led.AlternatePattern;
+import frc.robot.utils.led.RandomColorsPattern;
+import frc.robot.utils.led.SlidePattern;
+import frc.robot.utils.led.SolidPattern;
+import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntSupplier;
@@ -80,15 +87,39 @@ public class RobotContainer {
         Shuffleboard.getTab("UtilsRaw").add(CommandScheduler.getInstance());
         liftSubsystem.setDefaultCommand(Commands.run(liftSubsystem::stopMovement, liftSubsystem));
         extensionSubsystem.setDefaultCommand(Commands.run(extensionSubsystem::stopMovement, extensionSubsystem));
-        ledSubsystem.setDefaultCommand(
-                LEDCommandFactory.slideAlternateColorCommand(8.0, Color.kWhite, Color.kDarkRed, ledSubsystem));
 
-        // On fault, set the LED to red
-        new Trigger(() -> Alert.getDefaultGroup().hasAnyErrors())
-                .whileTrue(LEDCommandFactory.alternateColorCommand(2.0, Color.kRed, Color.kBlack, ledSubsystem));
-        // When flipped trigger party mode
-        new Trigger(() -> Math.abs(driveSubsystem.getRoll()) > 50.0 || Math.abs(driveSubsystem.getPitch()) > 50.0)
-                .whileTrue(LEDCommandFactory.partyModeCommand(5.0, ledSubsystem));
+        List<LEDState> ledStates = List.of(
+                // Party mode on flip is #1 priority
+                new LEDState(
+                        () -> Math.abs(driveSubsystem.getRoll()) > 50.0 || Math.abs(driveSubsystem.getPitch()) > 50.0,
+                        new AlternatePattern(
+                                2.0 / 5.0, new RandomColorsPattern(2.0 / 5.0), new SolidPattern(Color.kBlack)),
+                        0),
+                // Red blink if we have any faults
+                new LEDState(
+                        () -> Alert.getDefaultGroup().hasAnyErrors(),
+                        new AlternatePattern(2.0, Color.kRed, Color.kBlack),
+                        1),
+                // Orange if we are to close to the grid to bring arm down
+                new LEDState(
+                        () -> RaiderUtils.flipIfShould(driveSubsystem.getPose()).getX() < 2.4
+                                && LiftExtensionKinematics.liftExtensionPositionToClawPosition(
+                                                        liftSubsystem.getArmAngle(), extensionSubsystem.getPosition())
+                                                .getY()
+                                        < Grids.midCubeZ,
+                        new SolidPattern(Color.kOrange),
+                        2),
+                // Default disabled pattern
+                new LEDState(
+                        DriverStation::isDisabled,
+                        new AlternatePattern(
+                                8.0,
+                                new SlidePattern(8 / 2.0, Color.kDarkRed, Color.kWhite),
+                                new SlidePattern(8 / 2.0, Color.kWhite, Color.kDarkRed)),
+                        5));
+
+        ledSubsystem.setDefaultCommand(
+                new LEDStateMachineCommand(new SolidPattern(Color.kBlack), ledStates, ledSubsystem));
     }
 
     private void configureAutos() {
@@ -97,9 +128,7 @@ public class RobotContainer {
         SendableTelemetryManager.getInstance()
                 .addSendable(
                         "/autoChooser/generatePath",
-                        Commands.runOnce(paths::generatePath)
-                                .ignoringDisable(true)
-                                .withName("Generate Path"));
+                        RaiderCommands.runOnceAllowDisable(paths::generatePath).withName("Generate Path"));
 
         autoCommandChooser.addOption("Nothing", null);
         autoCommandChooser.setDefaultOption(
@@ -117,8 +146,8 @@ public class RobotContainer {
         }
 
         new Trigger(autoCommandChooser::hasNewValue)
-                .onTrue(Commands.runOnce(() -> noAutoSelectedAlert.set(autoCommandChooser.getSelected() == null))
-                        .ignoringDisable(true)
+                .onTrue(RaiderCommands.runOnceAllowDisable(
+                                () -> noAutoSelectedAlert.set(autoCommandChooser.getSelected() == null))
                         .withName("Auto Alert Checker"));
 
         SendableTelemetryManager.getInstance().addSendable("/autoChooser/AutoChooser", autoCommandChooser);
@@ -127,12 +156,9 @@ public class RobotContainer {
     private void configureDriverBindings() {
         configureDriving();
 
-        driverController
-                .circle()
-                .onTrue(Commands.runOnce(driveSubsystem::zeroHeading).ignoringDisable(true));
+        driverController.circle().onTrue(RaiderCommands.runOnceAllowDisable(driveSubsystem::zeroHeading));
         driverController.minus().whileTrue(new LockModulesCommand(driveSubsystem).repeatedly());
         // driverController.plus().whileTrue(new LockModulesParallelCommand(driveSubsystem).repeatedly());
-        driverController.circle().onTrue(Commands.runOnce(driveSubsystem::zeroHeading));
         driverController
                 .leftStick()
                 .onTrue(new PositionClawCommand(AutoScoreConstants.STOW, liftSubsystem, extensionSubsystem));
@@ -170,43 +196,7 @@ public class RobotContainer {
                 .povUp()
                 .debounce(0.1)
                 .onTrue(RaiderCommands.ifCondition(inAllowedArea)
-                        .then(new AutoScoreCommand(
-                                        ScoreLevel.HIGH,
-                                        gridSupplier,
-                                        driveSubsystem,
-                                        liftSubsystem,
-                                        extensionSubsystem,
-                                        clawSubsystem,
-                                        flipperSubsystem)
-                                .until(driverTakeControl))
-                        .otherwise(rumbleDriverControllerCommand()));
-        driverController
-                .povRight()
-                .debounce(0.1)
-                .onTrue(RaiderCommands.ifCondition(inAllowedArea)
-                        .then(new AutoScoreCommand(
-                                        ScoreLevel.MID,
-                                        gridSupplier,
-                                        driveSubsystem,
-                                        liftSubsystem,
-                                        extensionSubsystem,
-                                        clawSubsystem,
-                                        flipperSubsystem)
-                                .until(driverTakeControl))
-                        .otherwise(rumbleDriverControllerCommand()));
-        driverController
-                .povDown()
-                .debounce(0.1)
-                .onTrue(RaiderCommands.ifCondition(inAllowedArea)
-                        .then(new AutoScoreCommand(
-                                        ScoreLevel.LOW,
-                                        gridSupplier,
-                                        driveSubsystem,
-                                        liftSubsystem,
-                                        extensionSubsystem,
-                                        clawSubsystem,
-                                        flipperSubsystem)
-                                .until(driverTakeControl))
+                        .then(new AutoScoreCommand(gridSupplier, driveSubsystem).until(driverTakeControl))
                         .otherwise(rumbleDriverControllerCommand()));
     }
 
@@ -265,14 +255,14 @@ public class RobotContainer {
         // Decrement the grid entry
         operatorController
                 .leftBumper()
-                .onTrue(Commands.runOnce(() -> gridEntry.set(RaiderMathUtils.longClamp(gridEntry.get() - 1, 0, 8)))
-                        .ignoringDisable(true));
+                .onTrue(RaiderCommands.runOnceAllowDisable(
+                        () -> gridEntry.set(RaiderMathUtils.longClamp(gridEntry.get() - 1, 0, 8))));
 
         // Increment the grid entry
         operatorController
                 .rightBumper()
-                .onTrue(Commands.runOnce(() -> gridEntry.set(RaiderMathUtils.longClamp(gridEntry.get() + 1, 0, 8)))
-                        .ignoringDisable(true));
+                .onTrue(RaiderCommands.runOnceAllowDisable(
+                        () -> gridEntry.set(RaiderMathUtils.longClamp(gridEntry.get() + 1, 0, 8))));
 
         // Cancel incoming as this is the highest priority
         operatorController
@@ -353,8 +343,7 @@ public class RobotContainer {
 
         evaluateDriveStyle(driveCommandChooser.getSelected());
         new Trigger(driveCommandChooser::hasNewValue)
-                .onTrue(Commands.runOnce(() -> evaluateDriveStyle(driveCommandChooser.getSelected()))
-                        .ignoringDisable(true)
+                .onTrue(RaiderCommands.runOnceAllowDisable(() -> evaluateDriveStyle(driveCommandChooser.getSelected()))
                         .withName("Drive Style Checker"));
     }
 

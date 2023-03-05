@@ -5,6 +5,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.LEDConstants;
+import frc.robot.Robot;
 import frc.robot.utils.led.Pattern;
 import frc.robot.utils.led.SolidPattern;
 import frc.robot.utils.led.buffer.FakeLEDBuffer;
@@ -41,8 +42,7 @@ public class LEDSubsystem extends SubsystemBase {
         splitBuffers[1] = ledBuffer.split(i, i + LEDConstants.FRONT_LEFT_SIZE);
         splitBuffers[1] = splitBuffers[1].reversed();
         if (LEDConstants.FRONT_LEFT_SIZE < maxSize) {
-            splitBuffers[1] =
-                    splitBuffers[1].preConcatenate(new FakeLEDBuffer(maxSize - LEDConstants.FRONT_LEFT_SIZE));
+            splitBuffers[1] = splitBuffers[1].preConcatenate(new FakeLEDBuffer(maxSize - LEDConstants.FRONT_LEFT_SIZE));
         }
         i += LEDConstants.FRONT_LEFT_SIZE;
 
@@ -55,7 +55,8 @@ public class LEDSubsystem extends SubsystemBase {
         splitBuffers[3] = ledBuffer.split(i, i + LEDConstants.FRONT_RIGHT_SIZE);
         splitBuffers[3] = splitBuffers[3].reversed();
         if (LEDConstants.FRONT_RIGHT_SIZE < maxSize) {
-            splitBuffers[3] = splitBuffers[3].preConcatenate(new FakeLEDBuffer(maxSize - LEDConstants.FRONT_RIGHT_SIZE));
+            splitBuffers[3] =
+                    splitBuffers[3].preConcatenate(new FakeLEDBuffer(maxSize - LEDConstants.FRONT_RIGHT_SIZE));
         }
         i += LEDConstants.FRONT_RIGHT_SIZE;
 
@@ -69,30 +70,45 @@ public class LEDSubsystem extends SubsystemBase {
         led.start();
     }
 
-    public void setAllPattern(Pattern pattern) {
-        setPatterns(pattern, pattern, pattern, pattern);
+    public void setAllPattern(Pattern pattern, boolean forceRestart) {
+        setPatterns(forceRestart, pattern, pattern, pattern, pattern);
     }
 
-    public void setPatterns(Pattern... desiredPatterns) {
+    public void setAllPattern(Pattern pattern) {
+        setAllPattern(pattern, false);
+    }
+
+    public void setPatterns(boolean forceRestart, Pattern... desiredPatterns) {
         if (desiredPatterns.length != patterns.length) {
             throw new IllegalArgumentException("Must have " + patterns.length + " patterns");
         }
 
+        boolean anyDifferent = forceRestart;
         for (int i = 0; i < patterns.length; i++) {
+            anyDifferent |= patterns[i] != desiredPatterns[i];
             if (desiredPatterns[i] == null) {
                 this.patterns[i] = new SolidPattern(Color.kBlack);
             } else {
                 this.patterns[i] = desiredPatterns[i];
             }
         }
-        patternStartTime = Timer.getFPGATimestamp();
+        if (anyDifferent) {
+            patternStartTime = Timer.getFPGATimestamp();
+        }
     }
 
     @Override
     public void periodic() {
+        Robot.startWNode("LEDSubsystem#periodic");
+        Robot.startWNode("applyPatterns");
         for (int i = 0; i < splitBuffers.length; i++) {
             patterns[i].applyTo(splitBuffers[i], Timer.getFPGATimestamp() - patternStartTime);
         }
+        Robot.endWNode();
+
+        Robot.startWNode("setData");
         led.setData(ledBuffer);
+        Robot.endWNode();
+        Robot.endWNode();
     }
 }

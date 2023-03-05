@@ -62,8 +62,7 @@ public class LiftSubsystem extends SubsystemBase implements DualHomeable {
     private final LiftMechanism2d setpointMechanism2d = new LiftMechanism2d(new Color8Bit(0, 255, 0));
 
     private final Alert failedConfigurationAlert = new Alert("Lifter Arm Failed to Configure Motor", AlertType.ERROR);
-    private final Alert absoluteEncoderNotConnectedAlert =
-            new Alert("Lifter Absolute Encoder is Not Connected. Cannot Zero", AlertType.ERROR);
+    private final Alert notHomedAlert = new Alert("Lifter Arm Not Homed", AlertType.ERROR);
     private final BooleanTelemetryEntry isZeroedEntry = new BooleanTelemetryEntry("/lifter/isZeroed", false);
     private final BooleanTelemetryEntry absoluteEncoderConnectedEntry =
             new BooleanTelemetryEntry("/lifter/absoluteEncoderConnected", false);
@@ -177,6 +176,7 @@ public class LiftSubsystem extends SubsystemBase implements DualHomeable {
     private void setEncoderPosition(Rotation2d position) {
         leftEncoder.setPosition(position.getRadians());
         rightEncoder.setPosition(position.getRadians());
+        relativeEncoderOffsetRadians = position.getRadians() - relativeEncoder.getDistance();
         controller.reset(position.getRadians(), leftEncoder.getVelocity());
     }
 
@@ -206,7 +206,7 @@ public class LiftSubsystem extends SubsystemBase implements DualHomeable {
      * @return the rotation from the default frame perimeter position
      */
     public Rotation2d getArmAngle() {
-        return Rotation2d.fromRadians(getRelativeEncoder());
+        return Rotation2d.fromRadians(relativeEncoder.getDistance());
     }
 
     private double getAbsoluteEncoder() {
@@ -228,18 +228,6 @@ public class LiftSubsystem extends SubsystemBase implements DualHomeable {
 
         if (DriverStation.isDisabled()) {
             setVoltage(0.0);
-        }
-
-        if (!isZeroed) {
-            if (absoluteEncoder.isConnected()) {
-                double absoluteEncoderRadians = getAbsoluteEncoder();
-                relativeEncoderOffsetRadians = absoluteEncoderRadians - getRelativeEncoder();
-
-                leftEncoder.setPosition(absoluteEncoderRadians);
-                rightEncoder.setPosition(absoluteEncoderRadians);
-
-                isZeroed = true;
-            }
         }
 
         if (currentMode == LiftControlMode.RAW_VOLTAGE) {
@@ -276,10 +264,10 @@ public class LiftSubsystem extends SubsystemBase implements DualHomeable {
         leftRawVoltageRequestEntry.append(desiredLeftVoltage);
         rightRawVoltageRequestEntry.append(desiredRightVoltage);
 
-        absoluteEncoderNotConnectedAlert.set(!absoluteEncoder.isConnected());
         absoluteEncoderConnectedEntry.append(absoluteEncoder.isConnected());
         relativeEncoderConnectedEntry.append(relativeEncoder.getStopped());
 
+        notHomedAlert.set(!isZeroed);
         isZeroedEntry.append(isZeroed);
 
         if (FF_GAINS.hasChanged()) {

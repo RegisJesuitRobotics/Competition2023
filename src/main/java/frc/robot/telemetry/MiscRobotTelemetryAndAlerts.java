@@ -18,13 +18,13 @@ import java.io.IOException;
 public class MiscRobotTelemetryAndAlerts {
     private static final String tableName = "/robot/";
 
-    private final Alert lowBatteryVoltageAlert = new Alert("Low Battery Voltage", AlertType.WARNING);
     private final Alert highCanUsageAlert = new Alert("High CAN Usage", AlertType.WARNING);
     private final LinearFilter highCanUsageFilter = LinearFilter.movingAverage(50);
 
     private final Alert[] controllerAlerts = new Alert[MiscConstants.USED_CONTROLLER_PORTS.length];
 
-    private final DoubleTelemetryEntry voltageEntry = new DoubleTelemetryEntry(tableName + "voltage", false);
+    private final DoubleTelemetryEntry inputVoltageEntry = new DoubleTelemetryEntry(tableName + "inputVoltage", false);
+    private final DoubleTelemetryEntry inputCurrentEntry = new DoubleTelemetryEntry(tableName + "inputCurrent", false);
     private final CANBusDataEntry canBusDataEntry = new CANBusDataEntry(tableName + "can", false);
 
     public MiscRobotTelemetryAndAlerts() {
@@ -62,10 +62,8 @@ public class MiscRobotTelemetryAndAlerts {
     }
 
     public void logValues() {
-        // Battery voltage
-        double batteryVoltage = RobotController.getBatteryVoltage();
-        voltageEntry.append(batteryVoltage);
-        lowBatteryVoltageAlert.set(batteryVoltage < 11.0);
+        inputVoltageEntry.append(RobotController.getInputVoltage());
+        inputCurrentEntry.append(RobotController.getInputCurrent());
 
         CANStatus canStatus = RobotController.getCANStatus();
         canBusDataEntry.append(canStatus);

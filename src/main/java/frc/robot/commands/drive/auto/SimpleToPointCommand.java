@@ -62,10 +62,13 @@ public class SimpleToPointCommand extends CommandBase {
     public void execute() {
         Translation2d translationError = getTranslationError();
         // Use negative norm because it needs to be a positive feedback
-        double translationFeedback = translationController.calculate(-translationError.getNorm());
-        double translationFeedforward = translationController.getSetpoint().velocity;
-        Translation2d translationVelocity =
-                new Translation2d(translationFeedback + translationFeedforward, translationError.getAngle());
+        Translation2d translationVelocity = new Translation2d();
+        if (translationError.getNorm() > 0.05) {
+            double translationFeedback = translationController.calculate(-translationError.getNorm());
+            double translationFeedforward = translationController.getSetpoint().velocity;
+            translationVelocity =
+                    new Translation2d(translationFeedback + translationFeedforward, translationError.getAngle());
+        }
 
         double angularVelocity = rotationController.calculate(
                 driveSubsystem.getPose().getRotation().getRadians());

@@ -134,6 +134,9 @@ public final class Constants {
                 DriveTrainConstants.MAX_VELOCITY_METERS_SECOND / 3.0;
         public static final double MAX_AUTO_VELOCITY_METERS_SECOND =
                 DriveTrainConstants.MAX_VELOCITY_METERS_SECOND / 1.25;
+
+        public static final double MAX_AUTO_ANGULAR_VELOCITY_RADIANS_SECOND = Math.PI * 2;
+        public static final double MAX_AUTO_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED = Math.PI;
         public static final TrajectoryConfig TRAJECTORY_CONSTRAINTS =
                 new TrajectoryConfig(MAX_AUTO_VELOCITY_METERS_SECOND, MAX_AUTO_ACCELERATION_METERS_PER_SECOND_SQUARED);
 
@@ -146,12 +149,12 @@ public final class Constants {
                         MAX_AUTO_ACCELERATION_METERS_PER_SECOND_SQUARED,
                         MiscConstants.TUNING_MODE);
         public static final TunablePIDGains ANGULAR_POSITION_PID_GAINS =
-                new TunablePIDGains("/gains/driveAngular", 1.5, 0.0, 0.0, MiscConstants.TUNING_MODE);
+                new TunablePIDGains("/gains/driveAngular", 3.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
         public static final TunableTrapezoidalProfileGains ANGULAR_POSITION_TRAPEZOIDAL_GAINS =
                 new TunableTrapezoidalProfileGains(
                         "/gains/driveAngular",
-                        DriveTrainConstants.MAX_ANGULAR_VELOCITY_RADIANS_SECOND,
-                        DriveTrainConstants.MAX_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED,
+                        MAX_AUTO_ANGULAR_VELOCITY_RADIANS_SECOND,
+                        MAX_AUTO_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED,
                         MiscConstants.TUNING_MODE);
 
         public static final double AUTO_BALANCE_TOLERANCE_RADIANS = Units.degreesToRadians(1.0);
@@ -192,7 +195,7 @@ public final class Constants {
         public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(40.0);
 
         public static final int ABSOLUTE_ENCODER_PORT = 0;
-        public static final double ABSOLUTE_ENCODER_OFFSET_FROM_ZERO = 1.382 + MIN_ANGLE.getRadians();
+        public static final double ABSOLUTE_ENCODER_OFFSET_FROM_ZERO = 0.0;
         public static final boolean INVERT_ABSOLUTE_ENCODER = true;
 
         public static final int RELATIVE_ENCODER_PORT_A = 2;
