@@ -1,5 +1,8 @@
 package frc.robot.commands.drive.auto;
 
+import com.pathplanner.lib.PathPlannerTrajectory;
+import com.pathplanner.lib.PathPlannerTrajectory.PathPlannerState;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -14,8 +17,6 @@ import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.types.rich.Pose2dEntry;
 import frc.robot.telemetry.types.rich.TrajectoryEntry;
 import frc.robot.utils.RaiderUtils;
-import frc.robot.utils.trajectory.CustomHolonomicDriveController;
-import frc.robot.utils.trajectory.HolonomicTrajectory;
 import java.util.function.Supplier;
 
 public class FollowPathCommand extends CommandBase {
@@ -27,32 +28,32 @@ public class FollowPathCommand extends CommandBase {
             new TrajectoryEntry("/followPath/trajectory", MiscConstants.TUNING_MODE);
 
     private final SwerveDriveSubsystem driveSubsystem;
-    private final Supplier<HolonomicTrajectory> pathSupplier;
-    private HolonomicTrajectory currentPath;
+    private final Supplier<PathPlannerTrajectory> pathSupplier;
+    private PathPlannerTrajectory currentPath;
 
     // We don't use a profiled PID controller for the angle because the path should
     // already profile it for us
-    private final CustomHolonomicDriveController driveController = new CustomHolonomicDriveController(
+    private final PPHolonomicDriveController driveController = new PPHolonomicDriveController(
             AutoConstants.TRANSLATION_POSITION_GAINS.createLoggablePIDController("/followPath/xController"),
             AutoConstants.TRANSLATION_POSITION_GAINS.createLoggablePIDController("/followPath/yController"),
             AutoConstants.ANGULAR_POSITION_PID_GAINS.createLoggablePIDController("/followPath/thetaController"));
 
-    private final CustomHolonomicDriveController nextDriveController = new CustomHolonomicDriveController(
+    private final PPHolonomicDriveController nextDriveController = new PPHolonomicDriveController(
             AutoConstants.TRANSLATION_POSITION_GAINS.createLoggablePIDController("/followPath/nextXController"),
             AutoConstants.TRANSLATION_POSITION_GAINS.createLoggablePIDController("/followPath/nextYController"),
             AutoConstants.ANGULAR_POSITION_PID_GAINS.createLoggablePIDController("/followPath/nextThetaController"));
 
     private final Timer timer = new Timer();
 
-    public FollowPathCommand(HolonomicTrajectory path, SwerveDriveSubsystem driveSubsystem) {
+    public FollowPathCommand(PathPlannerTrajectory path, SwerveDriveSubsystem driveSubsystem) {
         this(path, true, driveSubsystem);
     }
 
-    public FollowPathCommand(HolonomicTrajectory path, boolean shouldFlipIfRed, SwerveDriveSubsystem driveSubsystem) {
+    public FollowPathCommand(PathPlannerTrajectory path, boolean shouldFlipIfRed, SwerveDriveSubsystem driveSubsystem) {
         this(
                 () -> {
                     if (shouldFlipIfRed && RaiderUtils.shouldFlip()) {
-                        return path.getFlipped();
+                        return RaiderUtils.allianceFlip(path);
                     }
                     return path;
                 },
@@ -65,7 +66,7 @@ public class FollowPathCommand extends CommandBase {
      * @param pathSupplier the trajectory
      * @param driveSubsystem the swerve drive subsystem
      */
-    public FollowPathCommand(Supplier<HolonomicTrajectory> pathSupplier, SwerveDriveSubsystem driveSubsystem) {
+    public FollowPathCommand(Supplier<PathPlannerTrajectory> pathSupplier, SwerveDriveSubsystem driveSubsystem) {
         this.pathSupplier = pathSupplier;
         this.driveSubsystem = driveSubsystem;
 
@@ -78,8 +79,8 @@ public class FollowPathCommand extends CommandBase {
     public void initialize() {
         currentPath = pathSupplier.get();
 
-        driveSubsystem.getField2d().getObject("traj").setTrajectory(currentPath.trajectory());
-        trajectoryEntry.append(currentPath.trajectory());
+        driveSubsystem.getField2d().getObject("traj").setTrajectory(currentPath);
+        trajectoryEntry.append(currentPath);
         timer.reset();
         timer.start();
     }
@@ -89,12 +90,12 @@ public class FollowPathCommand extends CommandBase {
         double currentTime = timer.get();
         Pose2d currentPose = driveSubsystem.getPose();
 
-        HolonomicTrajectory.State state = currentPath.sample(currentTime);
-        ChassisSpeeds chassisSpeeds = driveController.calculate(currentPose, state);
+        PathPlannerState desiredState = (PathPlannerState) currentPath.sample(currentTime);
+        ChassisSpeeds chassisSpeeds = driveController.calculate(currentPose, desiredState);
 
-        Pose2d desiredPose = new Pose2d(state.poseState().poseMeters.getTranslation(), state.rotationState().position);
+        Pose2d desiredPose = new Pose2d(desiredState.poseMeters.getTranslation(), desiredState.holonomicRotation);
 
-        HolonomicTrajectory.State nextDesiredState = currentPath.sample(currentTime + Constants.DT);
+        PathPlannerState nextDesiredState = (PathPlannerState) currentPath.sample(currentTime + Constants.DT);
         Pose2d assumedNextPose = currentPose.plus(new Transform2d(
                 new Translation2d(chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond).times(Constants.DT),
                 new Rotation2d(chassisSpeeds.omegaRadiansPerSecond).times(Constants.DT)));
@@ -121,6 +122,6 @@ public class FollowPathCommand extends CommandBase {
 
     @Override
     public boolean isFinished() {
-        return timer.hasElapsed(currentPath.trajectory().getTotalTimeSeconds()) /*&& driveController.atReference()*/;
+        return timer.hasElapsed(currentPath.getTotalTimeSeconds()) /*&& driveController.atReference()*/;
     }
 }

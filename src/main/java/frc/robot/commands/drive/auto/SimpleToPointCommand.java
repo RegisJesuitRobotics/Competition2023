@@ -30,6 +30,10 @@ public class SimpleToPointCommand extends CommandBase {
 
     private Pose2d currentDesiredPose = new Pose2d();
 
+    public SimpleToPointCommand(Pose2d desiredPose, SwerveDriveSubsystem driveSubsystem) {
+        this(() -> desiredPose, driveSubsystem);
+    }
+
     public SimpleToPointCommand(Supplier<Pose2d> desiredPoseSupplier, SwerveDriveSubsystem driveSubsystem) {
         this.desiredPoseSupplier = desiredPoseSupplier;
         this.driveSubsystem = driveSubsystem;

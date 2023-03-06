@@ -19,12 +19,7 @@ import frc.robot.FieldConstants.Grids;
 import frc.robot.commands.AutoScoreCommand;
 import frc.robot.commands.HomeCommandFactory;
 import frc.robot.commands.PositionClawCommand;
-import frc.robot.commands.drive.GreaseGearsCommand;
 import frc.robot.commands.drive.LockModulesCommand;
-import frc.robot.commands.drive.auto.FollowPathCommand;
-import frc.robot.commands.drive.characterize.DriveTestingCommand;
-import frc.robot.commands.drive.characterize.DriveTrainSysIDCompatibleLoggerCommand;
-import frc.robot.commands.drive.characterize.SteerTestingCommand;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
 import frc.robot.commands.flipper.FullyToggleFlipperCommand;
 import frc.robot.commands.led.LEDCommandFactory;
@@ -39,17 +34,12 @@ import frc.robot.subsystems.led.LEDSubsystem;
 import frc.robot.subsystems.lift.LiftSubsystem;
 import frc.robot.subsystems.photon.PhotonSubsystem;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
-import frc.robot.telemetry.SendableTelemetryManager;
 import frc.robot.telemetry.tunable.gains.TunableDouble;
 import frc.robot.utils.*;
-import frc.robot.utils.Alert.AlertType;
 import frc.robot.utils.led.AlternatePattern;
 import frc.robot.utils.led.RandomColorsPattern;
 import frc.robot.utils.led.SlidePattern;
 import frc.robot.utils.led.SolidPattern;
-import frc.robot.utils.trajectory.HolonomicTrajectory;
-import frc.robot.utils.trajectory.HolonomicTrajectoryGenerator;
-import frc.robot.utils.trajectory.Waypoint;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
@@ -75,9 +65,8 @@ public class RobotContainer {
     private final CommandXboxPlaystationController operatorController = new CommandXboxPlaystationController(1);
     private final TeleopControlsStateManager teleopControlsStateManager = new TeleopControlsStateManager();
 
+    private final Autos autos = new Autos(driveSubsystem, liftSubsystem, extensionSubsystem, clawSubsystem);
     private final ListenableSendableChooser<Command> driveCommandChooser = new ListenableSendableChooser<>();
-    private final ListenableSendableChooser<Command> autoCommandChooser = new ListenableSendableChooser<>();
-    private final Alert noAutoSelectedAlert = new Alert("No Auto Routine Selected", AlertType.WARNING);
 
     private final IntegerEntry gridEntry = NetworkTableInstance.getDefault()
             .getIntegerTopic("/toLog/autoScore/grid")
@@ -87,92 +76,14 @@ public class RobotContainer {
         configureDriverBindings();
         configureOperatorBindings();
         configureAutos();
+        configureLEDs();
 
         Shuffleboard.getTab("UtilsRaw").add(CommandScheduler.getInstance());
         liftSubsystem.setDefaultCommand(Commands.run(liftSubsystem::stopMovement, liftSubsystem));
         extensionSubsystem.setDefaultCommand(Commands.run(extensionSubsystem::stopMovement, extensionSubsystem));
-
-        List<LEDState> ledStates = List.of(
-                // Party mode on flip is #1 priority
-                new LEDState(
-                        () -> Math.abs(driveSubsystem.getRoll()) > 50.0 || Math.abs(driveSubsystem.getPitch()) > 50.0,
-                        new AlternatePattern(
-                                2.0 / 5.0, new RandomColorsPattern(2.0 / 5.0), new SolidPattern(Color.kBlack)),
-                        0),
-                // Red blink if we have any faults
-                new LEDState(
-                        () -> Alert.getDefaultGroup().hasAnyErrors(),
-                        new AlternatePattern(2.0, Color.kRed, Color.kBlack),
-                        1),
-                // Orange if we are to close to the grid to bring arm down
-                new LEDState(
-                        () -> DriverStation.isEnabled()
-                                && liftSubsystem.isHomed()
-                                && RaiderUtils.flipIfShould(driveSubsystem.getPose())
-                                                .getX()
-                                        < 2.4
-                                && LiftExtensionKinematics.liftExtensionPositionToClawPosition(
-                                                        liftSubsystem.getArmAngle(), extensionSubsystem.getPosition())
-                                                .getY()
-                                        < Grids.midCubeZ,
-                        new SolidPattern(Color.kOrange),
-                        2),
-                // Default disabled pattern
-                new LEDState(
-                        DriverStation::isDisabled,
-                        new AlternatePattern(
-                                8.0,
-                                new SlidePattern(8 / 2.0, Color.kDarkRed, Color.kWhite),
-                                new SlidePattern(8 / 2.0, Color.kWhite, Color.kDarkRed)),
-                        5));
-
-        ledSubsystem.setDefaultCommand(
-                new LEDStateMachineCommand(new SolidPattern(Color.kBlack), ledStates, ledSubsystem));
     }
 
-    private void configureAutos() {
-        ConfigurablePaths paths = new ConfigurablePaths(
-                driveSubsystem, liftSubsystem, extensionSubsystem, clawSubsystem, flipperSubsystem);
-        SendableTelemetryManager.getInstance()
-                .addSendable(
-                        "/autoChooser/generatePath",
-                        RaiderCommands.runOnceAllowDisable(paths::generatePath).withName("Generate Path"));
-
-        autoCommandChooser.addOption("Nothing", null);
-        autoCommandChooser.setDefaultOption(
-                "Only Home",
-                Commands.parallel(
-                        HomeCommandFactory.homeLiftCommand(liftSubsystem),
-                        HomeCommandFactory.homeExtensionCommand(extensionSubsystem)));
-        autoCommandChooser.addOption("GeneratedAuto", new ProxyCommand(paths::getCurrentCommandAndUpdateIfNeeded));
-        autoCommandChooser.addOption("SimpleStraight", new ProxyCommand(() -> {
-            HolonomicTrajectory trajectory = HolonomicTrajectoryGenerator.generate(
-                    AutoConstants.TRAJECTORY_CONSTRAINTS,
-                    List.of(
-                            Waypoint.fromHolonomicPose(driveSubsystem.getPose()),
-                            Waypoint.fromHolonomicPose(
-                                    driveSubsystem.getPose().getTranslation().plus(new Translation2d(2.0, 2.0)),
-                                    driveSubsystem.getPose().getRotation()),
-                            Waypoint.fromHolonomicPose(
-                                    driveSubsystem.getPose().getTranslation().plus(new Translation2d(4.0, 0.0)),
-                                    driveSubsystem.getPose().getRotation())));
-            return new FollowPathCommand(trajectory, driveSubsystem);
-        }));
-
-        if (MiscConstants.TUNING_MODE) {
-            autoCommandChooser.addOption("SysIDLogger", new DriveTrainSysIDCompatibleLoggerCommand(driveSubsystem));
-            autoCommandChooser.addOption("GreaseGears", new GreaseGearsCommand(driveSubsystem));
-            autoCommandChooser.addOption("DriveTestingCommand", new DriveTestingCommand(1.0, true, driveSubsystem));
-            autoCommandChooser.addOption("SteerTesting", new SteerTestingCommand(driveSubsystem));
-        }
-
-        new Trigger(autoCommandChooser::hasNewValue)
-                .onTrue(RaiderCommands.runOnceAllowDisable(
-                                () -> noAutoSelectedAlert.set(autoCommandChooser.getSelected() == null))
-                        .withName("Auto Alert Checker"));
-
-        SendableTelemetryManager.getInstance().addSendable("/autoChooser/AutoChooser", autoCommandChooser);
-    }
+    private void configureAutos() {}
 
     private void configureDriverBindings() {
         configureDriving();
@@ -368,6 +279,45 @@ public class RobotContainer {
                         .withName("Drive Style Checker"));
     }
 
+    private void configureLEDs() {
+        List<LEDState> ledStates = List.of(
+                // Party mode on flip is #1 priority
+                new LEDState(
+                        () -> Math.abs(driveSubsystem.getRoll()) > 50.0 || Math.abs(driveSubsystem.getPitch()) > 50.0,
+                        new AlternatePattern(
+                                2.0 / 5.0, new RandomColorsPattern(2.0 / 5.0), new SolidPattern(Color.kBlack)),
+                        0),
+                // Red blink if we have any faults
+                new LEDState(
+                        () -> Alert.getDefaultGroup().hasAnyErrors(),
+                        new AlternatePattern(2.0, Color.kRed, Color.kBlack),
+                        1),
+                // Orange if we are to close to the grid to bring arm down
+                new LEDState(
+                        () -> DriverStation.isEnabled()
+                                && liftSubsystem.isHomed()
+                                && RaiderUtils.flipIfShould(driveSubsystem.getPose())
+                                                .getX()
+                                        < 2.4
+                                && LiftExtensionKinematics.liftExtensionPositionToClawPosition(
+                                                        liftSubsystem.getArmAngle(), extensionSubsystem.getPosition())
+                                                .getY()
+                                        > Grids.midCubeZ,
+                        new SolidPattern(Color.kOrange),
+                        2),
+                // Default disabled pattern
+                new LEDState(
+                        DriverStation::isDisabled,
+                        new AlternatePattern(
+                                8.0,
+                                new SlidePattern(8 / 2.0, Color.kDarkRed, Color.kWhite),
+                                new SlidePattern(8 / 2.0, Color.kWhite, Color.kDarkRed)),
+                        5));
+
+        ledSubsystem.setDefaultCommand(
+                new LEDStateMachineCommand(new SolidPattern(Color.kBlack), ledStates, ledSubsystem));
+    }
+
     private Command rumbleDriverControllerCommand() {
         // return Commands.runEnd(
         //                 () -> driverController.getHID().setRumble(RumbleType.kBothRumble, 1.0),
@@ -402,7 +352,7 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        return autoCommandChooser.getSelected();
+        return autos.getSelectedAuto();
     }
 
     /**

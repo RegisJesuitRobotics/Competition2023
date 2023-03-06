@@ -1,5 +1,6 @@
 package frc.robot;
 
+import com.pathplanner.lib.PathConstraints;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -8,7 +9,6 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
@@ -130,15 +130,14 @@ public final class Constants {
     public static class AutoConstants {
         private AutoConstants() {}
 
-        public static final double MAX_AUTO_ACCELERATION_METERS_PER_SECOND_SQUARED =
-                DriveTrainConstants.MAX_VELOCITY_METERS_SECOND / 3.0;
-        public static final double MAX_AUTO_VELOCITY_METERS_SECOND =
-                DriveTrainConstants.MAX_VELOCITY_METERS_SECOND / 1.25;
+        public static final double MAX_AUTO_ACCELERATION_METERS_PER_SECOND_SQUARED = 2.0;
+        public static final double MAX_AUTO_VELOCITY_METERS_SECOND = 3.0;
+
+        public static final PathConstraints TRAJECTORY_CONSTRAINTS =
+                new PathConstraints(MAX_AUTO_VELOCITY_METERS_SECOND, MAX_AUTO_ACCELERATION_METERS_PER_SECOND_SQUARED);
 
         public static final double MAX_AUTO_ANGULAR_VELOCITY_RADIANS_SECOND = Math.PI * 2;
         public static final double MAX_AUTO_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED = Math.PI;
-        public static final TrajectoryConfig TRAJECTORY_CONSTRAINTS =
-                new TrajectoryConfig(MAX_AUTO_VELOCITY_METERS_SECOND, MAX_AUTO_ACCELERATION_METERS_PER_SECOND_SQUARED);
 
         public static final TunablePIDGains TRANSLATION_POSITION_GAINS =
                 new TunablePIDGains("/gains/driveXY", 2.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
