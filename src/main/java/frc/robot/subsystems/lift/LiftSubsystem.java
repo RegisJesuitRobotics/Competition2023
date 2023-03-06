@@ -62,7 +62,7 @@ public class LiftSubsystem extends SubsystemBase implements DualHomeable {
     private final LiftMechanism2d setpointMechanism2d = new LiftMechanism2d(new Color8Bit(0, 255, 0));
 
     private final Alert failedConfigurationAlert = new Alert("Lifter Arm Failed to Configure Motor", AlertType.ERROR);
-    private final Alert notHomedAlert = new Alert("Lifter Arm Not Homed", AlertType.ERROR);
+    private final Alert notHomedAlert = new Alert("Lifter Arm Not Homed", AlertType.WARNING);
     private final BooleanTelemetryEntry isZeroedEntry = new BooleanTelemetryEntry("/lifter/isZeroed", false);
     private final BooleanTelemetryEntry absoluteEncoderConnectedEntry =
             new BooleanTelemetryEntry("/lifter/absoluteEncoderConnected", false);
@@ -150,6 +150,10 @@ public class LiftSubsystem extends SubsystemBase implements DualHomeable {
      * @param angle the rotation in the robot's frame of reference (0 is parallel to the floor)
      */
     public void setDesiredArmAngle(Rotation2d angle) {
+        if (!isZeroed) {
+            setVoltage(0.0);
+            return;
+        }
         if (currentMode != LiftControlMode.CLOSED_LOOP) {
             controller.reset(getArmAngle().getRadians(), getVelocity());
         }
@@ -171,6 +175,10 @@ public class LiftSubsystem extends SubsystemBase implements DualHomeable {
         setEncoderPosition(MIN_ANGLE);
         isZeroed = true;
         eventEntry.append("Homed mechanism");
+    }
+
+    public boolean isHomed() {
+        return isZeroed;
     }
 
     private void setEncoderPosition(Rotation2d position) {
@@ -206,7 +214,7 @@ public class LiftSubsystem extends SubsystemBase implements DualHomeable {
      * @return the rotation from the default frame perimeter position
      */
     public Rotation2d getArmAngle() {
-        return Rotation2d.fromRadians(relativeEncoder.getDistance());
+        return Rotation2d.fromRadians(getRelativeEncoder());
     }
 
     private double getAbsoluteEncoder() {

@@ -21,6 +21,7 @@ import frc.robot.commands.HomeCommandFactory;
 import frc.robot.commands.PositionClawCommand;
 import frc.robot.commands.drive.GreaseGearsCommand;
 import frc.robot.commands.drive.LockModulesCommand;
+import frc.robot.commands.drive.auto.FollowPathCommand;
 import frc.robot.commands.drive.characterize.DriveTestingCommand;
 import frc.robot.commands.drive.characterize.DriveTrainSysIDCompatibleLoggerCommand;
 import frc.robot.commands.drive.characterize.SteerTestingCommand;
@@ -46,6 +47,9 @@ import frc.robot.utils.led.AlternatePattern;
 import frc.robot.utils.led.RandomColorsPattern;
 import frc.robot.utils.led.SlidePattern;
 import frc.robot.utils.led.SolidPattern;
+import frc.robot.utils.trajectory.HolonomicTrajectory;
+import frc.robot.utils.trajectory.HolonomicTrajectoryGenerator;
+import frc.robot.utils.trajectory.Waypoint;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
@@ -102,7 +106,11 @@ public class RobotContainer {
                         1),
                 // Orange if we are to close to the grid to bring arm down
                 new LEDState(
-                        () -> RaiderUtils.flipIfShould(driveSubsystem.getPose()).getX() < 2.4
+                        () -> DriverStation.isEnabled()
+                                && liftSubsystem.isHomed()
+                                && RaiderUtils.flipIfShould(driveSubsystem.getPose())
+                                                .getX()
+                                        < 2.4
                                 && LiftExtensionKinematics.liftExtensionPositionToClawPosition(
                                                         liftSubsystem.getArmAngle(), extensionSubsystem.getPosition())
                                                 .getY()
@@ -137,6 +145,19 @@ public class RobotContainer {
                         HomeCommandFactory.homeLiftCommand(liftSubsystem),
                         HomeCommandFactory.homeExtensionCommand(extensionSubsystem)));
         autoCommandChooser.addOption("GeneratedAuto", new ProxyCommand(paths::getCurrentCommandAndUpdateIfNeeded));
+        autoCommandChooser.addOption("SimpleStraight", new ProxyCommand(() -> {
+            HolonomicTrajectory trajectory = HolonomicTrajectoryGenerator.generate(
+                    AutoConstants.TRAJECTORY_CONSTRAINTS,
+                    List.of(
+                            Waypoint.fromHolonomicPose(driveSubsystem.getPose()),
+                            Waypoint.fromHolonomicPose(
+                                    driveSubsystem.getPose().getTranslation().plus(new Translation2d(2.0, 2.0)),
+                                    driveSubsystem.getPose().getRotation()),
+                            Waypoint.fromHolonomicPose(
+                                    driveSubsystem.getPose().getTranslation().plus(new Translation2d(4.0, 0.0)),
+                                    driveSubsystem.getPose().getRotation())));
+            return new FollowPathCommand(trajectory, driveSubsystem);
+        }));
 
         if (MiscConstants.TUNING_MODE) {
             autoCommandChooser.addOption("SysIDLogger", new DriveTrainSysIDCompatibleLoggerCommand(driveSubsystem));

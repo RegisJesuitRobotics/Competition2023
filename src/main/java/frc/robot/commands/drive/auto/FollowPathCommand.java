@@ -33,14 +33,14 @@ public class FollowPathCommand extends CommandBase {
     // We don't use a profiled PID controller for the angle because the path should
     // already profile it for us
     private final CustomHolonomicDriveController driveController = new CustomHolonomicDriveController(
-            AutoConstants.TRANSLATION_POSITION_GAINS.createLoggablePIDController("followPath/xController"),
-            AutoConstants.TRANSLATION_POSITION_GAINS.createLoggablePIDController("followPath/yController"),
-            AutoConstants.ANGULAR_POSITION_PID_GAINS.createLoggablePIDController("followPath/thetaController"));
+            AutoConstants.TRANSLATION_POSITION_GAINS.createLoggablePIDController("/followPath/xController"),
+            AutoConstants.TRANSLATION_POSITION_GAINS.createLoggablePIDController("/followPath/yController"),
+            AutoConstants.ANGULAR_POSITION_PID_GAINS.createLoggablePIDController("/followPath/thetaController"));
 
     private final CustomHolonomicDriveController nextDriveController = new CustomHolonomicDriveController(
-            AutoConstants.TRANSLATION_POSITION_GAINS.createLoggablePIDController("followPath/nextXController"),
-            AutoConstants.TRANSLATION_POSITION_GAINS.createLoggablePIDController("followPath/nextYController"),
-            AutoConstants.ANGULAR_POSITION_PID_GAINS.createLoggablePIDController("followPath/nextThetaController"));
+            AutoConstants.TRANSLATION_POSITION_GAINS.createLoggablePIDController("/followPath/nextXController"),
+            AutoConstants.TRANSLATION_POSITION_GAINS.createLoggablePIDController("/followPath/nextYController"),
+            AutoConstants.ANGULAR_POSITION_PID_GAINS.createLoggablePIDController("/followPath/nextThetaController"));
 
     private final Timer timer = new Timer();
 
@@ -69,7 +69,7 @@ public class FollowPathCommand extends CommandBase {
         this.pathSupplier = pathSupplier;
         this.driveSubsystem = driveSubsystem;
 
-        driveController.setTolerance(new Pose2d(0.05, 0.05, Rotation2d.fromRotations(5.0)));
+        driveController.setTolerance(new Pose2d(0.0254, 0.0254, Rotation2d.fromRotations(1)));
 
         addRequirements(driveSubsystem);
     }

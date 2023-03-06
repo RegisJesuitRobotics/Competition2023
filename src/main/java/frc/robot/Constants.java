@@ -61,10 +61,10 @@ public final class Constants {
 
         // For talons PID full output is 1023 except for all FF gains
         public static final TunablePIDGains DRIVE_VELOCITY_PID_GAINS =
-                new TunablePIDGains("/gains/drive", 0.13477, 0.0, 0.0, MiscConstants.TUNING_MODE);
+                new TunablePIDGains("/gains/drive", 0.27773, 0.0, 0.0, MiscConstants.TUNING_MODE);
 
         public static final TunableFFGains DRIVE_VELOCITY_FF_GAINS =
-                new TunableFFGains("/gains/drive", 0.19838, 2.264, 0.31127, MiscConstants.TUNING_MODE);
+                new TunableFFGains("/gains/drive", 0.20734, 2.2377, 0.47643, MiscConstants.TUNING_MODE);
 
         public static final TunablePIDGains STEER_POSITION_PID_GAINS =
                 new TunablePIDGains("/gains/steer", 0.3, 0.0, 0.1, MiscConstants.TUNING_MODE);
@@ -203,7 +203,7 @@ public final class Constants {
         public static final boolean INVERT_RELATIVE_ENCODER = false;
 
         public static final TunablePIDGains PID_GAINS =
-                new TunablePIDGains("/gains/lifter", 6.0, 0.0, 4.2431, MiscConstants.TUNING_MODE);
+                new TunablePIDGains("/gains/lifter", 7.0, 0.0, 4, MiscConstants.TUNING_MODE);
         public static final TunableTrapezoidalProfileGains TRAPEZOIDAL_PROFILE_GAINS =
                 new TunableTrapezoidalProfileGains(
                         "/gains/lifter", Math.PI * 3.0 / 4.0, 1.2, MiscConstants.TUNING_MODE);
@@ -317,7 +317,7 @@ public final class Constants {
                     yOffset = Units.inchesToMeters(6.0);
                 }
                 preScoreFromLocations[i] = new Pose2d(
-                        scoreFromLocations[i].getTranslation().plus(new Translation2d(0.6, yOffset)),
+                        scoreFromLocations[i].getTranslation().plus(new Translation2d(0.5, yOffset)),
                         scoreFromLocations[i].getRotation());
             }
         }
@@ -339,7 +339,7 @@ public final class Constants {
         public static final int POWER_MODULE_ID = 1;
         public static final double CONFIGURATION_TIMEOUT_SECONDS = 5.0;
 
-        public static final double BUMPER_WIDTH_METERS = Units.inchesToMeters(0.75 + 2.5);
+        public static final double BUMPER_WIDTH_METERS = Units.inchesToMeters(3);
         // With bumpers
         public static final double FULL_ROBOT_LENGTH_METERS = Units.inchesToMeters(26.0) + (BUMPER_WIDTH_METERS * 2);
         public static final double FULL_ROBOT_WIDTH_METERS = Units.inchesToMeters(33.866) + (BUMPER_WIDTH_METERS * 2);

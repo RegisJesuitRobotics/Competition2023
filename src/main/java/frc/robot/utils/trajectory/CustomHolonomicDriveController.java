@@ -71,6 +71,9 @@ public class CustomHolonomicDriveController {
      * @param tolerance The pose error which is tolerable.
      */
     public void setTolerance(Pose2d tolerance) {
+        yController.setTolerance(tolerance.getY());
+        xController.setTolerance(tolerance.getX());
+        thetaController.setTolerance(tolerance.getRotation().getRadians());
         poseTolerance = tolerance;
     }
 
@@ -109,6 +112,16 @@ public class CustomHolonomicDriveController {
         double yFeedback = yController.calculate(currentPose.getY(), poseRef.getY());
         double thetaFeedback =
                 thetaController.calculate(currentPose.getRotation().getRadians(), angleRef.getRadians());
+
+        if (xController.atSetpoint()) {
+            xFeedback = 0.0;
+        }
+        if (yController.atSetpoint()) {
+            yFeedback = 0.0;
+        }
+        if (thetaController.atSetpoint()) {
+            thetaFeedback = 0.0;
+        }
 
         // Return next output.
         return ChassisSpeeds.fromFieldRelativeSpeeds(

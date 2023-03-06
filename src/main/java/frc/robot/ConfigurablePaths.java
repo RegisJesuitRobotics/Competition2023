@@ -237,7 +237,8 @@ public class ConfigurablePaths {
                     field.getObject("traj" + currentTrajectoryIndex).setTrajectory(holonomicTrajectory.trajectory());
                     currentTrajectoryIndex++;
                     currentTrajectoryPoints.clear();
-                    // Add the last point of the previous trajectory to the start of the next trajectory
+                    //                     Add the last point of the previous trajectory to the start of the next
+                    // trajectory
                     currentTrajectoryPoints.add(currentWaypoints.get(currentWaypoints.size() - 1));
 
                     Command pathCommand = new FollowPathCommand(holonomicTrajectory, driveSubsystem);
@@ -310,12 +311,12 @@ public class ConfigurablePaths {
         aroundCharger.setDefaultOption(
                 WALL_SIDE,
                 new AutoAction(List.of(
-                        new Waypoint(Community.betweenChargingAndWall[0].minus(new Translation2d(2.0, 0.0))),
+                        new Waypoint(Community.betweenChargingAndWall[0].minus(new Translation2d(2.2, 0.0))),
                         new Waypoint(Community.betweenChargingAndWall[0].plus(new Translation2d(1.0, 0.0))))));
         aroundCharger.addOption(
                 HUMAN_PLAYER_SIDE,
                 new AutoAction(List.of(
-                        new Waypoint(Community.betweenChargingAndWall[1].minus(new Translation2d(2.0, 0.0))),
+                        new Waypoint(Community.betweenChargingAndWall[1].minus(new Translation2d(2.2, 0.0))),
                         new Waypoint(Community.betweenChargingAndWall[1].plus(new Translation2d(1.0, 0.0))))));
 
         finalAction.setDefaultOption(NONE, null);
@@ -389,7 +390,7 @@ public class ConfigurablePaths {
 
     private static final Translation2d gamePieceOffset = new Translation2d(Units.inchesToMeters(-9.0), 0.0);
     private static final Pose2d[] gamePiecePickUpLocations = new Pose2d[StagingLocations.translations.length];
-    private static final Translation2d preGamePieceOffset = new Translation2d(Units.inchesToMeters(-24.0), 0.0);
+    private static final Translation2d preGamePieceOffset = new Translation2d(Units.inchesToMeters(-30.0), 0.0);
     private static final Pose2d[] preGamePiecePickUpLocations = new Pose2d[StagingLocations.translations.length];
 
     static {
