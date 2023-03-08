@@ -39,7 +39,7 @@ public class SimpleToPointCommand extends CommandBase {
         this.driveSubsystem = driveSubsystem;
 
         translationController.setTolerance(0.05);
-        rotationController.setTolerance(Units.degreesToRadians(3.0));
+        rotationController.setTolerance(Units.degreesToRadians(5.0));
         rotationController.enableContinuousInput(-Math.PI, Math.PI);
 
         addRequirements(driveSubsystem);

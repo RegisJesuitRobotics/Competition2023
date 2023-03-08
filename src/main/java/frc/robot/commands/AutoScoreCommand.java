@@ -10,11 +10,7 @@ import java.util.function.IntSupplier;
 public class AutoScoreCommand extends SequentialCommandGroup {
     public AutoScoreCommand(IntSupplier scorePositionSupplier, SwerveDriveSubsystem driveSubsystem) {
         addCommands(new SimpleToPointCommand(
-                () -> {
-                    System.out.println(scorePositionSupplier.getAsInt());
-                    return RaiderUtils.flipIfShould(
-                            AutoScoreConstants.scoreFromLocations[scorePositionSupplier.getAsInt()]);
-                },
+                () -> RaiderUtils.flipIfShould(AutoScoreConstants.scoreFromLocations[scorePositionSupplier.getAsInt()]),
                 driveSubsystem));
     }
 }

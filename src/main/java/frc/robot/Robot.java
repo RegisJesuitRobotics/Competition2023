@@ -7,7 +7,6 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.MiscConstants;
-import frc.robot.telemetry.CommandSchedulerLogger;
 import frc.robot.telemetry.MiscRobotTelemetryAndAlerts;
 import frc.robot.telemetry.OverrunAlertManager;
 import frc.robot.telemetry.SendableTelemetryManager;
@@ -70,8 +69,6 @@ public class Robot extends TreeTimedRobot {
         NetworkTableInstance.getDefault().startEntryDataLog(DataLogManager.getLog(), "/toLog/", "toLog/");
 
         DriverStation.startDataLog(dataLog);
-
-        CommandSchedulerLogger.getInstance().start();
 
         telemetryPowerDistribution =
                 new TelemetryPowerDistribution(MiscConstants.POWER_MODULE_ID, MiscConstants.POWER_MODULE_TYPE);

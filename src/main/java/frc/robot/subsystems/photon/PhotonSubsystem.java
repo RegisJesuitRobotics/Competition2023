@@ -30,6 +30,8 @@ public class PhotonSubsystem extends SubsystemBase {
     private final List<Pose3dEntry> estimatedPoseEntries = new ArrayList<>();
     private final Pose3dArrayEntry visionTargetEntries =
             new Pose3dArrayEntry("/photon/targets", MiscConstants.TUNING_MODE);
+    private final Pose3dArrayEntry unusedVisionTargetEntries =
+            new Pose3dArrayEntry("/photon/unusedTargets", MiscConstants.TUNING_MODE);
     private final List<PhotonCamera> cameras = new ArrayList<>();
 
     private final Alert cameraNotConnectedAlert =
@@ -47,7 +49,6 @@ public class PhotonSubsystem extends SubsystemBase {
 
         poseEstimators.add(new PhotonPoseEstimator(
                 fieldLayout, PoseStrategy.MULTI_TAG_PNP, cameras.get(0), VisionConstants.FRONT_CAMERA_LOCATION));
-        poseEstimators.get(0).setMultiTagFallbackStrategy(PoseStrategy.CLOSEST_TO_CAMERA_HEIGHT);
 
         for (int i = 0; i < poseEstimators.size(); i++) {
             estimatedPoseEntries.add(new Pose3dEntry("/photon/estimatedPoses/" + i, MiscConstants.TUNING_MODE));
@@ -55,26 +56,44 @@ public class PhotonSubsystem extends SubsystemBase {
     }
 
     public List<EstimatedRobotPose> getEstimatedGlobalPose(Pose2d prevEstimatedRobotPose) {
+        Robot.startWNode("PhotonSubsystem#getEstimatedGlobalPose");
         List<EstimatedRobotPose> updatedPoses = new ArrayList<>();
         List<Pose3d> targetPoses = new ArrayList<>();
+        List<Pose3d> unusedTargetPoses = new ArrayList<>();
         for (int i = 0; i < poseEstimators.size(); i++) {
             PhotonPoseEstimator poseEstimator = poseEstimators.get(i);
             PhotonCamera photonCamera = cameras.get(i);
             PhotonPipelineResult result = photonCamera.getLatestResult();
+
+            // Remove bad tags
+            for (int j = result.targets.size() - 1; j >= 0; j--) {
+                PhotonTrackedTarget target = result.targets.get(j);
+                boolean shouldUse = result.targets.get(j).getPoseAmbiguity() < VisionConstants.POSE_AMBIGUITY_CUTOFF;
+                if (fieldLayout.getTagPose(target.getFiducialId()).isPresent()) {
+                    Pose3d tagPose =
+                            fieldLayout.getTagPose(target.getFiducialId()).get();
+                    if (shouldUse) {
+                        targetPoses.add(tagPose);
+                    } else {
+                        unusedTargetPoses.add(tagPose);
+                    }
+                }
+                if (!shouldUse) {
+                    result.targets.remove(j);
+                }
+            }
+
             poseEstimator.setReferencePose(prevEstimatedRobotPose);
             Optional<EstimatedRobotPose> estimatedRobotPose = poseEstimator.update(result);
             if (estimatedRobotPose.isPresent()) {
                 estimatedPoseEntries.get(i).append(estimatedRobotPose.get().estimatedPose);
                 updatedPoses.add(estimatedRobotPose.get());
             }
-            for (PhotonTrackedTarget target : result.getTargets()) {
-                if (fieldLayout.getTagPose(target.getFiducialId()).isPresent()) {
-                    targetPoses.add(
-                            fieldLayout.getTagPose(target.getFiducialId()).get());
-                }
-            }
         }
         visionTargetEntries.append(targetPoses);
+        unusedVisionTargetEntries.append(unusedTargetPoses);
+
+        Robot.endWNode();
         return updatedPoses;
     }
 

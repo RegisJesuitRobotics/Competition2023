@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.MiscConstants;
+import frc.robot.commands.HomeCommandFactory;
 import frc.robot.commands.drive.GreaseGearsCommand;
 import frc.robot.commands.drive.auto.FollowPathCommand;
 import frc.robot.commands.drive.auto.balance.CorrectBalanceAndLockCommand;
@@ -152,10 +153,9 @@ public class Autos {
     }
 
     private Command homeBoth() {
-        //        return Commands.parallel(
-        //                HomeCommandFactory.homeLiftCommand(liftSubsystem),
-        //                HomeCommandFactory.homeExtensionCommand(extensionSubsystem));
-        return new WaitCommand(0.5);
+        return Commands.parallel(
+                HomeCommandFactory.homeLiftCommand(liftSubsystem),
+                HomeCommandFactory.homeExtensionCommand(extensionSubsystem));
     }
 
     private Command toPoint(Pose2d point) {

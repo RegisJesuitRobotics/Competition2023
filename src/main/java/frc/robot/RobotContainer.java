@@ -2,6 +2,7 @@ package frc.robot;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.IntegerEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -9,8 +10,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -20,6 +19,7 @@ import frc.robot.commands.AutoScoreCommand;
 import frc.robot.commands.HomeCommandFactory;
 import frc.robot.commands.PositionClawCommand;
 import frc.robot.commands.drive.LockModulesCommand;
+import frc.robot.commands.drive.auto.SimpleToPointCommand;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
 import frc.robot.commands.flipper.FullyToggleFlipperCommand;
 import frc.robot.commands.led.LEDCommandFactory;
@@ -28,12 +28,14 @@ import frc.robot.commands.led.LEDStateMachineCommand.LEDState;
 import frc.robot.hid.CommandNintendoSwitchController;
 import frc.robot.hid.CommandXboxPlaystationController;
 import frc.robot.subsystems.claw.ClawSubsystem;
+import frc.robot.subsystems.claw.ClawSubsystem.ClawState;
 import frc.robot.subsystems.extension.ExtensionSubsystem;
 import frc.robot.subsystems.intake.FlipperSubsystem;
 import frc.robot.subsystems.led.LEDSubsystem;
 import frc.robot.subsystems.lift.LiftSubsystem;
 import frc.robot.subsystems.photon.PhotonSubsystem;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
+import frc.robot.telemetry.SendableTelemetryManager;
 import frc.robot.telemetry.tunable.gains.TunableDouble;
 import frc.robot.utils.*;
 import frc.robot.utils.led.AlternatePattern;
@@ -41,6 +43,7 @@ import frc.robot.utils.led.RandomColorsPattern;
 import frc.robot.utils.led.SlidePattern;
 import frc.robot.utils.led.SolidPattern;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntSupplier;
@@ -61,6 +64,9 @@ public class RobotContainer {
     private final ExtensionSubsystem extensionSubsystem = new ExtensionSubsystem();
     private final LEDSubsystem ledSubsystem = new LEDSubsystem();
 
+    private final AtomicBoolean wantCube = new AtomicBoolean();
+    private final AtomicBoolean wantCone = new AtomicBoolean();
+
     private final CommandNintendoSwitchController driverController = new CommandNintendoSwitchController(0);
     private final CommandXboxPlaystationController operatorController = new CommandXboxPlaystationController(1);
     private final TeleopControlsStateManager teleopControlsStateManager = new TeleopControlsStateManager();
@@ -78,9 +84,18 @@ public class RobotContainer {
         configureAutos();
         configureLEDs();
 
-        Shuffleboard.getTab("UtilsRaw").add(CommandScheduler.getInstance());
-        liftSubsystem.setDefaultCommand(Commands.run(liftSubsystem::stopMovement, liftSubsystem));
-        extensionSubsystem.setDefaultCommand(Commands.run(extensionSubsystem::stopMovement, extensionSubsystem));
+        SendableTelemetryManager.getInstance().addSendable("/commandScheduler", CommandScheduler.getInstance());
+        liftSubsystem.setDefaultCommand(
+                Commands.run(liftSubsystem::stopMovement, liftSubsystem).withName("LiftDefault"));
+        extensionSubsystem.setDefaultCommand(Commands.run(extensionSubsystem::stopMovement, extensionSubsystem)
+                .withName("ExtensionDefault"));
+
+        // The last second lock and release
+        new Trigger(() -> DriverStation.isTeleop() && Timer.getMatchTime() < 0.5)
+                .onTrue(Commands.parallel(
+                                Commands.runOnce(() -> clawSubsystem.setClawState(ClawState.OPEN), clawSubsystem),
+                                new LockModulesCommand(driveSubsystem).withTimeout(1.0))
+                        .withName("LastSecondEffort"));
     }
 
     private void configureAutos() {}
@@ -88,21 +103,24 @@ public class RobotContainer {
     private void configureDriverBindings() {
         configureDriving();
 
-        driverController.circle().onTrue(RaiderCommands.runOnceAllowDisable(driveSubsystem::zeroHeading));
+        driverController
+                .circle()
+                .onTrue(RaiderCommands.runOnceAllowDisable(driveSubsystem::zeroHeading)
+                        .withName("ZeroHeading"));
         driverController.minus().whileTrue(new LockModulesCommand(driveSubsystem).repeatedly());
         // driverController.plus().whileTrue(new LockModulesParallelCommand(driveSubsystem).repeatedly());
         driverController
                 .leftStick()
                 .onTrue(new PositionClawCommand(AutoScoreConstants.STOW, liftSubsystem, extensionSubsystem));
 
-        driverController.rightStick().onTrue(Commands.runOnce(clawSubsystem::toggleClawState, clawSubsystem));
+        driverController
+                .rightStick()
+                .onTrue(Commands.runOnce(clawSubsystem::toggleClawState, clawSubsystem)
+                        .withName("ToggleClaw"));
         driverController.leftTrigger().whileTrue(new FullyToggleFlipperCommand(flipperSubsystem));
         driverController
                 .rightTrigger()
                 .onTrue(new PositionClawCommand(AutoScoreConstants.CARRY, liftSubsystem, extensionSubsystem));
-
-        new Trigger(() -> DriverStation.isTeleop() && Timer.getMatchTime() < 0.5)
-                .onTrue(new LockModulesCommand(driveSubsystem).withTimeout(1.0));
 
         Trigger driverTakeControl = new Trigger(() -> !RaiderMathUtils.inAbsRange(
                                 driverController.getLeftX(), TeleopConstants.DRIVER_TAKE_CONTROL_THRESHOLD)
@@ -121,14 +139,50 @@ public class RobotContainer {
             }
             return 8 - grid;
         };
-        Trigger inAllowedArea = new Trigger(() -> AutoScoreConstants.ALLOWED_SCORING_AREA.isPointInside(
+        Trigger inScoreAllowedArea = new Trigger(() -> AutoScoreConstants.ALLOWED_SCORING_AREA.isPointInside(
                 RaiderUtils.flipIfShould(driveSubsystem.getPose()).getTranslation()));
-
         driverController
                 .povUp()
                 .debounce(0.1)
-                .onTrue(RaiderCommands.ifCondition(inAllowedArea)
+                .onTrue(RaiderCommands.ifCondition(inScoreAllowedArea)
                         .then(new AutoScoreCommand(gridSupplier, driveSubsystem).until(driverTakeControl))
+                        .otherwise(rumbleDriverControllerCommand()));
+
+        Trigger inSubstationAllowedArea = new Trigger(() -> AutoScoreConstants.ALLOWED_SUBSTATION_AREA.isPointInside(
+                RaiderUtils.flipIfShould(driveSubsystem.getPose()).getTranslation()));
+        driverController
+                .povLeft()
+                .debounce(0.1)
+                .onTrue(RaiderCommands.ifCondition(inSubstationAllowedArea)
+                        .then(new SimpleToPointCommand(
+                                        () -> {
+                                            // Red alliance left is different from red
+                                            if (RaiderUtils.shouldFlip()) {
+                                                return RaiderUtils.flipIfShould(
+                                                        AutoScoreConstants.NOT_WALL_SIDE_SUBSTATION_PICKUP);
+                                            }
+                                            return RaiderUtils.flipIfShould(
+                                                    AutoScoreConstants.WALL_SIDE_SUBSTATION_PICKUP);
+                                        },
+                                        driveSubsystem)
+                                .until(driverTakeControl))
+                        .otherwise(rumbleDriverControllerCommand()));
+
+        driverController
+                .povRight()
+                .debounce(0.1)
+                .onTrue(RaiderCommands.ifCondition(inSubstationAllowedArea)
+                        .then(new SimpleToPointCommand(
+                                        () -> {
+                                            if (RaiderUtils.shouldFlip()) {
+                                                return RaiderUtils.flipIfShould(
+                                                        AutoScoreConstants.WALL_SIDE_SUBSTATION_PICKUP);
+                                            }
+                                            return RaiderUtils.flipIfShould(
+                                                    AutoScoreConstants.NOT_WALL_SIDE_SUBSTATION_PICKUP);
+                                        },
+                                        driveSubsystem)
+                                .until(driverTakeControl))
                         .otherwise(rumbleDriverControllerCommand()));
     }
 
@@ -147,8 +201,7 @@ public class RobotContainer {
                         .andThen(rumbleOperatorControllerCommand()));
         operatorController
                 .povLeft()
-                .whileTrue(new PositionClawCommand(
-                                AutoScoreConstants.SUBSTATION_LOCATION, liftSubsystem, extensionSubsystem)
+                .whileTrue(new PositionClawCommand(AutoScoreConstants.SUBSTATION, liftSubsystem, extensionSubsystem)
                         .andThen(rumbleOperatorControllerCommand()));
 
         operatorController
@@ -201,8 +254,19 @@ public class RobotContainer {
                 .square()
                 .toggleOnTrue(LEDCommandFactory.alternateColorCommand(0.5, Color.kPurple, Color.kBlack, ledSubsystem));
         operatorController
+                .square()
+                .onTrue(RaiderCommands.runOnceAllowDisable(() -> {
+                    wantCube.set(true);
+                    wantCone.set(false);
+                }))
+                .onFalse(RaiderCommands.runOnceAllowDisable(() -> wantCube.set(false)));
+        operatorController
                 .triangle()
-                .toggleOnTrue(LEDCommandFactory.alternateColorCommand(0.5, Color.kGold, Color.kBlack, ledSubsystem));
+                .onTrue(RaiderCommands.runOnceAllowDisable(() -> {
+                    wantCone.set(true);
+                    wantCube.set(false);
+                }))
+                .onFalse(RaiderCommands.runOnceAllowDisable(() -> wantCone.set(false)));
     }
 
     private void configureDriving() {
@@ -232,46 +296,55 @@ public class RobotContainer {
                 return TeleopConstants.TRANSLATION_RATE_LIMIT_METERS_SECOND_SQUARED;
             }
         });
+        Runnable resetRateLimiters = () -> {
+            ChassisSpeeds currentSpeeds = driveSubsystem.getCurrentChassisSpeeds();
+            vectorRateLimiter.reset(
+                    new Translation2d(currentSpeeds.vxMetersPerSecond, currentSpeeds.vyMetersPerSecond));
+            rotationLimiter.reset(currentSpeeds.omegaRadiansPerSecond);
+        };
+
         driveCommandChooser.setDefaultOption(
                 "Hybrid (Default to Field Relative & absolute control but use robot centric when holding button)",
                 new SwerveDriveCommand(
-                        () -> vectorRateLimiter.calculate(new Translation2d(
-                                        RaiderMathUtils.deadZoneAndCubeJoystick(-driverController.getLeftY()),
-                                        RaiderMathUtils.deadZoneAndCubeJoystick(-driverController.getLeftX()))
-                                .times(maxTranslationalSpeedSuppler.getAsDouble())),
-                        () -> rotationLimiter.calculate(
-                                RaiderMathUtils.deadZoneAndCubeJoystick(-driverController.getRightX())
-                                        * maxAngularSpeedSupplier.getAsDouble()),
-                        driverController
-                                .x()
-                                .or(driverController.a())
-                                .or(driverController.b())
-                                .or(driverController.y()),
-                        () -> {
-                            if (driverController.y().getAsBoolean()) return Math.PI / 2;
-                            if (driverController.b().getAsBoolean()) return Math.PI;
-                            if (driverController.a().getAsBoolean()) return -Math.PI / 2;
-                            return 0.0;
-                        },
-                        driverController.rightBumper().negate(),
-                        driveSubsystem));
+                                () -> vectorRateLimiter.calculate(new Translation2d(
+                                                RaiderMathUtils.deadZoneAndCubeJoystick(-driverController.getLeftY()),
+                                                RaiderMathUtils.deadZoneAndCubeJoystick(-driverController.getLeftX()))
+                                        .times(maxTranslationalSpeedSuppler.getAsDouble())),
+                                () -> rotationLimiter.calculate(
+                                        RaiderMathUtils.deadZoneAndCubeJoystick(-driverController.getRightX())
+                                                * maxAngularSpeedSupplier.getAsDouble()),
+                                driverController
+                                        .x()
+                                        .or(driverController.a())
+                                        .or(driverController.b())
+                                        .or(driverController.y()),
+                                () -> {
+                                    if (driverController.y().getAsBoolean()) return Math.PI / 2;
+                                    if (driverController.b().getAsBoolean()) return Math.PI;
+                                    if (driverController.a().getAsBoolean()) return -Math.PI / 2;
+                                    return 0.0;
+                                },
+                                driverController.rightBumper().negate(),
+                                driveSubsystem)
+                        .beforeStarting(resetRateLimiters));
 
         driveCommandChooser.addOption(
                 "Robot Orientated",
                 new SwerveDriveCommand(
-                        () -> new Translation2d(
-                                        RaiderMathUtils.deadZoneAndCubeJoystick(-driverController.getLeftY()),
-                                        RaiderMathUtils.deadZoneAndCubeJoystick(-driverController.getLeftX()))
-                                .times(maxTranslationalSpeedSuppler.getAsDouble()),
-                        () -> RaiderMathUtils.deadZoneAndCubeJoystick(-driverController.getRightX())
-                                * maxAngularSpeedSupplier.getAsDouble(),
-                        () -> false,
-                        () -> 0.0,
-                        () -> false,
-                        driveSubsystem));
+                                () -> vectorRateLimiter.calculate(new Translation2d(
+                                                RaiderMathUtils.deadZoneAndCubeJoystick(-driverController.getLeftY()),
+                                                RaiderMathUtils.deadZoneAndCubeJoystick(-driverController.getLeftX()))
+                                        .times(maxTranslationalSpeedSuppler.getAsDouble())),
+                                () -> rotationLimiter.calculate(
+                                        RaiderMathUtils.deadZoneAndCubeJoystick(-driverController.getRightX())
+                                                * maxAngularSpeedSupplier.getAsDouble()),
+                                () -> false,
+                                () -> 0.0,
+                                () -> false,
+                                driveSubsystem)
+                        .beforeStarting(resetRateLimiters));
 
-        ShuffleboardTab driveTab = Shuffleboard.getTab("DriveTrainRaw");
-        driveTab.add("Drive Style", driveCommandChooser);
+        SendableTelemetryManager.getInstance().addSendable("/drive/DriveStyle", driveCommandChooser);
 
         evaluateDriveStyle(driveCommandChooser.getSelected());
         new Trigger(driveCommandChooser::hasNewValue)
@@ -285,13 +358,14 @@ public class RobotContainer {
                 new LEDState(
                         () -> Math.abs(driveSubsystem.getRoll()) > 50.0 || Math.abs(driveSubsystem.getPitch()) > 50.0,
                         new AlternatePattern(
-                                2.0 / 5.0, new RandomColorsPattern(2.0 / 5.0), new SolidPattern(Color.kBlack)),
-                        0),
+                                2.0 / 5.0, new RandomColorsPattern(2.0 / 5.0), new SolidPattern(Color.kBlack))),
+                // Cube and Code Operator Requests
+                new LEDState(wantCone::get, new AlternatePattern(2.0, Color.kGold, Color.kBlack)),
+                new LEDState(wantCube::get, new AlternatePattern(2.0, Color.kPurple, Color.kBlack)),
                 // Red blink if we have any faults
                 new LEDState(
                         () -> Alert.getDefaultGroup().hasAnyErrors(),
-                        new AlternatePattern(2.0, Color.kRed, Color.kBlack),
-                        1),
+                        new AlternatePattern(2.0, Color.kRed, Color.kBlack)),
                 // Orange if we are to close to the grid to bring arm down
                 new LEDState(
                         () -> DriverStation.isEnabled()
@@ -303,16 +377,14 @@ public class RobotContainer {
                                                         liftSubsystem.getArmAngle(), extensionSubsystem.getPosition())
                                                 .getY()
                                         > Grids.midCubeZ,
-                        new SolidPattern(Color.kOrange),
-                        2),
+                        new SolidPattern(Color.kOrange)),
                 // Default disabled pattern
                 new LEDState(
                         DriverStation::isDisabled,
                         new AlternatePattern(
                                 8.0,
                                 new SlidePattern(8 / 2.0, Color.kDarkRed, Color.kWhite),
-                                new SlidePattern(8 / 2.0, Color.kWhite, Color.kDarkRed)),
-                        5));
+                                new SlidePattern(8 / 2.0, Color.kWhite, Color.kDarkRed))));
 
         ledSubsystem.setDefaultCommand(
                 new LEDStateMachineCommand(new SolidPattern(Color.kBlack), ledStates, ledSubsystem));

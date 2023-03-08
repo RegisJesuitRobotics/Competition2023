@@ -28,9 +28,8 @@ public class LEDStateMachineCommand extends CommandBase {
         LEDState mostPriorityTrueState = null;
         for (LEDState state : states) {
             if (state.condition.getAsBoolean()) {
-                if (mostPriorityTrueState == null || state.priority < mostPriorityTrueState.priority) {
-                    mostPriorityTrueState = state;
-                }
+                mostPriorityTrueState = state;
+                break;
             }
         }
 
@@ -49,7 +48,6 @@ public class LEDStateMachineCommand extends CommandBase {
     /**
      * @param condition the condition to be true for this state to be active
      * @param pattern the pattern to be used when this state is active
-     * @param priority the priority of this state. Lower is higher priority
      */
-    public record LEDState(BooleanSupplier condition, Pattern pattern, int priority) {}
+    public record LEDState(BooleanSupplier condition, Pattern pattern) {}
 }

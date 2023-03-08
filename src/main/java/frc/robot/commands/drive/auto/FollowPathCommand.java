@@ -113,15 +113,12 @@ public class FollowPathCommand extends CommandBase {
 
     @Override
     public void end(boolean interrupted) {
-        if (interrupted) {
-            driveSubsystem.stopMovement();
-        }
-
+        driveSubsystem.stopMovement();
         timer.stop();
     }
 
     @Override
     public boolean isFinished() {
-        return timer.hasElapsed(currentPath.getTotalTimeSeconds()) /*&& driveController.atReference()*/;
+        return timer.hasElapsed(currentPath.getTotalTimeSeconds()) && driveController.atReference();
     }
 }

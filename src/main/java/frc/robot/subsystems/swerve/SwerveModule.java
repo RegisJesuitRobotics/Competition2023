@@ -18,7 +18,6 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.robot.Constants;
 import frc.robot.Constants.MiscConstants;
 import frc.robot.Robot;
 import frc.robot.telemetry.tunable.gains.TunableFFGains;
@@ -59,6 +58,7 @@ public class SwerveModule {
     private final DoubleTelemetryEntry nextDriveVelocitySetpointEntry;
     private final BooleanTelemetryEntry openLoopEntry;
     private final DoubleTelemetryEntry steerPositionGoalEntry;
+    private final DoubleTelemetryEntry feedForwardOutputEntry;
     private final BooleanTelemetryEntry activeSteerEntry;
     private final DoubleTelemetryEntry absoluteHeadingEntry;
     private final BooleanTelemetryEntry setToAbsoluteEntry;
@@ -103,6 +103,7 @@ public class SwerveModule {
         driveVelocitySetpointEntry = new DoubleTelemetryEntry(tableName + "driveVelocitySetpoint", true);
         nextDriveVelocitySetpointEntry = new DoubleTelemetryEntry(tableName + "nextDriveVelocitySetpoint", tuningMode);
         openLoopEntry = new BooleanTelemetryEntry(tableName + "openLoop", tuningMode);
+        feedForwardOutputEntry = new DoubleTelemetryEntry(tableName + "feedforwardOutput", tuningMode);
         steerPositionGoalEntry = new DoubleTelemetryEntry(tableName + "steerPositionGoal", true);
         activeSteerEntry = new BooleanTelemetryEntry(tableName + "activeSteer", tuningMode);
         absoluteHeadingEntry = new DoubleTelemetryEntry(tableName + "absoluteHeading", tuningMode);
@@ -175,6 +176,9 @@ public class SwerveModule {
             motorConfiguration.supplyCurrLimit.triggerThresholdTime =
                     config.sharedConfiguration().drivePeakCurrentDurationSeconds();
 
+            motorConfiguration.closedloopRamp = config.sharedConfiguration().driveClosedLoopRamp();
+            motorConfiguration.openloopRamp = config.sharedConfiguration().driveOpenLoopRamp();
+
             config.sharedConfiguration().driveVelocityPIDGains().setSlot(motorConfiguration.slot0);
 
             faultInitializing |= checkCTREError(driveMotor.configAllSettings(motorConfiguration, CAN_TIMEOUT_MS));
@@ -216,12 +220,14 @@ public class SwerveModule {
             motorConfiguration.supplyCurrLimit.triggerThresholdTime =
                     config.sharedConfiguration().steerPeakCurrentDurationSeconds();
 
+            motorConfiguration.closedloopRamp = config.sharedConfiguration().steerClosedLoopRamp();
+
             config.sharedConfiguration().steerPositionPIDGains().setSlot(motorConfiguration.slot0);
             motorConfiguration.slot0.allowableClosedloopError =
                     config.sharedConfiguration().allowableSteerErrorRadians() / steerMotorConversionFactorPosition;
-            // Max control effort of 7 volts
-            motorConfiguration.slot0.closedLoopPeakOutput =
-                    7.0 / config.sharedConfiguration().nominalVoltage();
+            motorConfiguration.slot0.closedLoopPeakOutput = config.sharedConfiguration()
+                            .maxSteerVoltage()
+                    / config.sharedConfiguration().nominalVoltage();
 
             faultInitializing |= checkCTREError(steerMotor.configAllSettings(motorConfiguration, CAN_TIMEOUT_MS));
 
@@ -294,6 +300,12 @@ public class SwerveModule {
             reportError("Steer motor reset occurred");
             setToAbsolute = false;
             resetSteerToAbsolute();
+        }
+    }
+
+    private void checkForDriveMotorReset() {
+        if (RobotBase.isReal() && steerMotor.hasResetOccurred()) {
+            reportError("Drive motor reset occurred");
         }
     }
 
@@ -388,7 +400,7 @@ public class SwerveModule {
     public CommandBase getToggleDeadModeCommand() {
         return Commands.runOnce(() -> setDeadModule(!isDeadMode))
                 .ignoringDisable(true)
-                .withName("Toggle");
+                .withName("ToggleDeadMode");
     }
 
     /**
@@ -420,8 +432,10 @@ public class SwerveModule {
         Robot.startWNode("SwerveModule[" + instanceId + "]#setDesiredState");
         Robot.startWNode("checkForResetAndGains");
         checkForSteerMotorReset();
+        checkForDriveMotorReset();
         checkAndUpdateGains();
         Robot.endWNode();
+
         if (isDeadMode) {
             controlModeEntry.append(SwerveModuleControlMode.DEAD_MODE.logValue);
             return;
@@ -435,9 +449,7 @@ public class SwerveModule {
         }
 
         state = SwerveModuleState.optimize(state, getSteerAngle());
-        // Assume perfect following, that we will reach our desired state by the time we
-        // have to use our next one
-        nextState = SwerveModuleState.optimize(nextState, state.angle);
+        nextState = SwerveModuleState.optimize(nextState, getSteerAngle());
 
         Robot.startWNode("setDriveState");
         setDriveReference(state.speedMetersPerSecond, nextState.speedMetersPerSecond, openLoop);
@@ -494,9 +506,12 @@ public class SwerveModule {
         if (openLoop) {
             driveMotor.set(TalonFXControlMode.PercentOutput, targetVelocityMetersPerSecond / openLoopMaxSpeed);
         } else {
-            double feedforwardValuePercent = driveMotorFF.calculate(
-                            targetVelocityMetersPerSecond, nextTargetVelocityMetersPerSecond, Constants.DT)
-                    / nominalVoltage;
+            //            double feedforwardValuePercent = driveMotorFF.calculate(
+            //                            targetVelocityMetersPerSecond, nextTargetVelocityMetersPerSecond,
+            // Constants.DT)
+            //                    / nominalVoltage;
+            double feedforwardValuePercent = driveMotorFF.calculate(targetVelocityMetersPerSecond) / nominalVoltage;
+            feedForwardOutputEntry.append(feedforwardValuePercent);
             driveMotor.set(
                     TalonFXControlMode.Velocity,
                     targetVelocityMetersPerSecond / driveMotorConversionFactorVelocity,
