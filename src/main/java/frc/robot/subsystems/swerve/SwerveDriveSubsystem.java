@@ -59,8 +59,6 @@ public class SwerveDriveSubsystem extends SubsystemBase {
             new ChassisSpeedsEntry("/drive/speeds", MiscConstants.TUNING_MODE);
     private final ChassisSpeedsEntry desiredSpeedsEntry =
             new ChassisSpeedsEntry("/drive/desiredSpeeds", MiscConstants.TUNING_MODE);
-    private final ChassisSpeedsEntry nextDesiredSpeedsEntry =
-            new ChassisSpeedsEntry("/drive/nextDesiredSpeeds", MiscConstants.TUNING_MODE);
     private final Pose2dEntry odometryEntry = new Pose2dEntry("/drive/estimatedPose", MiscConstants.TUNING_MODE);
     private final SwerveModuleStateArrayEntry advantageScopeSwerveDesiredStates =
             new SwerveModuleStateArrayEntry("/drive/desiredStates", MiscConstants.TUNING_MODE);
@@ -72,7 +70,6 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     private final Field2d field2d = new Field2d();
 
     private SwerveModuleState[] desiredStates = new SwerveModuleState[NUM_MODULES];
-    private SwerveModuleState[] nextStates = new SwerveModuleState[NUM_MODULES];
     private boolean activeSteer = true;
     private DriveMode driveMode = DriveMode.OPEN_LOOP;
     private double rawDriveVolts = 0.0;
@@ -190,28 +187,10 @@ public class SwerveDriveSubsystem extends SubsystemBase {
      *     for teleop). If false a PIDF will be used (mostly used for auto)
      */
     public void setChassisSpeeds(ChassisSpeeds chassisSpeeds, boolean openLoop) {
-        setChassisSpeeds(chassisSpeeds, chassisSpeeds, openLoop);
-    }
-
-    /**
-     * Set the desired speed of the robot. Chassis speeds are always robot centric but can be created
-     * from field centric values through {@link ChassisSpeeds#fromFieldRelativeSpeeds(double, double,
-     * double, Rotation2d)}. This will correct for skew.
-     *
-     * @param chassisSpeeds the desired chassis speeds
-     * @param nextChassisSpeeds the speeds that will be next, used for calculating acceleration
-     * @param openLoop if true then velocity will be handled exclusivity with feedforward (mostly used
-     *     for teleop). If false a PIDF will be used (mostly used for auto)
-     */
-    public void setChassisSpeeds(ChassisSpeeds chassisSpeeds, ChassisSpeeds nextChassisSpeeds, boolean openLoop) {
         desiredSpeedsEntry.append(chassisSpeeds);
-        nextDesiredSpeedsEntry.append(nextChassisSpeeds);
 
         setRawStates(
-                true,
-                openLoop,
-                KINEMATICS.toSwerveModuleStates(RaiderMathUtils.correctForSwerveSkew(chassisSpeeds)),
-                KINEMATICS.toSwerveModuleStates(RaiderMathUtils.correctForSwerveSkew(nextChassisSpeeds)));
+                true, openLoop, KINEMATICS.toSwerveModuleStates(RaiderMathUtils.correctForSwerveSkew(chassisSpeeds)));
     }
 
     /**
@@ -221,24 +200,9 @@ public class SwerveDriveSubsystem extends SubsystemBase {
      * @param activeSteer if false will not actively power the steer motor
      * @param openLoop if true then velocity will be handled exclusivity with feedforward (for teleop
      *     mostly). If false a PIDF will be used (for auto)
-     * @param states the desired states... Ordered front left, front right, back left, back right
-     */
-    public void setRawStates(boolean activeSteer, boolean openLoop, SwerveModuleState[] states) {
-        setRawStates(activeSteer, openLoop, states, states);
-    }
-
-    /**
-     * Sets the desired swerve drive states for the modules. This method also takes a copy of the
-     * states, so they will not be changed
-     *
-     * @param activeSteer if false will not actively power the steer motor
-     * @param openLoop if true then velocity will be handled exclusivity with feedforward (for teleop
-     *     mostly). If false a PIDF will be used (for auto)
      * @param desiredStates the desired states... Ordered front left, front right, back left, back right
-     * @param nextStates the states that will be used for the acceleration ff
      */
-    public void setRawStates(
-            boolean activeSteer, boolean openLoop, SwerveModuleState[] desiredStates, SwerveModuleState[] nextStates) {
+    public void setRawStates(boolean activeSteer, boolean openLoop, SwerveModuleState[] desiredStates) {
         if (desiredStates.length != modules.length) {
             throw new IllegalArgumentException("You must provide desiredStates for all modules");
         }
@@ -247,7 +211,6 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         this.activeSteer = activeSteer;
 
         this.desiredStates = RaiderMathUtils.copySwerveStateArray(desiredStates);
-        this.nextStates = RaiderMathUtils.copySwerveStateArray(nextStates);
     }
 
     /**
@@ -351,10 +314,8 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         switch (driveMode) {
             case OPEN_LOOP, CLOSE_LOOP -> {
                 SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, MAX_VELOCITY_METERS_SECOND);
-                SwerveDriveKinematics.desaturateWheelSpeeds(nextStates, MAX_VELOCITY_METERS_SECOND);
                 for (int i = 0; i < modules.length; i++) {
-                    modules[i].setDesiredState(
-                            desiredStates[i], nextStates[i], activeSteer, driveMode == DriveMode.OPEN_LOOP);
+                    modules[i].setDesiredState(desiredStates[i], activeSteer, driveMode == DriveMode.OPEN_LOOP);
                 }
             }
             case RAW_VOLTAGE -> {

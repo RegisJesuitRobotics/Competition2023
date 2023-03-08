@@ -68,7 +68,7 @@ public final class Constants {
                 new TunablePIDGains("/gains/drive", 0.3, 0.0, 0.0, MiscConstants.TUNING_MODE);
 
         public static final TunableFFGains DRIVE_VELOCITY_FF_GAINS =
-                new TunableFFGains("/gains/drive", 0.20451, 2.3357, 0.31227, MiscConstants.TUNING_MODE);
+                new TunableFFGains("/gains/drive", 0.2776, 2.32302894, 0.31227, MiscConstants.TUNING_MODE);
 
         public static final TunablePIDGains STEER_POSITION_PID_GAINS =
                 new TunablePIDGains("/gains/steer", 0.3, 0.0, 0.1, MiscConstants.TUNING_MODE);

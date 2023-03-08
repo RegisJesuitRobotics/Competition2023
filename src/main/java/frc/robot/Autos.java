@@ -59,7 +59,7 @@ public class Autos {
         if (MiscConstants.TUNING_MODE) {
             autoCommandChooser.addOption("SysIDLogger", new DriveTrainSysIDCompatibleLoggerCommand(driveSubsystem));
             autoCommandChooser.addOption("GreaseGears", new GreaseGearsCommand(driveSubsystem));
-            autoCommandChooser.addOption("DriveTestingCommand", new DriveTestingCommand(1.0, true, driveSubsystem));
+            autoCommandChooser.addOption("DriveTestingCommand", new DriveTestingCommand(1.0, driveSubsystem));
             autoCommandChooser.addOption("SteerTesting", new SteerTestingCommand(driveSubsystem));
         }
 

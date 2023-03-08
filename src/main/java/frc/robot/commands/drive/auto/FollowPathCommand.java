@@ -5,12 +5,9 @@ import com.pathplanner.lib.PathPlannerTrajectory.PathPlannerState;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.Constants;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.MiscConstants;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
@@ -22,8 +19,6 @@ import java.util.function.Supplier;
 public class FollowPathCommand extends CommandBase {
     private static final Pose2dEntry desiredPoseEntry =
             new Pose2dEntry("/followPath/desiredPose", MiscConstants.TUNING_MODE);
-    private static final Pose2dEntry nextPoseEntry =
-            new Pose2dEntry("/followPath/currentPose", MiscConstants.TUNING_MODE);
     private static final TrajectoryEntry trajectoryEntry =
             new TrajectoryEntry("/followPath/trajectory", MiscConstants.TUNING_MODE);
 
@@ -37,11 +32,6 @@ public class FollowPathCommand extends CommandBase {
             AutoConstants.TRANSLATION_POSITION_GAINS.createLoggablePIDController("/followPath/xController"),
             AutoConstants.TRANSLATION_POSITION_GAINS.createLoggablePIDController("/followPath/yController"),
             AutoConstants.ANGULAR_POSITION_PID_GAINS.createLoggablePIDController("/followPath/thetaController"));
-
-    private final PPHolonomicDriveController nextDriveController = new PPHolonomicDriveController(
-            AutoConstants.TRANSLATION_POSITION_GAINS.createLoggablePIDController("/followPath/nextXController"),
-            AutoConstants.TRANSLATION_POSITION_GAINS.createLoggablePIDController("/followPath/nextYController"),
-            AutoConstants.ANGULAR_POSITION_PID_GAINS.createLoggablePIDController("/followPath/nextThetaController"));
 
     private final Timer timer = new Timer();
 
@@ -95,20 +85,10 @@ public class FollowPathCommand extends CommandBase {
 
         Pose2d desiredPose = new Pose2d(desiredState.poseMeters.getTranslation(), desiredState.holonomicRotation);
 
-        PathPlannerState nextDesiredState = (PathPlannerState) currentPath.sample(currentTime + Constants.DT);
-        Pose2d assumedNextPose = currentPose.plus(new Transform2d(
-                new Translation2d(chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond).times(Constants.DT),
-                new Rotation2d(chassisSpeeds.omegaRadiansPerSecond).times(Constants.DT)));
-
-        nextPoseEntry.append(assumedNextPose);
-        driveSubsystem.getField2d().getObject("followPathNext").setPose(assumedNextPose);
-
         desiredPoseEntry.append(desiredPose);
         driveSubsystem.getField2d().getObject("followPathDesired").setPose(desiredPose);
 
-        ChassisSpeeds nextChassisSpeeds = nextDriveController.calculate(assumedNextPose, nextDesiredState);
-
-        driveSubsystem.setChassisSpeeds(chassisSpeeds, nextChassisSpeeds, false);
+        driveSubsystem.setChassisSpeeds(chassisSpeeds, false);
     }
 
     @Override

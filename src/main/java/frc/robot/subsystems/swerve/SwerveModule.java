@@ -422,13 +422,11 @@ public class SwerveModule {
      * Set the desired state for this swerve module
      *
      * @param state the desired state
-     * @param nextState the next desired state to be used for acceleration feedforward.
      * @param activeSteer if steer should be active
      * @param openLoop if velocity control should be feed forward only. False if to use PIDF for
      *     velocity control.
      */
-    public void setDesiredState(
-            SwerveModuleState state, SwerveModuleState nextState, boolean activeSteer, boolean openLoop) {
+    public void setDesiredState(SwerveModuleState state, boolean activeSteer, boolean openLoop) {
         Robot.startWNode("SwerveModule[" + instanceId + "]#setDesiredState");
         Robot.startWNode("checkForResetAndGains");
         checkForSteerMotorReset();
@@ -449,10 +447,9 @@ public class SwerveModule {
         }
 
         state = SwerveModuleState.optimize(state, getSteerAngle());
-        nextState = SwerveModuleState.optimize(nextState, getSteerAngle());
 
         Robot.startWNode("setDriveState");
-        setDriveReference(state.speedMetersPerSecond, nextState.speedMetersPerSecond, openLoop);
+        setDriveReference(state.speedMetersPerSecond, openLoop);
         Robot.endWNode();
 
         Robot.startWNode("setSteerState");
@@ -497,19 +494,13 @@ public class SwerveModule {
         }
     }
 
-    private void setDriveReference(
-            double targetVelocityMetersPerSecond, double nextTargetVelocityMetersPerSecond, boolean openLoop) {
+    private void setDriveReference(double targetVelocityMetersPerSecond, boolean openLoop) {
         driveVelocitySetpointEntry.append(targetVelocityMetersPerSecond);
-        nextDriveVelocitySetpointEntry.append(nextTargetVelocityMetersPerSecond);
         openLoopEntry.append(openLoop);
 
         if (openLoop) {
             driveMotor.set(TalonFXControlMode.PercentOutput, targetVelocityMetersPerSecond / openLoopMaxSpeed);
         } else {
-            //            double feedforwardValuePercent = driveMotorFF.calculate(
-            //                            targetVelocityMetersPerSecond, nextTargetVelocityMetersPerSecond,
-            // Constants.DT)
-            //                    / nominalVoltage;
             double feedforwardValuePercent = driveMotorFF.calculate(targetVelocityMetersPerSecond) / nominalVoltage;
             feedForwardOutputEntry.append(feedforwardValuePercent);
             driveMotor.set(
