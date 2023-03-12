@@ -33,12 +33,25 @@ public final class Constants {
 
         public static final Transform3d FRONT_CAMERA_LOCATION = new Transform3d(
                 new Translation3d(
-                        Units.inchesToMeters(2.26271), Units.inchesToMeters(11.55917), Units.inchesToMeters(35.851)),
-                new Rotation3d(Units.degreesToRadians(0.0), Units.degreesToRadians(13.5), Units.degreesToRadians(0.0)));
+                        Units.inchesToMeters(1.5 + 1.268095),
+                        Units.inchesToMeters((20.75) / 2.0 + 1.738934 - (1.276220 / 2.0)),
+                        Units.inchesToMeters(33.0 + 3.75 - 0.969)),
+                new Rotation3d(
+                        Units.degreesToRadians(0.0), Units.degreesToRadians(13.5 - 2.5), Units.degreesToRadians(0.0)));
+        public static final Transform3d BACK_CAMERA_LOCATION = new Transform3d(
+                new Translation3d(
+                        Units.inchesToMeters(1.5 - 1.268095),
+                        Units.inchesToMeters((20.75) / 2.0 + 1.738934 - (1.276220 / 2.0)),
+                        Units.inchesToMeters(33.0 + 3.75 - 0.969)),
+                new Rotation3d(
+                        Units.degreesToRadians(0.0),
+                        Units.degreesToRadians(13.5 + 2.5),
+                        Units.degreesToRadians(180.0)));
 
         public static final String FRONT_CAMERA_NAME = "FrontCamera";
+        public static final String BACK_CAMERA_NAME = "BackCamera";
 
-        public static final double POSE_AMBIGUITY_CUTOFF = 0.2;
+        public static final double POSE_AMBIGUITY_CUTOFF = 0.1;
     }
 
     public static final double DT = 0.02;
@@ -100,7 +113,7 @@ public final class Constants {
         public static final double STEER_CLOSED_LOOP_RAMP = 0.03;
         public static final double DRIVE_CLOSED_LOOP_RAMP = 0.0;
         public static final double DRIVE_OPEN_LOOP_RAMP = 0.03;
-        public static final double MAX_STEER_VOLTAGE = 7.0;
+        public static final double MAX_STEER_VOLTAGE = 12.0;
 
         public static final String CAN_BUS = "canivore";
         private static final SharedSwerveModuleConfiguration SHARED_SWERVE_MODULE_CONFIGURATION =
@@ -127,7 +140,7 @@ public final class Constants {
                         ACCEPTABLE_STEER_ERROR_RADIANS);
 
         public static final SwerveModuleConfiguration FRONT_LEFT_MODULE_CONFIGURATION = new SwerveModuleConfiguration(
-                1, 5, 9, true, true, Units.degreesToRadians(-72.685547), false, SHARED_SWERVE_MODULE_CONFIGURATION);
+                1, 5, 9, true, true, Units.degreesToRadians(-69.685547), false, SHARED_SWERVE_MODULE_CONFIGURATION);
 
         public static final SwerveModuleConfiguration FRONT_RIGHT_MODULE_CONFIGURATION = new SwerveModuleConfiguration(
                 2, 6, 10, true, true, Units.degreesToRadians(75.673828), false, SHARED_SWERVE_MODULE_CONFIGURATION);
@@ -142,11 +155,12 @@ public final class Constants {
     public static class AutoConstants {
         private AutoConstants() {}
 
-        public static final double MAX_AUTO_VELOCITY_METERS_SECOND = 3.5;
+        public static final double MAX_AUTO_VELOCITY_METERS_SECOND = 2;
         public static final double MAX_AUTO_ACCELERATION_METERS_PER_SECOND_SQUARED = 2;
 
         public static final PathConstraints TRAJECTORY_CONSTRAINTS =
                 new PathConstraints(MAX_AUTO_VELOCITY_METERS_SECOND, MAX_AUTO_ACCELERATION_METERS_PER_SECOND_SQUARED);
+        public static final PathConstraints SLOW_TRAJECTORY_CONSTRAINTS = new PathConstraints(2, 1.25);
 
         public static final double MAX_AUTO_ANGULAR_VELOCITY_RADIANS_SECOND = Math.PI * 2;
         public static final double MAX_AUTO_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED = Math.PI;
@@ -160,7 +174,7 @@ public final class Constants {
                         MAX_AUTO_ACCELERATION_METERS_PER_SECOND_SQUARED,
                         MiscConstants.TUNING_MODE);
         public static final TunablePIDGains ANGULAR_POSITION_PID_GAINS =
-                new TunablePIDGains("/gains/driveAngular", 3.0, 0.0, 0.0, MiscConstants.TUNING_MODE);
+                new TunablePIDGains("/gains/driveAngular", 1.1, 0.0, 0.0, MiscConstants.TUNING_MODE);
         public static final TunableTrapezoidalProfileGains ANGULAR_POSITION_TRAPEZOIDAL_GAINS =
                 new TunableTrapezoidalProfileGains(
                         "/gains/driveAngular",
@@ -214,19 +228,19 @@ public final class Constants {
         public static final boolean INVERT_RELATIVE_ENCODER = false;
 
         public static final TunablePIDGains PID_GAINS =
-                new TunablePIDGains("/gains/lifter", 8.0, 0.0, 4, MiscConstants.TUNING_MODE);
+                new TunablePIDGains("/gains/lifter", 5, 0.0, 3.5161, MiscConstants.TUNING_MODE);
         public static final TunableTrapezoidalProfileGains TRAPEZOIDAL_PROFILE_GAINS =
-                new TunableTrapezoidalProfileGains("/gains/lifter", 1.25, 1.2, MiscConstants.TUNING_MODE);
+                new TunableTrapezoidalProfileGains("/gains/lifter", 1.2, 1.2, MiscConstants.TUNING_MODE);
         public static final TunableArmFFGains FF_GAINS =
-                new TunableArmFFGains("/gains/lifter", 0.13788, 0.22606, 9.6942, 0.18249, MiscConstants.TUNING_MODE);
+                new TunableArmFFGains("/gains/lifter", 0.12116, 0.22606, 9.737, 0.15967, MiscConstants.TUNING_MODE);
 
         public static final int STALL_CURRENT_LIMIT = 10;
         public static final int FREE_CURRENT_LIMIT = 40;
 
         public static final double HOME_CURRENT = 0.3;
-        public static final double HOME_VOLTAGE = -0.3;
+        public static final double HOME_VOLTAGE = -0.5;
 
-        public static final double POSITION_TOLERANCE_RADIANS = Units.degreesToRadians(2.0);
+        public static final double POSITION_TOLERANCE_RADIANS = Units.degreesToRadians(5.0);
         public static final double VELOCITY_TOLERANCE_RADIANS_SECOND = Units.degreesToRadians(10.0);
     }
 
@@ -263,16 +277,16 @@ public final class Constants {
         public static final double HOME_CURRENT = 10;
         public static final double HOME_VOLTAGE = -1;
 
-        public static final double POSITION_TOLERANCE_METERS = Units.inchesToMeters(0.05);
-        public static final double VELOCITY_TOLERANCE_METERS_SECOND = Units.inchesToMeters(0.05);
+        public static final double POSITION_TOLERANCE_METERS = Units.inchesToMeters(1.0);
+        public static final double VELOCITY_TOLERANCE_METERS_SECOND = Units.inchesToMeters(1.0);
     }
 
     public static class LEDConstants {
         public static final int PWM_PORT = 0;
-        public static final int FRONT_LEFT_SIZE = 18;
-        public static final int FRONT_RIGHT_SIZE = 18;
+        public static final int FRONT_LEFT_SIZE = 14;
+        public static final int FRONT_RIGHT_SIZE = 14;
         public static final int BACK_LEFT_SIZE = 17;
-        public static final int BACK_RIGHT_SIZE = 12;
+        public static final int BACK_RIGHT_SIZE = 11;
     }
 
     public static class TeleopConstants {
@@ -296,17 +310,14 @@ public final class Constants {
             HIGH
         }
 
-        private static final double BUMPER_OFFSET_FROM_LOW_EDGE = Units.inchesToMeters(2.0);
-
-        public static final double ROBOT_SCORING_X =
-                Grids.outerX + BUMPER_OFFSET_FROM_LOW_EDGE + (MiscConstants.FULL_ROBOT_LENGTH_METERS / 2.0);
+        public static final double ROBOT_SCORING_X = Grids.outerX + (MiscConstants.FULL_ROBOT_LENGTH_METERS / 2.0);
 
         // These are hard-coded right now because of the drift and stuff, but this will be changed once we get the
         // encoder
         public static final Pair<Rotation2d, Double> HIGH = Pair.of(Rotation2d.fromDegrees(31.04), 0.5685);
         public static final Pair<Rotation2d, Double> MID = Pair.of(Rotation2d.fromDegrees(8.08), 0.02839);
         public static final Pair<Rotation2d, Double> LOW = Pair.of(Rotation2d.fromDegrees(-72.39), 0.1903);
-        public static final Pair<Rotation2d, Double> SUBSTATION = Pair.of(Rotation2d.fromDegrees(12.41), 0.1);
+        public static final Pair<Rotation2d, Double> SUBSTATION = Pair.of(Rotation2d.fromDegrees(9.5), 0.2);
         public static final Pair<Rotation2d, Double> STOW =
                 Pair.of(LiftConstants.MIN_ANGLE.plus(Rotation2d.fromDegrees(1.0)), Units.inchesToMeters(0.5));
         public static final Pair<Rotation2d, Double> CARRY =
@@ -336,8 +347,7 @@ public final class Constants {
                 - (MiscConstants.FULL_ROBOT_LENGTH_METERS / 2.0)
                 - LiftExtensionKinematics.liftExtensionPositionToClawPosition(
                                 SUBSTATION.getFirst(), SUBSTATION.getSecond())
-                        .getX()
-                - Units.inchesToMeters(4.0);
+                        .getX();
         public static final Pose2d WALL_SIDE_SUBSTATION_PICKUP = new Pose2d(
                 new Translation2d(SUBSTATION_PICKUP_X, LoadingZone.leftY - Units.inchesToMeters(21.0)),
                 Rotation2d.fromDegrees(0.0));

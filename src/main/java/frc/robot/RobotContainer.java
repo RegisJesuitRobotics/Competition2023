@@ -22,7 +22,6 @@ import frc.robot.commands.drive.LockModulesCommand;
 import frc.robot.commands.drive.auto.SimpleToPointCommand;
 import frc.robot.commands.drive.teleop.SwerveDriveCommand;
 import frc.robot.commands.flipper.FullyToggleFlipperCommand;
-import frc.robot.commands.led.LEDCommandFactory;
 import frc.robot.commands.led.LEDStateMachineCommand;
 import frc.robot.commands.led.LEDStateMachineCommand.LEDState;
 import frc.robot.hid.CommandNintendoSwitchController;
@@ -104,7 +103,7 @@ public class RobotContainer {
         configureDriving();
 
         driverController
-                .circle()
+                .home()
                 .onTrue(RaiderCommands.runOnceAllowDisable(driveSubsystem::zeroHeading)
                         .withName("ZeroHeading"));
         driverController.minus().whileTrue(new LockModulesCommand(driveSubsystem).repeatedly());
@@ -250,23 +249,22 @@ public class RobotContainer {
                         () -> gridEntry.set(RaiderMathUtils.longClamp(gridEntry.get() + 1, 0, 8))));
 
         // Cancel incoming as this is the highest priority
-        operatorController
-                .square()
-                .toggleOnTrue(LEDCommandFactory.alternateColorCommand(0.5, Color.kPurple, Color.kBlack, ledSubsystem));
-        operatorController
-                .square()
-                .onTrue(RaiderCommands.runOnceAllowDisable(() -> {
-                    wantCube.set(true);
-                    wantCone.set(false);
-                }))
-                .onFalse(RaiderCommands.runOnceAllowDisable(() -> wantCube.set(false)));
-        operatorController
-                .triangle()
-                .onTrue(RaiderCommands.runOnceAllowDisable(() -> {
-                    wantCone.set(true);
-                    wantCube.set(false);
-                }))
-                .onFalse(RaiderCommands.runOnceAllowDisable(() -> wantCone.set(false)));
+        operatorController.square().onTrue(RaiderCommands.runOnceAllowDisable(() -> {
+            if (wantCube.get()) {
+                wantCube.set(false);
+            } else {
+                wantCube.set(true);
+                wantCone.set(false);
+            }
+        }));
+        operatorController.triangle().onTrue(RaiderCommands.runOnceAllowDisable(() -> {
+            if (wantCone.get()) {
+                wantCone.set(false);
+            } else {
+                wantCone.set(true);
+                wantCube.set(false);
+            }
+        }));
     }
 
     private void configureDriving() {
@@ -360,8 +358,8 @@ public class RobotContainer {
                         new AlternatePattern(
                                 2.0 / 5.0, new RandomColorsPattern(2.0 / 5.0), new SolidPattern(Color.kBlack))),
                 // Cube and Code Operator Requests
-                new LEDState(wantCone::get, new AlternatePattern(2.0, Color.kGold, Color.kBlack)),
-                new LEDState(wantCube::get, new AlternatePattern(2.0, Color.kPurple, Color.kBlack)),
+                new LEDState(wantCone::get, new AlternatePattern(0.5, Color.kGold, Color.kBlack)),
+                new LEDState(wantCube::get, new AlternatePattern(0.5, Color.kPurple, Color.kBlack)),
                 // Red blink if we have any faults
                 new LEDState(
                         () -> Alert.getDefaultGroup().hasAnyErrors(),

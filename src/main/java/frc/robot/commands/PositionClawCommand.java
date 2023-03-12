@@ -20,26 +20,14 @@ public class PositionClawCommand extends ParallelCommandGroup {
             double extensionPosition,
             LiftSubsystem liftSubsystem,
             ExtensionSubsystem extensionSubsystem) {
-        addCommands(new ProxyCommand(() -> {
-            double liftTime = liftSubsystem.getEstimatedTimeForPosition(liftAngle);
-            double extensionTime = extensionSubsystem.getEstimatedTimeForPosition(extensionPosition);
-            if (extensionTime >= liftTime) {
-                return Commands.parallel(
-                        new SetLiftPositionCommand(liftAngle, liftSubsystem),
-                        new SetExtensionPositionCommand(extensionPosition, extensionSubsystem));
-            } else {
-                // "Tuck" extension until it will get to our desired position when lift does
-                return Commands.parallel(
-                        new SetLiftPositionCommand(liftAngle, liftSubsystem),
-                        Commands.sequence(
-                                Commands.deadline(
-                                        new WaitUntilCommand(() -> liftSubsystem.getEstimatedTimeForPosition(liftAngle)
-                                                        - extensionSubsystem.getEstimatedTimeForPosition(
-                                                                extensionPosition)
-                                                < 0.2),
-                                        new SetExtensionPositionCommand(Units.inchesToMeters(0.5), extensionSubsystem)),
-                                new SetExtensionPositionCommand(extensionPosition, extensionSubsystem)));
-            }
-        }));
+        addCommands(Commands.parallel(
+                new SetLiftPositionCommand(liftAngle, liftSubsystem),
+                Commands.sequence(
+                        Commands.deadline(
+                                new WaitUntilCommand(() -> liftSubsystem.getEstimatedTimeForPosition(liftAngle)
+                                                - extensionSubsystem.getEstimatedTimeForPosition(extensionPosition)
+                                        < 0.2),
+                                new SetExtensionPositionCommand(Units.inchesToMeters(0.5), extensionSubsystem)),
+                        new SetExtensionPositionCommand(extensionPosition, extensionSubsystem))));
     }
 }

@@ -128,6 +128,7 @@ public class Robot extends TreeTimedRobot {
     /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
     @Override
     public void autonomousInit() {
+        telemetryPneumaticHub.enableCompressorAnalog(75, 120);
         autonomousCommand = robotContainer.getAutonomousCommand();
 
         if (autonomousCommand != null) {
@@ -141,6 +142,7 @@ public class Robot extends TreeTimedRobot {
 
     @Override
     public void teleopInit() {
+        telemetryPneumaticHub.enableCompressorAnalog(75, 120);
         if (autonomousCommand != null) {
             autonomousCommand.cancel();
         }
@@ -152,6 +154,7 @@ public class Robot extends TreeTimedRobot {
 
     @Override
     public void testInit() {
+        telemetryPneumaticHub.enableCompressorAnalog(114, 120);
         CommandScheduler.getInstance().cancelAll();
     }
 

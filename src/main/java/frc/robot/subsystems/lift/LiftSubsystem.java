@@ -14,6 +14,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.MiscConstants;
@@ -163,6 +164,7 @@ public class LiftSubsystem extends SubsystemBase implements DualHomeable {
     }
 
     public boolean atClosedLoopGoal() {
+        SmartDashboard.putBoolean("AtLiftGoal", currentMode != LiftControlMode.CLOSED_LOOP || controller.atGoal());
         return currentMode != LiftControlMode.CLOSED_LOOP || controller.atGoal();
     }
 

@@ -1,5 +1,7 @@
 package frc.robot;
 
+import static edu.wpi.first.wpilibj2.command.Commands.*;
+
 import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -7,16 +9,21 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.AutoConstants;
+import frc.robot.Constants.AutoScoreConstants;
 import frc.robot.Constants.MiscConstants;
+import frc.robot.commands.HomeCommandFactory;
+import frc.robot.commands.PositionClawCommand;
 import frc.robot.commands.drive.GreaseGearsCommand;
 import frc.robot.commands.drive.auto.FollowPathCommand;
+import frc.robot.commands.drive.auto.SimpleToPointCommand;
 import frc.robot.commands.drive.auto.balance.CorrectBalanceAndLockCommand;
 import frc.robot.commands.drive.characterize.DriveTestingCommand;
 import frc.robot.commands.drive.characterize.DriveTrainSysIDCompatibleLoggerCommand;
 import frc.robot.commands.drive.characterize.SteerTestingCommand;
+import frc.robot.commands.extension.SetExtensionPositionCommand;
+import frc.robot.commands.lift.SetLiftPositionCommand;
 import frc.robot.subsystems.claw.ClawSubsystem;
 import frc.robot.subsystems.claw.ClawSubsystem.ClawState;
 import frc.robot.subsystems.extension.ExtensionSubsystem;
@@ -50,8 +57,6 @@ public class Autos {
 
         autoCommandChooser.addOption("Nothing", null);
         autoCommandChooser.setDefaultOption("Only Home", homeBoth());
-        autoCommandChooser.addOption("Human Player Side Place Get Place Balance", humanPlayerPlaceGetPlaceBalance());
-        autoCommandChooser.addOption("Wall Side Place Get Place Balance", wallPlaceGetPlaceBalance());
         autoCommandChooser.addOption("Human Player Side Place Get Place", humanPlayerPlaceGetPlace());
         autoCommandChooser.addOption("Wall Side Place Get Place", wallPlaceGetPlace());
         autoCommandChooser.addOption("Human Player Side Place Balance", humanPlayerPlaceBalance());
@@ -74,32 +79,34 @@ public class Autos {
         SendableTelemetryManager.getInstance().addSendable("/autoChooser/AutoChooser", autoCommandChooser);
     }
 
-    private Command humanPlayerPlaceGetPlaceBalance() {
-        List<PathPlannerTrajectory> trajectoryList =
-                PathPlanner.loadPathGroup("HPSidePGPBPart1", AutoConstants.TRAJECTORY_CONSTRAINTS);
-
-        return placeGetPlaceBalance(trajectoryList);
-    }
-
-    private Command wallPlaceGetPlaceBalance() {
-        List<PathPlannerTrajectory> trajectoryList =
-                PathPlanner.loadPathGroup("WallSidePGPBPart1", AutoConstants.TRAJECTORY_CONSTRAINTS);
-
-        return placeGetPlaceBalance(trajectoryList);
-    }
-
     private Command humanPlayerPlaceGetPlace() {
         // We can use just the first part
-        List<PathPlannerTrajectory> trajectoryList =
-                PathPlanner.loadPathGroup("HPSidePGPBPart1", AutoConstants.TRAJECTORY_CONSTRAINTS);
+        //        List<PathPlannerTrajectory> trajectoryList =
+        //                PathPlanner.loadPathGroup("HPSidePGPBPart1", AutoConstants.TRAJECTORY_CONSTRAINTS,
+        // AutoConstants.TRAJECTORY_CONSTRAINTS, AutoConstants.SLOW_TRAJECTORY_CONSTRAINTS,
+        // AutoConstants.SLOW_TRAJECTORY_CONSTRAINTS);
+        List<PathPlannerTrajectory> trajectoryList = PathPlanner.loadPathGroup(
+                "HPSidePGPBPart1",
+                AutoConstants.SLOW_TRAJECTORY_CONSTRAINTS,
+                AutoConstants.SLOW_TRAJECTORY_CONSTRAINTS,
+                AutoConstants.SLOW_TRAJECTORY_CONSTRAINTS,
+                AutoConstants.SLOW_TRAJECTORY_CONSTRAINTS);
 
         return placeGetPlace(trajectoryList);
     }
 
     private Command wallPlaceGetPlace() {
         // We can use just the first part
-        List<PathPlannerTrajectory> trajectoryList =
-                PathPlanner.loadPathGroup("WallSidePGPBPart1", AutoConstants.TRAJECTORY_CONSTRAINTS);
+        //        List<PathPlannerTrajectory> trajectoryList =
+        //                PathPlanner.loadPathGroup("WallSidePGPBPart1", AutoConstants.TRAJECTORY_CONSTRAINTS,
+        // AutoConstants.TRAJECTORY_CONSTRAINTS, AutoConstants.SLOW_TRAJECTORY_CONSTRAINTS,
+        // AutoConstants.SLOW_TRAJECTORY_CONSTRAINTS);
+        List<PathPlannerTrajectory> trajectoryList = PathPlanner.loadPathGroup(
+                "WallSidePGPBPart1",
+                AutoConstants.SLOW_TRAJECTORY_CONSTRAINTS,
+                AutoConstants.SLOW_TRAJECTORY_CONSTRAINTS,
+                AutoConstants.SLOW_TRAJECTORY_CONSTRAINTS,
+                AutoConstants.SLOW_TRAJECTORY_CONSTRAINTS);
 
         return placeGetPlace(trajectoryList);
     }
@@ -122,15 +129,15 @@ public class Autos {
         List<PathPlannerTrajectory> trajectoryList =
                 PathPlanner.loadPathGroup("CenterB", AutoConstants.TRAJECTORY_CONSTRAINTS);
 
-        return Commands.sequence(homeBoth(), followPath(trajectoryList.get(0)), correctBalance());
+        return sequence(homeBoth(), followPath(trajectoryList.get(0)), correctBalance());
     }
 
     private Command centerPlaceBalance() {
         List<PathPlannerTrajectory> centerPBPart1 =
                 PathPlanner.loadPathGroup("CenterPBPart1", AutoConstants.TRAJECTORY_CONSTRAINTS);
 
-        return Commands.sequence(
-                Commands.parallel(homeBoth(), closeClaw()),
+        return sequence(
+                parallel(homeBoth(), closeClaw()),
                 clawHigh(),
                 followPath(centerPBPart1.get(0)),
                 openClaw(),
@@ -139,27 +146,29 @@ public class Autos {
     }
 
     private Command placeGetPlace(List<PathPlannerTrajectory> trajectoryList) {
-        return Commands.sequence(
-                Commands.parallel(homeBoth(), closeClaw()),
-                clawHigh(),
-                followPath(trajectoryList.get(0)),
+        return sequence(
+                parallel(homeBoth(), closeClaw()),
+                sequence(
+                        clawHigh(),
+                        /**sequence(waitUntil(() -> liftSubsystem.getArmAngle().getDegrees() > -40.0),**/
+                        followPath(
+                                trajectoryList.get(0)
+                                /**)**/
+                                )),
                 openClaw(),
-                Commands.parallel(followPath(trajectoryList.get(1)), Commands.sequence(retractExtension(), clawStow())),
+                waitSeconds(0.5),
+                parallel(
+                        followPath(trajectoryList.get(1)),
+                        retractExtension(),
+                        sequence(waitSeconds(0.5), retractLift())),
                 closeClaw(),
-                Commands.waitSeconds(0.5),
-                Commands.parallel(followPath(trajectoryList.get(2)), clawHigh()),
+                waitSeconds(0.5),
+                parallel(sequence(waitSeconds(0.5), followPath(trajectoryList.get(2))), clawHigh()),
                 openClaw());
     }
 
-    private Command placeGetPlaceBalance(List<PathPlannerTrajectory> trajectoryList) {
-        return Commands.sequence(
-                placeGetPlace(trajectoryList),
-                Commands.parallel(followPath(trajectoryList.get(3)), retractExtension()),
-                balanceFromConventionLocation(trajectoryList.get(3).getEndState().poseMeters));
-    }
-
     private Command balanceFromConventionLocation(Pose2d basePose) {
-        return Commands.sequence(
+        return sequence(
                 toPoint(new Pose2d(basePose.getTranslation(), Rotation2d.fromDegrees(90.0))),
                 clawStow(),
                 toPoint(new Pose2d(
@@ -168,35 +177,37 @@ public class Autos {
     }
 
     private Command placeBalance(List<PathPlannerTrajectory> trajectoryList) {
-        return Commands.sequence(
-                Commands.parallel(homeBoth(), closeClaw()),
+        return sequence(
+                parallel(homeBoth(), closeClaw()),
                 clawHigh(),
                 followPath(trajectoryList.get(0)),
                 openClaw(),
-                Commands.parallel(followPath(trajectoryList.get(1)), Commands.sequence(retractExtension())),
-                clawStow(),
+                parallel(
+                        followPath(trajectoryList.get(1)),
+                        retractExtension(),
+                        sequence(waitSeconds(0.5), retractLift())),
                 followPath(trajectoryList.get(2)),
                 correctBalance());
     }
 
     private Command homeBoth() {
-        return new WaitCommand(0.5);
-        //        return Commands.parallel(
-        //                HomeCommandFactory.homeLiftCommand(liftSubsystem),
-        //                HomeCommandFactory.homeExtensionCommand(extensionSubsystem));
+        return parallel(
+                HomeCommandFactory.homeLiftCommand(liftSubsystem),
+                HomeCommandFactory.homeExtensionCommand(extensionSubsystem));
     }
 
     private Command toPoint(Pose2d point) {
-        //                return new SimpleToPointCommand(point, driveSubsystem);
-        return new WaitCommand(1.0);
+        return new SimpleToPointCommand(point, driveSubsystem);
     }
 
     private Command openClaw() {
         return Commands.runOnce(() -> clawSubsystem.setClawState(ClawState.OPEN), clawSubsystem);
+        //        return Commands.none();
     }
 
     private Command closeClaw() {
         return Commands.runOnce(() -> clawSubsystem.setClawState(ClawState.CLOSE), clawSubsystem);
+        //        return Commands.none();
     }
 
     private Command followPath(PathPlannerTrajectory trajectory) {
@@ -204,18 +215,19 @@ public class Autos {
     }
 
     private Command clawHigh() {
-        //        return new PositionClawCommand(AutoScoreConstants.HIGH, liftSubsystem, extensionSubsystem);
-        return new WaitCommand(1.0);
+        return new PositionClawCommand(AutoScoreConstants.HIGH, liftSubsystem, extensionSubsystem);
     }
 
     private Command clawStow() {
-        //        return new PositionClawCommand(AutoScoreConstants.STOW, liftSubsystem, extensionSubsystem);
-        return new WaitCommand(1.0);
+        return new PositionClawCommand(AutoScoreConstants.STOW, liftSubsystem, extensionSubsystem);
     }
 
     private Command retractExtension() {
-        //        return new SetExtensionPositionCommand(Units.inchesToMeters(0.5), extensionSubsystem);
-        return new WaitCommand(0.5);
+        return new SetExtensionPositionCommand(AutoScoreConstants.STOW.getSecond(), extensionSubsystem);
+    }
+
+    private Command retractLift() {
+        return new SetLiftPositionCommand(AutoScoreConstants.STOW.getFirst(), liftSubsystem);
     }
 
     private Command correctBalance() {

@@ -3,11 +3,13 @@ package frc.robot.subsystems.extension;
 import static frc.robot.Constants.ExtensionConstants.*;
 import static frc.robot.utils.RaiderUtils.checkRevError;
 
+import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.MiscConstants;
 import frc.robot.Robot;
@@ -86,6 +88,10 @@ public class ExtensionSubsystem extends SubsystemBase implements DualHomeable {
             faultInitializing |= checkRevError(leftMotor.setSmartCurrentLimit(STALL_CURRENT_LIMIT, FREE_CURRENT_LIMIT));
             faultInitializing |=
                     checkRevError(rightMotor.setSmartCurrentLimit(STALL_CURRENT_LIMIT, FREE_CURRENT_LIMIT));
+
+            faultInitializing |= checkRevError(leftMotor.setIdleMode(IdleMode.kBrake));
+            faultInitializing |= checkRevError(rightMotor.setIdleMode(IdleMode.kBrake));
+
         } while (faultInitializing && configTimeout.hasNotTimedOut());
 
         if (faultInitializing) {
@@ -118,6 +124,8 @@ public class ExtensionSubsystem extends SubsystemBase implements DualHomeable {
     }
 
     public boolean atClosedLoopGoal() {
+        SmartDashboard.putBoolean(
+                "AtExtensionGoal", currentMode != ExtensionControlMode.CLOSED_LOOP || controller.atGoal());
         return currentMode != ExtensionControlMode.CLOSED_LOOP || controller.atGoal();
     }
 

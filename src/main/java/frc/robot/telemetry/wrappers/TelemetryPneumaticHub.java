@@ -19,6 +19,7 @@ public class TelemetryPneumaticHub extends PneumaticHub {
     private final DoubleTelemetryEntry solenoidVoltageEntry;
     private final DoubleTelemetryEntry compressorCurrentEntry;
     private final BooleanTelemetryEntry pressureSwitchEntry;
+    private final DoubleTelemetryEntry pressureEntry;
     private final BooleanTelemetryEntry compressorActiveEntry;
     private final BooleanArrayTelemetryEntry faultsEntry;
 
@@ -38,7 +39,8 @@ public class TelemetryPneumaticHub extends PneumaticHub {
         regulated5VEntry = new DoubleTelemetryEntry(thisTableName + "regulated5V", false);
         totalSolenoidCurrentEntry = new DoubleTelemetryEntry(thisTableName + "totalSolenoidCurrent", false);
         solenoidVoltageEntry = new DoubleTelemetryEntry(thisTableName + "solenoidVoltage", false);
-        compressorCurrentEntry = new DoubleTelemetryEntry(thisTableName + "compressorCurrent", false);
+        compressorCurrentEntry = new DoubleTelemetryEntry(thisTableName + "compressorCurrent", true);
+        pressureEntry = new DoubleTelemetryEntry(thisTableName + "pressure", true);
         pressureSwitchEntry = new BooleanTelemetryEntry(thisTableName + "pressureSwitch", true);
         compressorActiveEntry = new BooleanTelemetryEntry(thisTableName + "compressorActive", true);
         faultsEntry = new BooleanArrayTelemetryEntry(thisTableName + "faults", false);
@@ -50,6 +52,7 @@ public class TelemetryPneumaticHub extends PneumaticHub {
         totalSolenoidCurrentEntry.append(super.getSolenoidsTotalCurrent());
         solenoidVoltageEntry.append(super.getSolenoidsVoltage());
         compressorCurrentEntry.append(super.getCompressorCurrent());
+        pressureEntry.append(super.getPressure(0));
         pressureSwitchEntry.append(super.getPressureSwitch());
         compressorActiveEntry.append(super.getCompressor());
 

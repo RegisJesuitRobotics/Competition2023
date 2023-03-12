@@ -46,9 +46,12 @@ public class PhotonSubsystem extends SubsystemBase {
         }
 
         cameras.add(new PhotonCamera(VisionConstants.FRONT_CAMERA_NAME));
+        cameras.add(new PhotonCamera(VisionConstants.BACK_CAMERA_NAME));
 
         poseEstimators.add(new PhotonPoseEstimator(
                 fieldLayout, PoseStrategy.MULTI_TAG_PNP, cameras.get(0), VisionConstants.FRONT_CAMERA_LOCATION));
+        poseEstimators.add(new PhotonPoseEstimator(
+                fieldLayout, PoseStrategy.MULTI_TAG_PNP, cameras.get(1), VisionConstants.BACK_CAMERA_LOCATION));
 
         for (int i = 0; i < poseEstimators.size(); i++) {
             estimatedPoseEntries.add(new Pose3dEntry("/photon/estimatedPoses/" + i, MiscConstants.TUNING_MODE));
@@ -65,10 +68,11 @@ public class PhotonSubsystem extends SubsystemBase {
             PhotonCamera photonCamera = cameras.get(i);
             PhotonPipelineResult result = photonCamera.getLatestResult();
 
-            // Remove bad tags
+            // Remove bad tags if only one, also add to our array
             for (int j = result.targets.size() - 1; j >= 0; j--) {
                 PhotonTrackedTarget target = result.targets.get(j);
-                boolean shouldUse = result.targets.get(j).getPoseAmbiguity() < VisionConstants.POSE_AMBIGUITY_CUTOFF;
+                boolean shouldUse = result.targets.size() > 1
+                        || result.targets.get(j).getPoseAmbiguity() < VisionConstants.POSE_AMBIGUITY_CUTOFF;
                 if (fieldLayout.getTagPose(target.getFiducialId()).isPresent()) {
                     Pose3d tagPose =
                             fieldLayout.getTagPose(target.getFiducialId()).get();

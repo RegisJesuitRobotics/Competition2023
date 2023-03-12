@@ -223,8 +223,9 @@ public class SwerveModule {
             motorConfiguration.closedloopRamp = config.sharedConfiguration().steerClosedLoopRamp();
 
             config.sharedConfiguration().steerPositionPIDGains().setSlot(motorConfiguration.slot0);
-            motorConfiguration.slot0.allowableClosedloopError =
-                    config.sharedConfiguration().allowableSteerErrorRadians() / steerMotorConversionFactorPosition;
+            //            motorConfiguration.slot0.allowableClosedloopError =
+            //                    config.sharedConfiguration().allowableSteerErrorRadians() /
+            // steerMotorConversionFactorPosition;
             motorConfiguration.slot0.closedLoopPeakOutput = config.sharedConfiguration()
                             .maxSteerVoltage()
                     / config.sharedConfiguration().nominalVoltage();
@@ -370,7 +371,7 @@ public class SwerveModule {
      * @return the rotation of the wheel
      */
     private Rotation2d getSteerAngle() {
-        return new Rotation2d(MathUtil.angleModulus(getSteerAngleRadiansNoWrap()));
+        return Rotation2d.fromRadians(MathUtil.angleModulus(getSteerAngleRadiansNoWrap()));
     }
 
     private double getSteerVelocityRadiansPerSecond() {
