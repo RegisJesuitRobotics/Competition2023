@@ -9,7 +9,6 @@ import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.MiscConstants;
 import frc.robot.Robot;
@@ -124,8 +123,6 @@ public class ExtensionSubsystem extends SubsystemBase implements DualHomeable {
     }
 
     public boolean atClosedLoopGoal() {
-        SmartDashboard.putBoolean(
-                "AtExtensionGoal", currentMode != ExtensionControlMode.CLOSED_LOOP || controller.atGoal());
         return currentMode != ExtensionControlMode.CLOSED_LOOP || controller.atGoal();
     }
 
@@ -157,6 +154,10 @@ public class ExtensionSubsystem extends SubsystemBase implements DualHomeable {
     public void setInHome() {
         setPosition(0.0);
         isHomed = true;
+    }
+
+    public boolean isHomed() {
+        return isHomed;
     }
 
     @Override

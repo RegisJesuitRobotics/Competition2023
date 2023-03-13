@@ -76,17 +76,8 @@ public class Robot extends TreeTimedRobot {
         miscRobotTelemetryAndAlerts = new MiscRobotTelemetryAndAlerts();
         overrunAlertManager = new OverrunAlertManager();
 
-        //noinspection resource
-        Notifier otherLoggingThread = new Notifier(() -> {
-            telemetryPowerDistribution.logValues();
-            telemetryPneumaticHub.logValues();
-            miscRobotTelemetryAndAlerts.logValues();
-        });
-        otherLoggingThread.setName("Other Logging");
-        otherLoggingThread.startPeriodic(0.1);
-
         SparkMaxFlashManager.init();
-        robotContainer = new RobotContainer();
+        robotContainer = new RobotContainer(telemetryPneumaticHub);
 
         lastAlliance = DriverStation.getAlliance();
 
@@ -109,13 +100,19 @@ public class Robot extends TreeTimedRobot {
             robotContainer.onAllianceChange(lastAlliance);
         }
 
-        watchdog.addNode("commandScheduler");
+        startWNode("commandScheduler");
         CommandScheduler.getInstance().run();
-        watchdog.endCurrentNode();
+        endWNode();
 
-        watchdog.addNode("sendableTelemetry");
+        startWNode("sendableTelemetry");
         SendableTelemetryManager.getInstance().update();
-        watchdog.endCurrentNode();
+        endWNode();
+
+        startWNode("miscTelemetry");
+        telemetryPowerDistribution.logValues();
+        telemetryPneumaticHub.logValues();
+        miscRobotTelemetryAndAlerts.logValues();
+        endWNode();
     }
 
     /** This method is called once each time the robot enters Disabled mode. */
@@ -128,7 +125,7 @@ public class Robot extends TreeTimedRobot {
     /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
     @Override
     public void autonomousInit() {
-        telemetryPneumaticHub.enableCompressorAnalog(75, 120);
+        telemetryPneumaticHub.enableCompressorHybrid(75, 120);
         autonomousCommand = robotContainer.getAutonomousCommand();
 
         if (autonomousCommand != null) {
@@ -142,7 +139,7 @@ public class Robot extends TreeTimedRobot {
 
     @Override
     public void teleopInit() {
-        telemetryPneumaticHub.enableCompressorAnalog(75, 120);
+        telemetryPneumaticHub.enableCompressorHybrid(75, 120);
         if (autonomousCommand != null) {
             autonomousCommand.cancel();
         }
@@ -154,7 +151,7 @@ public class Robot extends TreeTimedRobot {
 
     @Override
     public void testInit() {
-        telemetryPneumaticHub.enableCompressorAnalog(114, 120);
+        telemetryPneumaticHub.enableCompressorHybrid(114, 120);
         CommandScheduler.getInstance().cancelAll();
     }
 

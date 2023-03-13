@@ -71,8 +71,14 @@ public class PhotonSubsystem extends SubsystemBase {
             // Remove bad tags if only one, also add to our array
             for (int j = result.targets.size() - 1; j >= 0; j--) {
                 PhotonTrackedTarget target = result.targets.get(j);
-                boolean shouldUse = result.targets.size() > 1
-                        || result.targets.get(j).getPoseAmbiguity() < VisionConstants.POSE_AMBIGUITY_CUTOFF;
+                boolean shouldUse = (result.targets.get(j).getPoseAmbiguity() < VisionConstants.POSE_AMBIGUITY_CUTOFF
+                                || result.targets.size() > 1)
+                        && result.targets
+                                        .get(j)
+                                        .getBestCameraToTarget()
+                                        .getTranslation()
+                                        .getNorm()
+                                < VisionConstants.DISTANCE_CUTOFF;
                 if (fieldLayout.getTagPose(target.getFiducialId()).isPresent()) {
                     Pose3d tagPose =
                             fieldLayout.getTagPose(target.getFiducialId()).get();

@@ -1,6 +1,7 @@
 package frc.robot;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
@@ -9,12 +10,13 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.PneumaticHub;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.*;
-import frc.robot.FieldConstants.Grids;
 import frc.robot.commands.AutoScoreCommand;
 import frc.robot.commands.HomeCommandFactory;
 import frc.robot.commands.PositionClawCommand;
@@ -37,10 +39,7 @@ import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.SendableTelemetryManager;
 import frc.robot.telemetry.tunable.gains.TunableDouble;
 import frc.robot.utils.*;
-import frc.robot.utils.led.AlternatePattern;
-import frc.robot.utils.led.RandomColorsPattern;
-import frc.robot.utils.led.SlidePattern;
-import frc.robot.utils.led.SolidPattern;
+import frc.robot.utils.led.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BooleanSupplier;
@@ -63,6 +62,8 @@ public class RobotContainer {
     private final ExtensionSubsystem extensionSubsystem = new ExtensionSubsystem();
     private final LEDSubsystem ledSubsystem = new LEDSubsystem();
 
+    private final PneumaticHub pneumaticHub;
+
     private final AtomicBoolean wantCube = new AtomicBoolean();
     private final AtomicBoolean wantCone = new AtomicBoolean();
 
@@ -77,7 +78,9 @@ public class RobotContainer {
             .getIntegerTopic("/toLog/autoScore/grid")
             .getEntry(0);
 
-    public RobotContainer() {
+    public RobotContainer(PneumaticHub pneumaticHub) {
+        this.pneumaticHub = pneumaticHub;
+
         configureDriverBindings();
         configureOperatorBindings();
         configureAutos();
@@ -271,7 +274,7 @@ public class RobotContainer {
         TunableDouble maxTranslationSpeedPercent = new TunableDouble("/speed/maxTranslation", 0.9, true);
         TunableDouble maxMaxAngularSpeedPercent = new TunableDouble("/speed/maxAngular", 0.3, true);
 
-        BooleanSupplier armHigh = () -> liftSubsystem.getArmAngle().getRadians() > Units.degreesToRadians(-30.0);
+        BooleanSupplier armHigh = () -> liftSubsystem.getArmAngle().getRadians() > Units.degreesToRadians(-20.0);
 
         DoubleSupplier maxTranslationalSpeedSuppler = () -> maxTranslationSpeedPercent.get()
                 * DriveTrainConstants.MAX_VELOCITY_METERS_SECOND
@@ -351,12 +354,22 @@ public class RobotContainer {
     }
 
     private void configureLEDs() {
+        Debouncer upFilter = new Debouncer(0.2);
+        Debouncer downFilter = new Debouncer(0.2);
+
         List<LEDState> ledStates = List.of(
                 // Party mode on flip is #1 priority
                 new LEDState(
-                        () -> Math.abs(driveSubsystem.getRoll()) > 50.0 || Math.abs(driveSubsystem.getPitch()) > 50.0,
+                        () -> Math.abs(driveSubsystem.getRollRadians()) > Units.degreesToRadians(50.0)
+                                || Math.abs(driveSubsystem.getPitchRadians()) > Units.degreesToRadians(50.0),
                         new AlternatePattern(
                                 2.0 / 5.0, new RandomColorsPattern(2.0 / 5.0), new SolidPattern(Color.kBlack))),
+                new LEDState(
+                        () -> DriverStation.getMatchTime() < 30.0 && DriverStation.getMatchTime() > 29.0,
+                        new SplitBufferPattern(
+                                LEDConstants.MAX_SIZE / 2,
+                                new SlidePattern(0.5, Color.kCyan, Color.kBlack),
+                                new SlidePattern(0.5, true, Color.kCyan, Color.kBlack))),
                 // Cube and Code Operator Requests
                 new LEDState(wantCone::get, new AlternatePattern(0.5, Color.kGold, Color.kBlack)),
                 new LEDState(wantCube::get, new AlternatePattern(0.5, Color.kPurple, Color.kBlack)),
@@ -364,37 +377,46 @@ public class RobotContainer {
                 new LEDState(
                         () -> Alert.getDefaultGroup().hasAnyErrors(),
                         new AlternatePattern(2.0, Color.kRed, Color.kBlack)),
-                // Orange if we are to close to the grid to bring arm down
+                // Blink aqua if not pressurized
                 new LEDState(
-                        () -> DriverStation.isEnabled()
-                                && liftSubsystem.isHomed()
-                                && RaiderUtils.flipIfShould(driveSubsystem.getPose())
-                                                .getX()
-                                        < 2.4
-                                && LiftExtensionKinematics.liftExtensionPositionToClawPosition(
-                                                        liftSubsystem.getArmAngle(), extensionSubsystem.getPosition())
-                                                .getY()
-                                        > Grids.midCubeZ,
-                        new SolidPattern(Color.kOrange)),
+                        () -> pneumaticHub.getPressure(0) < 10.0, new AlternatePattern(1.0, Color.kPink, Color.kBlack)),
+                // Blink yellow on low idle battery voltage
+                new LEDState(
+                        () -> DriverStation.isDisabled() && RobotController.getBatteryVoltage() < 12.0,
+                        new AlternatePattern(1.0, Color.kOrange, Color.kBlack)),
+                // Going up and going down patterns
+                new LEDState(
+                        () -> upFilter.calculate(liftSubsystem.getVelocity() > Units.degreesToRadians(10.0)),
+                        new AlternatePattern(
+                                0.75,
+                                0.25,
+                                new SlidePattern(0.75, Color.kWhite, Color.kBlack),
+                                new SolidPattern(Color.kBlack))),
+                new LEDState(
+                        () -> downFilter.calculate(liftSubsystem.getVelocity() < -Units.degreesToRadians(10.0)),
+                        new AlternatePattern(
+                                0.75,
+                                0.25,
+                                new SlidePattern(0.75, true, Color.kBlack, Color.kWhite),
+                                new SolidPattern(Color.kBlack))),
                 // Default disabled pattern
                 new LEDState(
                         DriverStation::isDisabled,
                         new AlternatePattern(
                                 8.0,
-                                new SlidePattern(8 / 2.0, Color.kDarkRed, Color.kWhite),
-                                new SlidePattern(8 / 2.0, Color.kWhite, Color.kDarkRed))));
+                                new SlidePattern(8.0 / 2.0, Color.kDarkRed, Color.kWhite),
+                                new SlidePattern(8.0 / 2.0, Color.kWhite, Color.kDarkRed))));
 
         ledSubsystem.setDefaultCommand(
                 new LEDStateMachineCommand(new SolidPattern(Color.kBlack), ledStates, ledSubsystem));
     }
 
     private Command rumbleDriverControllerCommand() {
-        // return Commands.runEnd(
-        //                 () -> driverController.getHID().setRumble(RumbleType.kBothRumble, 1.0),
-        //                 () -> driverController.getHID().setRumble(RumbleType.kBothRumble, 0.0))
-        //         .withTimeout(0.5)
-        //         .ignoringDisable(true);
-        return Commands.none();
+        return Commands.runEnd(
+                        () -> driverController.getHID().setRumble(RumbleType.kBothRumble, 1.0),
+                        () -> driverController.getHID().setRumble(RumbleType.kBothRumble, 0.0))
+                .withTimeout(0.5)
+                .ignoringDisable(true);
     }
 
     private Command rumbleOperatorControllerCommand() {

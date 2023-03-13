@@ -15,8 +15,6 @@ public class CorrectBalanceCommand extends CommandBase {
     public CorrectBalanceCommand(SwerveDriveSubsystem driveSubsystem) {
         this.driveSubsystem = driveSubsystem;
 
-        balanceController.setTolerance(1.5);
-
         addRequirements(driveSubsystem);
     }
 
@@ -30,7 +28,7 @@ public class CorrectBalanceCommand extends CommandBase {
         driveSubsystem.setChassisSpeeds(
                 new ChassisSpeeds(
                         0,
-                        balanceController.calculate(driveSubsystem.getPitch())
+                        balanceController.calculate(driveSubsystem.getPitchRadians())
                                 * AutoConstants.AUTO_BALANCE_SPEED_METERS_SECOND,
                         0),
                 false);

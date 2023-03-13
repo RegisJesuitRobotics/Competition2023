@@ -2,12 +2,7 @@ package frc.robot;
 
 import com.pathplanner.lib.PathConstraints;
 import edu.wpi.first.math.Pair;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
@@ -23,6 +18,8 @@ import frc.robot.utils.LiftExtensionKinematics;
 import frc.robot.utils.SwerveModuleConfiguration;
 import frc.robot.utils.SwerveModuleConfiguration.SharedSwerveModuleConfiguration;
 import frc.robot.utils.geometry.Rectangle;
+import java.util.Collections;
+import java.util.List;
 
 /** File containing all constants for the robot. */
 public final class Constants {
@@ -34,15 +31,15 @@ public final class Constants {
         public static final Transform3d FRONT_CAMERA_LOCATION = new Transform3d(
                 new Translation3d(
                         Units.inchesToMeters(1.5 + 1.268095),
-                        Units.inchesToMeters((20.75) / 2.0 + 1.738934 - (1.276220 / 2.0)),
-                        Units.inchesToMeters(33.0 + 3.75 - 0.969)),
+                        Units.inchesToMeters((20.75 / 2.0) + 1.738934 - (1.276220 / 2.0)),
+                        Units.inchesToMeters(33.0 + 4.0 - 0.969)),
                 new Rotation3d(
                         Units.degreesToRadians(0.0), Units.degreesToRadians(13.5 - 2.5), Units.degreesToRadians(0.0)));
         public static final Transform3d BACK_CAMERA_LOCATION = new Transform3d(
                 new Translation3d(
                         Units.inchesToMeters(1.5 - 1.268095),
-                        Units.inchesToMeters((20.75) / 2.0 + 1.738934 - (1.276220 / 2.0)),
-                        Units.inchesToMeters(33.0 + 3.75 - 0.969)),
+                        Units.inchesToMeters((20.75 / 2.0) + 1.738934 - (1.276220 / 2.0)),
+                        Units.inchesToMeters(33.0 + 4.0 - 0.969)),
                 new Rotation3d(
                         Units.degreesToRadians(0.0),
                         Units.degreesToRadians(13.5 + 2.5),
@@ -51,7 +48,8 @@ public final class Constants {
         public static final String FRONT_CAMERA_NAME = "FrontCamera";
         public static final String BACK_CAMERA_NAME = "BackCamera";
 
-        public static final double POSE_AMBIGUITY_CUTOFF = 0.1;
+        public static final double POSE_AMBIGUITY_CUTOFF = 0.05;
+        public static final double DISTANCE_CUTOFF = 4.0;
     }
 
     public static final double DT = 0.02;
@@ -155,12 +153,12 @@ public final class Constants {
     public static class AutoConstants {
         private AutoConstants() {}
 
-        public static final double MAX_AUTO_VELOCITY_METERS_SECOND = 2;
+        public static final double MAX_AUTO_VELOCITY_METERS_SECOND = 2.5;
         public static final double MAX_AUTO_ACCELERATION_METERS_PER_SECOND_SQUARED = 2;
 
         public static final PathConstraints TRAJECTORY_CONSTRAINTS =
                 new PathConstraints(MAX_AUTO_VELOCITY_METERS_SECOND, MAX_AUTO_ACCELERATION_METERS_PER_SECOND_SQUARED);
-        public static final PathConstraints SLOW_TRAJECTORY_CONSTRAINTS = new PathConstraints(2, 1.25);
+        public static final PathConstraints SLOW_TRAJECTORY_CONSTRAINTS = new PathConstraints(2, 1.5);
 
         public static final double MAX_AUTO_ANGULAR_VELOCITY_RADIANS_SECOND = Math.PI * 2;
         public static final double MAX_AUTO_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED = Math.PI;
@@ -287,6 +285,10 @@ public final class Constants {
         public static final int FRONT_RIGHT_SIZE = 14;
         public static final int BACK_LEFT_SIZE = 17;
         public static final int BACK_RIGHT_SIZE = 11;
+
+        public static final int TOTAL_SIZE = FRONT_LEFT_SIZE + FRONT_RIGHT_SIZE + BACK_LEFT_SIZE + BACK_RIGHT_SIZE;
+        public static final int MAX_SIZE =
+                Collections.max(List.of(BACK_LEFT_SIZE, FRONT_LEFT_SIZE, BACK_RIGHT_SIZE, FRONT_RIGHT_SIZE));
     }
 
     public static class TeleopConstants {
@@ -314,7 +316,7 @@ public final class Constants {
 
         // These are hard-coded right now because of the drift and stuff, but this will be changed once we get the
         // encoder
-        public static final Pair<Rotation2d, Double> HIGH = Pair.of(Rotation2d.fromDegrees(31.04), 0.5685);
+        public static final Pair<Rotation2d, Double> HIGH = Pair.of(Rotation2d.fromDegrees(26.0), 0.5685);
         public static final Pair<Rotation2d, Double> MID = Pair.of(Rotation2d.fromDegrees(8.08), 0.02839);
         public static final Pair<Rotation2d, Double> LOW = Pair.of(Rotation2d.fromDegrees(-72.39), 0.1903);
         public static final Pair<Rotation2d, Double> SUBSTATION = Pair.of(Rotation2d.fromDegrees(9.5), 0.2);

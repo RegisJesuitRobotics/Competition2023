@@ -6,11 +6,9 @@ import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.kinematics.*;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.MiscConstants;
@@ -117,24 +115,24 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         setHeading(Rotation2d.fromDegrees(0.0));
     }
 
-    double pitchOffset = 0.0;
+    double pitchOffsetDegrees = 0.0;
 
-    public double getPitch() {
-        return gyro.getPitch() - pitchOffset;
+    public double getPitchRadians() {
+        return Units.degreesToRadians(gyro.getPitch() - pitchOffsetDegrees);
     }
 
     public void resetPitch() {
-        pitchOffset = gyro.getPitch();
+        pitchOffsetDegrees = gyro.getPitch();
     }
 
-    double rollOffset = 0.0;
+    double rollOffsetDegrees = 0.0;
 
-    public double getRoll() {
-        return gyro.getRoll() - rollOffset;
+    public double getRollRadians() {
+        return Units.degreesToRadians(gyro.getRoll() - rollOffsetDegrees);
     }
 
     public void resetRoll() {
-        rollOffset = gyro.getRoll();
+        rollOffsetDegrees = gyro.getRoll();
     }
 
     /**
@@ -332,8 +330,10 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         Robot.startWNode("odometry");
         List<EstimatedRobotPose> estimatedRobotPoses = cameraPoseDataSupplier.apply(getPose());
         for (EstimatedRobotPose estimatedRobotPose : estimatedRobotPoses) {
-            poseEstimator.addVisionMeasurement(
-                    estimatedRobotPose.estimatedPose.toPose2d(), estimatedRobotPose.timestampSeconds);
+            if (!DriverStation.isAutonomousEnabled()) {
+                poseEstimator.addVisionMeasurement(
+                        estimatedRobotPose.estimatedPose.toPose2d(), estimatedRobotPose.timestampSeconds);
+            }
         }
         poseEstimator.update(getGyroRotation(), getModulePositions());
 
