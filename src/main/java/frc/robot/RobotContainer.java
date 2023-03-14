@@ -2,7 +2,6 @@ package frc.robot;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
@@ -11,7 +10,6 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -90,14 +88,6 @@ public class RobotContainer {
                 Commands.run(liftSubsystem::stopMovement, liftSubsystem).withName("LiftDefault"));
         extensionSubsystem.setDefaultCommand(Commands.run(extensionSubsystem::stopMovement, extensionSubsystem)
                 .withName("ExtensionDefault"));
-
-        new Notifier(() -> {
-                    Rotation2d yaw = driveSubsystem.getPose().getRotation();
-                    double angle = yaw.getSin() * driveSubsystem.getPitchRadians()
-                            + yaw.getCos() * driveSubsystem.getRollRadians();
-                    SmartDashboard.putNumber("Angle", angle);
-                })
-                .startPeriodic(0.02);
 
         CommandBase forceSetInHome = RaiderCommands.runOnceAllowDisable(() -> {
             extensionSubsystem.setInHome();
@@ -382,8 +372,9 @@ public class RobotContainer {
                                 || Math.abs(driveSubsystem.getPitchRadians()) > Units.degreesToRadians(50.0),
                         new AlternatePattern(
                                 2.0 / 5.0, new RandomColorsPattern(2.0 / 5.0), new SolidPattern(Color.kBlack))),
+                // End game alert
                 new LEDState(
-                        () -> DriverStation.getMatchTime() < 30.0 && DriverStation.getMatchTime() > 29.0,
+                        () -> DriverStation.getMatchTime() < 30.0 && DriverStation.getMatchTime() > 28.5,
                         new SplitBufferPattern(
                                 LEDConstants.MAX_SIZE / 2,
                                 new SlidePattern(0.5, Color.kCyan, Color.kBlack),

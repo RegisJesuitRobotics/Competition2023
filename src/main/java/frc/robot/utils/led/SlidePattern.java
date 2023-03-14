@@ -34,8 +34,8 @@ public class SlidePattern implements Pattern {
         int offset = (int) (patternTime % period / period * length);
         RaiderAddressableLEDBuffer buffer1, buffer2;
         if (reverse) {
-            buffer1 = buffer.split(offset, length);
-            buffer2 = buffer.split(0, offset);
+            buffer1 = buffer.split(length - offset, length);
+            buffer2 = buffer.split(0, length - offset);
         } else {
             buffer1 = buffer.split(0, offset);
             buffer2 = buffer.split(offset, length);
