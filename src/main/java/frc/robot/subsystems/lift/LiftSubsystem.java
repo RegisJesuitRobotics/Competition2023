@@ -74,6 +74,8 @@ public class LiftSubsystem extends SubsystemBase implements DualHomeable {
             new DoubleTelemetryEntry("/lifter/relativeEncoderPosition", MiscConstants.TUNING_MODE);
     private final DoubleTelemetryEntry relativeEncoderVelocityEntry =
             new DoubleTelemetryEntry("/lifter/relativeEncoderVelocity", MiscConstants.TUNING_MODE);
+    private final BooleanTelemetryEntry atGoalEntry =
+            new BooleanTelemetryEntry("/lifter/atGoal", MiscConstants.TUNING_MODE);
     private final EventTelemetryEntry eventEntry = new EventTelemetryEntry("/lifter/events");
     private final IntegerTelemetryEntry modeEntry = new IntegerTelemetryEntry("/lifter/mode", false);
     private final DoubleTelemetryEntry leftRawVoltageRequestEntry =
@@ -277,6 +279,8 @@ public class LiftSubsystem extends SubsystemBase implements DualHomeable {
 
         notHomedAlert.set(!isZeroed);
         isZeroedEntry.append(isZeroed);
+
+        atGoalEntry.append(atClosedLoopGoal());
 
         if (FF_GAINS.hasChanged()) {
             feedforward = FF_GAINS.createFeedforward();

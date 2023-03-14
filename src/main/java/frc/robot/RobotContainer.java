@@ -2,17 +2,16 @@ package frc.robot;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.IntegerEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
-import edu.wpi.first.wpilibj.PneumaticHub;
-import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -92,6 +91,20 @@ public class RobotContainer {
         extensionSubsystem.setDefaultCommand(Commands.run(extensionSubsystem::stopMovement, extensionSubsystem)
                 .withName("ExtensionDefault"));
 
+        new Notifier(() -> {
+                    Rotation2d yaw = driveSubsystem.getPose().getRotation();
+                    double angle = yaw.getSin() * driveSubsystem.getPitchRadians()
+                            + yaw.getCos() * driveSubsystem.getRollRadians();
+                    SmartDashboard.putNumber("Angle", angle);
+                })
+                .startPeriodic(0.02);
+
+        CommandBase forceSetInHome = RaiderCommands.runOnceAllowDisable(() -> {
+            extensionSubsystem.setInHome();
+            liftSubsystem.setInHome();
+        });
+        SendableTelemetryManager.getInstance().addSendable("/ForceSetInHome", forceSetInHome);
+
         // The last second lock and release
         new Trigger(() -> DriverStation.isTeleop() && Timer.getMatchTime() < 0.5)
                 .onTrue(Commands.parallel(
@@ -114,6 +127,11 @@ public class RobotContainer {
         driverController
                 .leftStick()
                 .onTrue(new PositionClawCommand(AutoScoreConstants.STOW, liftSubsystem, extensionSubsystem));
+
+        driverController.plus().onTrue(RaiderCommands.runOnceAllowDisable(() -> {
+            driveSubsystem.resetRoll();
+            driveSubsystem.resetPitch();
+        }));
 
         driverController
                 .rightStick()
@@ -202,7 +220,7 @@ public class RobotContainer {
                 .whileTrue(new PositionClawCommand(AutoScoreConstants.LOW, liftSubsystem, extensionSubsystem)
                         .andThen(rumbleOperatorControllerCommand()));
         operatorController
-                .povLeft()
+                .circle()
                 .whileTrue(new PositionClawCommand(AutoScoreConstants.SUBSTATION, liftSubsystem, extensionSubsystem)
                         .andThen(rumbleOperatorControllerCommand()));
 

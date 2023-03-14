@@ -132,10 +132,10 @@ public class CommandNintendoSwitchController extends CommandGenericHID {
      *
      * @return an event instance representing the A button's digital signal attached to the {@link
      *     CommandScheduler#getDefaultButtonLoop() default scheduler button loop}.
-     * @see #x(EventLoop)
+     * @see #a(EventLoop)
      */
     public Trigger a() {
-        return x(CommandScheduler.getInstance().getDefaultButtonLoop());
+        return a(CommandScheduler.getInstance().getDefaultButtonLoop());
     }
 
     /**

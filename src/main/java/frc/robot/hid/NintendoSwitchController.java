@@ -19,8 +19,8 @@ public class NintendoSwitchController extends GenericHID {
         LeftStick(11),
         RightStick(12),
         Y(1),
-        A(2),
-        B(3),
+        A(3),
+        B(2),
         X(4),
         Circle(14),
         Home(13);

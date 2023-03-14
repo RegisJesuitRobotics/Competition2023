@@ -70,6 +70,7 @@ public class Autos {
             autoCommandChooser.addOption("GreaseGears", new GreaseGearsCommand(driveSubsystem));
             autoCommandChooser.addOption("DriveTestingCommand", new DriveTestingCommand(1.0, driveSubsystem));
             autoCommandChooser.addOption("SteerTesting", new SteerTestingCommand(driveSubsystem));
+            autoCommandChooser.addOption("AutoBalanceTeSting", new CorrectBalanceAndLockCommand(driveSubsystem));
         }
 
         new Trigger(autoCommandChooser::hasNewValue)
@@ -119,9 +120,10 @@ public class Autos {
 
     private Command centerBalance() {
         List<PathPlannerTrajectory> trajectoryList =
-                PathPlanner.loadPathGroup("CenterB", AutoConstants.TRAJECTORY_CONSTRAINTS);
+                PathPlanner.loadPathGroup("CenterB", AutoConstants.VERY_SLOW_TRAJECTORY_CONSTRAINTS);
 
-        return sequence(homeBoth(), followPath(trajectoryList.get(0)), correctBalance());
+        return sequence(
+                homeBoth(), followPath(trajectoryList.get(0)), followPath(trajectoryList.get(1)), correctBalance());
     }
 
     private Command centerPlaceBalance() {
@@ -162,7 +164,7 @@ public class Autos {
                 toPoint(new Pose2d(basePose.getTranslation(), Rotation2d.fromDegrees(90.0))),
                 clawStow(),
                 toPoint(new Pose2d(
-                        basePose.getTranslation().plus(new Translation2d(1.0, 0.0)), Rotation2d.fromDegrees(90.0))),
+                        basePose.getTranslation().plus(new Translation2d(2.0, 0.0)), Rotation2d.fromDegrees(90.0))),
                 correctBalance());
     }
 
@@ -188,7 +190,6 @@ public class Autos {
                         followPath(trajectoryList.get(1)),
                         retractExtension(),
                         sequence(waitSeconds(0.5), retractLift())),
-                followPath(trajectoryList.get(2)),
                 correctBalance());
     }
 

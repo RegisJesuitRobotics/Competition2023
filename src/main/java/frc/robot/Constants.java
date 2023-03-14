@@ -159,6 +159,7 @@ public final class Constants {
         public static final PathConstraints TRAJECTORY_CONSTRAINTS =
                 new PathConstraints(MAX_AUTO_VELOCITY_METERS_SECOND, MAX_AUTO_ACCELERATION_METERS_PER_SECOND_SQUARED);
         public static final PathConstraints SLOW_TRAJECTORY_CONSTRAINTS = new PathConstraints(2, 1.5);
+        public static final PathConstraints VERY_SLOW_TRAJECTORY_CONSTRAINTS = new PathConstraints(1.5, 1);
 
         public static final double MAX_AUTO_ANGULAR_VELOCITY_RADIANS_SECOND = Math.PI * 2;
         public static final double MAX_AUTO_ANGULAR_ACCELERATION_RADIANS_SECOND_SQUARED = Math.PI;
@@ -317,7 +318,7 @@ public final class Constants {
         // These are hard-coded right now because of the drift and stuff, but this will be changed once we get the
         // encoder
         public static final Pair<Rotation2d, Double> HIGH = Pair.of(Rotation2d.fromDegrees(26.0), 0.5685);
-        public static final Pair<Rotation2d, Double> MID = Pair.of(Rotation2d.fromDegrees(8.08), 0.02839);
+        public static final Pair<Rotation2d, Double> MID = Pair.of(Rotation2d.fromDegrees(10.08), 0.02839);
         public static final Pair<Rotation2d, Double> LOW = Pair.of(Rotation2d.fromDegrees(-72.39), 0.1903);
         public static final Pair<Rotation2d, Double> SUBSTATION = Pair.of(Rotation2d.fromDegrees(9.5), 0.2);
         public static final Pair<Rotation2d, Double> STOW =
@@ -351,10 +352,10 @@ public final class Constants {
                                 SUBSTATION.getFirst(), SUBSTATION.getSecond())
                         .getX();
         public static final Pose2d WALL_SIDE_SUBSTATION_PICKUP = new Pose2d(
-                new Translation2d(SUBSTATION_PICKUP_X, LoadingZone.leftY - Units.inchesToMeters(21.0)),
+                new Translation2d(SUBSTATION_PICKUP_X, LoadingZone.leftY - Units.inchesToMeters(18.0)),
                 Rotation2d.fromDegrees(0.0));
         public static final Pose2d NOT_WALL_SIDE_SUBSTATION_PICKUP = new Pose2d(
-                new Translation2d(SUBSTATION_PICKUP_X, LoadingZone.rightY + Units.inchesToMeters(21.0)),
+                new Translation2d(SUBSTATION_PICKUP_X, LoadingZone.rightY + Units.inchesToMeters(18.0)),
                 Rotation2d.fromDegrees(0.0));
 
         public static final Rectangle ALLOWED_SCORING_AREA = new Rectangle(
