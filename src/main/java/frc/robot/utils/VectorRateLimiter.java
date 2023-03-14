@@ -34,8 +34,12 @@ public class VectorRateLimiter {
         return lastVector;
     }
 
-    public void reset() {
-        lastVector = new Translation2d();
+    public void reset(Translation2d translation2d) {
+        lastVector = translation2d;
         lastTime = WPIUtilJNI.now() * 1e-6;
+    }
+
+    public void reset() {
+        reset(new Translation2d());
     }
 }

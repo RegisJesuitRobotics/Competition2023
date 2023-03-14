@@ -30,12 +30,16 @@ public class SimpleToPointCommand extends CommandBase {
 
     private Pose2d currentDesiredPose = new Pose2d();
 
+    public SimpleToPointCommand(Pose2d desiredPose, SwerveDriveSubsystem driveSubsystem) {
+        this(() -> desiredPose, driveSubsystem);
+    }
+
     public SimpleToPointCommand(Supplier<Pose2d> desiredPoseSupplier, SwerveDriveSubsystem driveSubsystem) {
         this.desiredPoseSupplier = desiredPoseSupplier;
         this.driveSubsystem = driveSubsystem;
 
         translationController.setTolerance(0.05);
-        rotationController.setTolerance(Units.degreesToRadians(3.0));
+        rotationController.setTolerance(Units.degreesToRadians(5.0));
         rotationController.enableContinuousInput(-Math.PI, Math.PI);
 
         addRequirements(driveSubsystem);
@@ -62,10 +66,13 @@ public class SimpleToPointCommand extends CommandBase {
     public void execute() {
         Translation2d translationError = getTranslationError();
         // Use negative norm because it needs to be a positive feedback
-        double translationFeedback = translationController.calculate(-translationError.getNorm());
-        double translationFeedforward = translationController.getSetpoint().velocity;
-        Translation2d translationVelocity =
-                new Translation2d(translationFeedback + translationFeedforward, translationError.getAngle());
+        Translation2d translationVelocity = new Translation2d();
+        if (translationError.getNorm() > 0.05) {
+            double translationFeedback = translationController.calculate(-translationError.getNorm());
+            double translationFeedforward = translationController.getSetpoint().velocity;
+            translationVelocity =
+                    new Translation2d(translationFeedback + translationFeedforward, translationError.getAngle());
+        }
 
         double angularVelocity = rotationController.calculate(
                 driveSubsystem.getPose().getRotation().getRadians());

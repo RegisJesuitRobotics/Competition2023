@@ -6,19 +6,15 @@ import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.kinematics.*;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.MiscConstants;
 import frc.robot.Robot;
+import frc.robot.telemetry.SendableTelemetryManager;
+import frc.robot.telemetry.types.BooleanTelemetryEntry;
 import frc.robot.telemetry.types.DoubleTelemetryEntry;
 import frc.robot.telemetry.types.EventTelemetryEntry;
 import frc.robot.telemetry.types.rich.ChassisSpeedsEntry;
@@ -26,6 +22,7 @@ import frc.robot.telemetry.types.rich.Pose2dEntry;
 import frc.robot.telemetry.types.rich.SwerveModuleStateArrayEntry;
 import frc.robot.utils.Alert;
 import frc.robot.utils.Alert.AlertType;
+import frc.robot.utils.RaiderCommands;
 import frc.robot.utils.RaiderMathUtils;
 import java.util.List;
 import java.util.function.Function;
@@ -52,9 +49,13 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     private final Alert navXNotConnectedFaultAlert = new Alert(
             "navX is not connected. Field-centric drive and odometry will be negatively effected!", AlertType.ERROR);
     private final Alert navXCalibratingAlert = new Alert("navX is calibrating. Keep the robot still!", AlertType.INFO);
+    private final BooleanTelemetryEntry allModulesAtAbsoluteZeroEntry =
+            new BooleanTelemetryEntry("/drive/allModulesAtAbsoluteZero", true);
     private final DoubleTelemetryEntry gyroEntry = new DoubleTelemetryEntry("/drive/gyroDegrees", true);
     private final ChassisSpeedsEntry chassisSpeedsEntry =
             new ChassisSpeedsEntry("/drive/speeds", MiscConstants.TUNING_MODE);
+    private final ChassisSpeedsEntry desiredSpeedsEntry =
+            new ChassisSpeedsEntry("/drive/desiredSpeeds", MiscConstants.TUNING_MODE);
     private final Pose2dEntry odometryEntry = new Pose2dEntry("/drive/estimatedPose", MiscConstants.TUNING_MODE);
     private final SwerveModuleStateArrayEntry advantageScopeSwerveDesiredStates =
             new SwerveModuleStateArrayEntry("/drive/desiredStates", MiscConstants.TUNING_MODE);
@@ -66,7 +67,6 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     private final Field2d field2d = new Field2d();
 
     private SwerveModuleState[] desiredStates = new SwerveModuleState[NUM_MODULES];
-    private SwerveModuleState[] nextStates = new SwerveModuleState[NUM_MODULES];
     private boolean activeSteer = true;
     private DriveMode driveMode = DriveMode.OPEN_LOOP;
     private double rawDriveVolts = 0.0;
@@ -84,19 +84,20 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
         poseEstimator = new SwerveDrivePoseEstimator(KINEMATICS, getGyroRotation(), getModulePositions(), new Pose2d());
 
-        ShuffleboardTab driveTab = Shuffleboard.getTab("DriveTrainRaw");
-
-        driveTab.add("Field", field2d);
-        driveTab.add(
-                "Reset to Absolute",
-                Commands.runOnce(this::setAllModulesToAbsolute)
-                        .ignoringDisable(true)
-                        .withName("Reset"));
-        driveTab.addBoolean("All have been set to absolute", this::allModulesAtAbsolute);
-        driveTab.add("Kill Front Left (0)", modules[0].getToggleDeadModeCommand());
-        driveTab.add("Kill Front Right (1)", modules[1].getToggleDeadModeCommand());
-        driveTab.add("Kill Back Left (2)", modules[2].getToggleDeadModeCommand());
-        driveTab.add("Kill Back Right (3)", modules[3].getToggleDeadModeCommand());
+        SendableTelemetryManager.getInstance().addSendable("/drive/Field", field2d);
+        SendableTelemetryManager.getInstance()
+                .addSendable(
+                        "/drive/ResetAllModulesToAbsoluteCommand",
+                        RaiderCommands.runOnceAllowDisable(this::setAllModulesToAbsolute)
+                                .withName("Reset"));
+        SendableTelemetryManager.getInstance()
+                .addSendable("/drive/KillFrontLeft", modules[0].getToggleDeadModeCommand());
+        SendableTelemetryManager.getInstance()
+                .addSendable("/drive/KillFrontRight", modules[1].getToggleDeadModeCommand());
+        SendableTelemetryManager.getInstance()
+                .addSendable("/drive/KillBackLeft", modules[2].getToggleDeadModeCommand());
+        SendableTelemetryManager.getInstance()
+                .addSendable("/drive/KillBackRight", modules[3].getToggleDeadModeCommand());
 
         stopMovement();
     }
@@ -114,14 +115,24 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         setHeading(Rotation2d.fromDegrees(0.0));
     }
 
-    double pitchOffset = 0.0;
+    double pitchOffsetDegrees = 0.0;
 
-    public double getPitch() {
-        return gyro.getPitch() - pitchOffset;
+    public double getPitchRadians() {
+        return Units.degreesToRadians(gyro.getPitch() - pitchOffsetDegrees);
     }
 
     public void resetPitch() {
-        pitchOffset = gyro.getPitch();
+        pitchOffsetDegrees = gyro.getPitch();
+    }
+
+    double rollOffsetDegrees = 0.0;
+
+    public double getRollRadians() {
+        return Units.degreesToRadians(gyro.getRoll() - rollOffsetDegrees);
+    }
+
+    public void resetRoll() {
+        rollOffsetDegrees = gyro.getRoll();
     }
 
     /**
@@ -173,26 +184,10 @@ public class SwerveDriveSubsystem extends SubsystemBase {
      *     for teleop). If false a PIDF will be used (mostly used for auto)
      */
     public void setChassisSpeeds(ChassisSpeeds chassisSpeeds, boolean openLoop) {
+        desiredSpeedsEntry.append(chassisSpeeds);
+
         setRawStates(
                 true, openLoop, KINEMATICS.toSwerveModuleStates(RaiderMathUtils.correctForSwerveSkew(chassisSpeeds)));
-    }
-
-    /**
-     * Set the desired speed of the robot. Chassis speeds are always robot centric but can be created
-     * from field centric values through {@link ChassisSpeeds#fromFieldRelativeSpeeds(double, double,
-     * double, Rotation2d)}. This will correct for skew.
-     *
-     * @param chassisSpeeds the desired chassis speeds
-     * @param nextChassisSpeeds the speeds that will be next, used for calculating acceleration
-     * @param openLoop if true then velocity will be handled exclusivity with feedforward (mostly used
-     *     for teleop). If false a PIDF will be used (mostly used for auto)
-     */
-    public void setChassisSpeeds(ChassisSpeeds chassisSpeeds, ChassisSpeeds nextChassisSpeeds, boolean openLoop) {
-        setRawStates(
-                true,
-                openLoop,
-                KINEMATICS.toSwerveModuleStates(RaiderMathUtils.correctForSwerveSkew(chassisSpeeds)),
-                KINEMATICS.toSwerveModuleStates(RaiderMathUtils.correctForSwerveSkew(nextChassisSpeeds)));
     }
 
     /**
@@ -202,24 +197,9 @@ public class SwerveDriveSubsystem extends SubsystemBase {
      * @param activeSteer if false will not actively power the steer motor
      * @param openLoop if true then velocity will be handled exclusivity with feedforward (for teleop
      *     mostly). If false a PIDF will be used (for auto)
-     * @param states the desired states... Ordered front left, front right, back left, back right
-     */
-    public void setRawStates(boolean activeSteer, boolean openLoop, SwerveModuleState[] states) {
-        setRawStates(activeSteer, openLoop, states, states);
-    }
-
-    /**
-     * Sets the desired swerve drive states for the modules. This method also takes a copy of the
-     * states, so they will not be changed
-     *
-     * @param activeSteer if false will not actively power the steer motor
-     * @param openLoop if true then velocity will be handled exclusivity with feedforward (for teleop
-     *     mostly). If false a PIDF will be used (for auto)
      * @param desiredStates the desired states... Ordered front left, front right, back left, back right
-     * @param nextStates the states that will be used for the acceleration ff
      */
-    public void setRawStates(
-            boolean activeSteer, boolean openLoop, SwerveModuleState[] desiredStates, SwerveModuleState[] nextStates) {
+    public void setRawStates(boolean activeSteer, boolean openLoop, SwerveModuleState[] desiredStates) {
         if (desiredStates.length != modules.length) {
             throw new IllegalArgumentException("You must provide desiredStates for all modules");
         }
@@ -228,7 +208,6 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         this.activeSteer = activeSteer;
 
         this.desiredStates = RaiderMathUtils.copySwerveStateArray(desiredStates);
-        this.nextStates = RaiderMathUtils.copySwerveStateArray(nextStates);
     }
 
     /**
@@ -328,14 +307,11 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     public void periodic() {
         Robot.startWNode("SwerveDriveSubsystem#periodic");
         Robot.startWNode("setDesiredStates");
-        SmartDashboard.putNumber("pitch", getPitch());
         switch (driveMode) {
             case OPEN_LOOP, CLOSE_LOOP -> {
                 SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, MAX_VELOCITY_METERS_SECOND);
-                SwerveDriveKinematics.desaturateWheelSpeeds(nextStates, MAX_VELOCITY_METERS_SECOND);
                 for (int i = 0; i < modules.length; i++) {
-                    modules[i].setDesiredState(
-                            desiredStates[i], nextStates[i], activeSteer, driveMode == DriveMode.OPEN_LOOP);
+                    modules[i].setDesiredState(desiredStates[i], activeSteer, driveMode == DriveMode.OPEN_LOOP);
                 }
             }
             case RAW_VOLTAGE -> {
@@ -354,20 +330,24 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         Robot.startWNode("odometry");
         List<EstimatedRobotPose> estimatedRobotPoses = cameraPoseDataSupplier.apply(getPose());
         for (EstimatedRobotPose estimatedRobotPose : estimatedRobotPoses) {
-            poseEstimator.addVisionMeasurement(
-                    estimatedRobotPose.estimatedPose.toPose2d(), estimatedRobotPose.timestampSeconds);
+            if (!DriverStation.isAutonomousEnabled()) {
+                poseEstimator.addVisionMeasurement(
+                        estimatedRobotPose.estimatedPose.toPose2d(), estimatedRobotPose.timestampSeconds);
+            }
         }
         poseEstimator.update(getGyroRotation(), getModulePositions());
 
         Robot.endWNode();
 
-        Robot.startWNode("logging");
+        Robot.startWNode("logValues");
         logValues();
         Robot.endWNode();
         Robot.endWNode();
     }
 
     private void logValues() {
+        allModulesAtAbsoluteZeroEntry.append(allModulesAtAbsolute());
+
         gyroEntry.append(getGyroRotation().getDegrees());
 
         Pose2d estimatedPose = getPose();

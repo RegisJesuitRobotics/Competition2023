@@ -2,10 +2,8 @@ package frc.robot.commands;
 
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import edu.wpi.first.wpilibj2.command.ProxyCommand;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.commands.extension.SetExtensionPositionCommand;
 import frc.robot.commands.lift.SetLiftPositionCommand;
 import frc.robot.subsystems.extension.ExtensionSubsystem;
@@ -22,16 +20,14 @@ public class PositionClawCommand extends ParallelCommandGroup {
             double extensionPosition,
             LiftSubsystem liftSubsystem,
             ExtensionSubsystem extensionSubsystem) {
-        addCommands(
+        addCommands(Commands.parallel(
                 new SetLiftPositionCommand(liftAngle, liftSubsystem),
                 Commands.sequence(
-                        new ProxyCommand(() -> {
-                            double waitTime = Math.max(
-                                    0.2,
-                                    liftSubsystem.getEstimatedTimeForPosition(liftAngle)
-                                            - extensionSubsystem.getEstimatedTimeForPosition(extensionPosition));
-                            return new WaitCommand(waitTime);
-                        }),
-                        new SetExtensionPositionCommand(extensionPosition, extensionSubsystem)));
+                        Commands.deadline(
+                                new WaitUntilCommand(() -> liftSubsystem.getEstimatedTimeForPosition(liftAngle)
+                                                - extensionSubsystem.getEstimatedTimeForPosition(extensionPosition)
+                                        < 0.2),
+                                new SetExtensionPositionCommand(Units.inchesToMeters(0.5), extensionSubsystem)),
+                        new SetExtensionPositionCommand(extensionPosition, extensionSubsystem))));
     }
 }

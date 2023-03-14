@@ -1,7 +1,6 @@
 package frc.robot.utils;
 
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.ConditionalCommand;
+import edu.wpi.first.wpilibj2.command.*;
 import java.util.function.BooleanSupplier;
 
 public class RaiderCommands {
@@ -9,6 +8,14 @@ public class RaiderCommands {
 
     public static ConditionalCommandBuilder ifCondition(BooleanSupplier condition) {
         return new ConditionalCommandBuilder(condition);
+    }
+
+    public static CommandBase startNoEnd(Runnable start, Subsystem... requirements) {
+        return new StartEndCommand(start, () -> {}, requirements);
+    }
+
+    public static CommandBase runOnceAllowDisable(Runnable start, Subsystem... requirements) {
+        return Commands.runOnce(start, requirements).ignoringDisable(true);
     }
 
     public static class ConditionalCommandBuilder {

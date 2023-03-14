@@ -61,9 +61,7 @@ public class TreeTracer {
         if (now - lastEpochsPrintTime > MIN_PRINT_PERIOD) {
             lastEpochsPrintTime = now;
             StringBuilder sb = new StringBuilder();
-            for (Node child : currentNode.children) {
-                printNode(child, sb, 0);
-            }
+            printNode(currentNode, sb, 0);
             if (sb.length() > 0) {
                 output.accept(sb.toString());
             }

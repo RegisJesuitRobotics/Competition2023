@@ -63,13 +63,13 @@ public class ListenableSendableChooser<V> implements NTSendable, AutoCloseable {
     @Override
     public void close() {
         SendableRegistry.remove(this);
-        m_mutex.lock();
+        mutex.lock();
         try {
-            for (StringPublisher pub : m_activePubs) {
+            for (StringPublisher pub : activePubs) {
                 pub.close();
             }
         } finally {
-            m_mutex.unlock();
+            mutex.unlock();
         }
     }
 
@@ -112,21 +112,41 @@ public class ListenableSendableChooser<V> implements NTSendable, AutoCloseable {
      * @return the option selected
      */
     public V getSelected() {
-        m_mutex.lock();
+        mutex.lock();
         try {
-            if (m_selected != null) {
-                return map.get(m_selected);
+            if (selected != null) {
+                return map.get(selected);
             } else {
                 return map.get(defaultChoice);
             }
         } finally {
-            m_mutex.unlock();
+            mutex.unlock();
         }
     }
 
-    private String m_selected;
-    private final List<StringPublisher> m_activePubs = new ArrayList<>();
-    private final ReentrantLock m_mutex = new ReentrantLock();
+    boolean overrideSelected = false;
+
+    public void setSelected(String val) {
+        mutex.lock();
+        try {
+            selected = val;
+            hasNewValue = true;
+            for (StringPublisher pub : activePubs) {
+                pub.set(val);
+            }
+            for (StringPublisher pub : selectedPubs) {
+                pub.set(val);
+            }
+        } finally {
+            mutex.unlock();
+        }
+        overrideSelected = true;
+    }
+
+    private String selected;
+    private final List<StringPublisher> activePubs = new ArrayList<>();
+    private final List<StringPublisher> selectedPubs = new ArrayList<>();
+    private final ReentrantLock mutex = new ReentrantLock();
 
     @Override
     public void initSendable(NTSendableBuilder builder) {
@@ -139,35 +159,25 @@ public class ListenableSendableChooser<V> implements NTSendable, AutoCloseable {
         builder.addStringProperty(
                 ACTIVE,
                 () -> {
-                    m_mutex.lock();
+                    mutex.lock();
                     try {
-                        if (m_selected != null) {
-                            return m_selected;
+                        if (selected != null) {
+                            return selected;
                         } else {
                             return defaultChoice;
                         }
                     } finally {
-                        m_mutex.unlock();
+                        mutex.unlock();
                     }
                 },
                 null);
-        m_mutex.lock();
+        mutex.lock();
         try {
-            m_activePubs.add(new StringTopic(builder.getTopic(ACTIVE)).publish());
+            activePubs.add(new StringTopic(builder.getTopic(ACTIVE)).publish());
+            selectedPubs.add(new StringTopic(builder.getTopic(SELECTED)).publish());
         } finally {
-            m_mutex.unlock();
+            mutex.unlock();
         }
-        builder.addStringProperty(SELECTED, null, val -> {
-            m_mutex.lock();
-            try {
-                m_selected = val;
-                hasNewValue = true;
-                for (StringPublisher pub : m_activePubs) {
-                    pub.set(val);
-                }
-            } finally {
-                m_mutex.unlock();
-            }
-        });
+        builder.addStringProperty(SELECTED, null, this::setSelected);
     }
 }

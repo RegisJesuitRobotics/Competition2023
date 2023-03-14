@@ -3,6 +3,7 @@ package frc.robot.subsystems.extension;
 import static frc.robot.Constants.ExtensionConstants.*;
 import static frc.robot.utils.RaiderUtils.checkRevError;
 
+import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.MathUtil;
@@ -47,6 +48,8 @@ public class ExtensionSubsystem extends SubsystemBase implements DualHomeable {
     private final Alert failedConfigurationAlert = new Alert("Extension Failed to Configure Motor", AlertType.ERROR);
     private final EventTelemetryEntry eventEntry = new EventTelemetryEntry("/extension/events");
     private final IntegerTelemetryEntry modeEntry = new IntegerTelemetryEntry("/extension/mode", false);
+    private final BooleanTelemetryEntry atGoalEntry =
+            new BooleanTelemetryEntry("/lifter/atGoal", MiscConstants.TUNING_MODE);
     private final BooleanTelemetryEntry homedEntry = new BooleanTelemetryEntry("/extension/homed", false);
     private final DoubleTelemetryEntry leftRawVoltageRequestEntry =
             new DoubleTelemetryEntry("/extension/leftVoltageRequest", false);
@@ -86,6 +89,10 @@ public class ExtensionSubsystem extends SubsystemBase implements DualHomeable {
             faultInitializing |= checkRevError(leftMotor.setSmartCurrentLimit(STALL_CURRENT_LIMIT, FREE_CURRENT_LIMIT));
             faultInitializing |=
                     checkRevError(rightMotor.setSmartCurrentLimit(STALL_CURRENT_LIMIT, FREE_CURRENT_LIMIT));
+
+            faultInitializing |= checkRevError(leftMotor.setIdleMode(IdleMode.kBrake));
+            faultInitializing |= checkRevError(rightMotor.setIdleMode(IdleMode.kBrake));
+
         } while (faultInitializing && configTimeout.hasNotTimedOut());
 
         if (faultInitializing) {
@@ -151,6 +158,10 @@ public class ExtensionSubsystem extends SubsystemBase implements DualHomeable {
         isHomed = true;
     }
 
+    public boolean isHomed() {
+        return isHomed;
+    }
+
     @Override
     public double getLeftCurrent() {
         return leftMotor.getOutputCurrent();
@@ -195,6 +206,7 @@ public class ExtensionSubsystem extends SubsystemBase implements DualHomeable {
         notHomedAlert.set(!isHomed);
         leftRawVoltageRequestEntry.append(leftVoltage);
         rightRawVoltageRequestEntry.append(rightVoltage);
+        atGoalEntry.append(atClosedLoopGoal());
 
         if (FF_GAINS.hasChanged()) {
             feedforward = FF_GAINS.createFeedforward();

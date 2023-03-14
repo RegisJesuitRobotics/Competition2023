@@ -28,7 +28,7 @@ public class LiftExtensionKinematics {
 
     public static Translation2d liftExtensionPositionToClawPosition(Rotation2d liftPosition, double extensionPosition) {
         double x = (extensionPosition + ExtensionConstants.X_OFFSET_METERS)
-                + Math.sin(NINETY_DEGREES.plus(liftPosition).getRadians()) * HORIZONTAL_BAR_LENGTH;
+                + Math.sin(liftPosition.getRadians()) * HORIZONTAL_BAR_LENGTH;
 
         double relativeHeight = Math.cos(liftPosition.getRadians()) * HORIZONTAL_BAR_LENGTH;
         double y = relativeHeight - VERTICAL_BAR_HEIGHT_FROM_FLOOR + HORIZONTAL_BAR_TO_CLAW;

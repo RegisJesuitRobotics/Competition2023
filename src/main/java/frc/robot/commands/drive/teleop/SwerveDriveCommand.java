@@ -10,11 +10,14 @@ import frc.robot.Robot;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
 import frc.robot.telemetry.tunable.TunableTelemetryProfiledPIDController;
 import frc.robot.utils.RaiderMathUtils;
+import frc.robot.utils.RaiderUtils;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 public class SwerveDriveCommand extends CommandBase {
+    private static final Rotation2d oneHundredEightyDegrees = Rotation2d.fromDegrees(180);
+
     private final Supplier<Translation2d> translationSupplier;
     private final DoubleSupplier omegaRadiansSecondSupplier;
     private final BooleanSupplier isSnapSupplier;
@@ -43,6 +46,7 @@ public class SwerveDriveCommand extends CommandBase {
         this.isFieldRelativeSupplier = isFieldRelativeSupplier;
 
         snapPIDController.enableContinuousInput(-Math.PI, Math.PI);
+
         this.driveSubsystem = driveSubsystem;
         addRequirements(driveSubsystem);
     }
@@ -67,7 +71,12 @@ public class SwerveDriveCommand extends CommandBase {
                 snapPIDController.reset(currentHeading.getRadians(), currentOmegaRadiansSecond);
                 isSnapping = true;
             }
-            omega = snapPIDController.calculate(currentHeading.getRadians(), snapAngleSupplier.getAsDouble())
+            double desiredHeading = snapAngleSupplier.getAsDouble();
+            if (RaiderUtils.shouldFlip()) {
+                // Put in reference of driver
+                desiredHeading += Math.PI;
+            }
+            omega = snapPIDController.calculate(currentHeading.getRadians(), desiredHeading)
                     + snapPIDController.getSetpoint().velocity;
         } else {
             omega = omegaRadiansSecondSupplier.getAsDouble();
@@ -77,8 +86,10 @@ public class SwerveDriveCommand extends CommandBase {
         ChassisSpeeds chassisSpeeds = new ChassisSpeeds(translation.getX(), translation.getY(), omega);
 
         if (isFieldRelative) {
-            chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-                    chassisSpeeds, driveSubsystem.getPose().getRotation());
+            if (RaiderUtils.shouldFlip()) {
+                currentHeading = currentHeading.plus(oneHundredEightyDegrees);
+            }
+            chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(chassisSpeeds, currentHeading);
         }
 
         if (RaiderMathUtils.isChassisSpeedsZero(

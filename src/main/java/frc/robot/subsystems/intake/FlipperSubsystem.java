@@ -77,7 +77,7 @@ public class FlipperSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        Robot.startWNode("FlipperSubsystem");
+        Robot.startWNode("FlipperSubsystem#periodic");
         Robot.startWNode("logValues");
         logValues();
         Robot.endWNode();
