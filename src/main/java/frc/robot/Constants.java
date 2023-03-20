@@ -204,7 +204,7 @@ public final class Constants {
         public static final int RIGHT_MOTOR_PORT = 2;
 
         public static final boolean INVERT_LEFT = false;
-        public static final boolean INVERT_RIGHT = true;
+        public static final boolean INVERT_RIGHT = false;
 
         public static final double HORIZONTAL_BAR_LENGTH = Units.inchesToMeters(32.0);
         public static final double VERTICAL_BAR_HEIGHT_FROM_FLOOR = Units.inchesToMeters(43.5);
@@ -320,7 +320,7 @@ public final class Constants {
         public static final Pair<Rotation2d, Double> HIGH = Pair.of(Rotation2d.fromDegrees(26.0), 0.5685);
         public static final Pair<Rotation2d, Double> MID = Pair.of(Rotation2d.fromDegrees(10.08), 0.02839);
         public static final Pair<Rotation2d, Double> LOW = Pair.of(Rotation2d.fromDegrees(-72.39), 0.1903);
-        public static final Pair<Rotation2d, Double> SUBSTATION = Pair.of(Rotation2d.fromDegrees(9.5), 0.2);
+        public static final Pair<Rotation2d, Double> SUBSTATION = Pair.of(Rotation2d.fromDegrees(7.5), 0.2);
         public static final Pair<Rotation2d, Double> STOW =
                 Pair.of(LiftConstants.MIN_ANGLE.plus(Rotation2d.fromDegrees(1.0)), Units.inchesToMeters(0.5));
         public static final Pair<Rotation2d, Double> CARRY =

@@ -19,6 +19,7 @@ import frc.robot.commands.drive.GreaseGearsCommand;
 import frc.robot.commands.drive.auto.FollowPathCommand;
 import frc.robot.commands.drive.auto.SimpleToPointCommand;
 import frc.robot.commands.drive.auto.balance.CorrectBalanceAndLockCommand;
+import frc.robot.commands.drive.auto.balance.NewCorrectBalanceAndLockCommand;
 import frc.robot.commands.drive.characterize.DriveTestingCommand;
 import frc.robot.commands.drive.characterize.DriveTrainSysIDCompatibleLoggerCommand;
 import frc.robot.commands.drive.characterize.SteerTestingCommand;
@@ -70,7 +71,8 @@ public class Autos {
             autoCommandChooser.addOption("GreaseGears", new GreaseGearsCommand(driveSubsystem));
             autoCommandChooser.addOption("DriveTestingCommand", new DriveTestingCommand(1.0, driveSubsystem));
             autoCommandChooser.addOption("SteerTesting", new SteerTestingCommand(driveSubsystem));
-            autoCommandChooser.addOption("AutoBalanceTeSting", new CorrectBalanceAndLockCommand(driveSubsystem));
+            autoCommandChooser.addOption("AutoBalanceTesting", new CorrectBalanceAndLockCommand(driveSubsystem));
+            autoCommandChooser.addOption("NewAutoBalanceTesting", new NewCorrectBalanceAndLockCommand(driveSubsystem));
         }
 
         new Trigger(autoCommandChooser::hasNewValue)
@@ -123,7 +125,11 @@ public class Autos {
                 PathPlanner.loadPathGroup("CenterB", AutoConstants.VERY_SLOW_TRAJECTORY_CONSTRAINTS);
 
         return sequence(
-                homeBoth(), followPath(trajectoryList.get(0)), followPath(trajectoryList.get(1)), correctBalance());
+                resetPitchRoll(),
+                homeBoth(),
+                followPath(trajectoryList.get(0)),
+                followPath(trajectoryList.get(1)),
+                correctBalance());
     }
 
     private Command centerPlaceBalance() {
@@ -131,7 +137,7 @@ public class Autos {
                 PathPlanner.loadPathGroup("CenterPBPart1", AutoConstants.TRAJECTORY_CONSTRAINTS);
 
         return sequence(
-                parallel(homeBoth(), closeClaw()),
+                parallel(resetPitchRoll(), homeBoth(), closeClaw()),
                 clawHigh(),
                 followPath(centerPBPart1.get(0)),
                 openClaw(),
@@ -182,7 +188,7 @@ public class Autos {
 
     private Command placeBalance(List<PathPlannerTrajectory> trajectoryList) {
         return sequence(
-                parallel(homeBoth(), closeClaw()),
+                parallel(resetPitchRoll(), homeBoth(), closeClaw()),
                 clawHigh(),
                 followPath(trajectoryList.get(0)),
                 openClaw(),
@@ -193,10 +199,21 @@ public class Autos {
                 correctBalance());
     }
 
+    private Command resetOdometry(Pose2d pose) {
+        return runOnce(() -> driveSubsystem.resetOdometry(pose));
+    }
+
     private Command homeBoth() {
         return parallel(
                 HomeCommandFactory.homeLiftCommand(liftSubsystem).unless(liftSubsystem::isHomed),
                 HomeCommandFactory.homeExtensionCommand(extensionSubsystem).unless(extensionSubsystem::isHomed));
+    }
+
+    private Command resetPitchRoll() {
+        return Commands.runOnce(() -> {
+            driveSubsystem.resetPitch();
+            driveSubsystem.resetRoll();
+        });
     }
 
     private Command toPoint(Pose2d point) {
