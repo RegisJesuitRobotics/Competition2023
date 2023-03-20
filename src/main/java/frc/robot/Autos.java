@@ -19,7 +19,6 @@ import frc.robot.commands.drive.GreaseGearsCommand;
 import frc.robot.commands.drive.auto.FollowPathCommand;
 import frc.robot.commands.drive.auto.SimpleToPointCommand;
 import frc.robot.commands.drive.auto.balance.CorrectBalanceAndLockCommand;
-import frc.robot.commands.drive.auto.balance.NewCorrectBalanceAndLockCommand;
 import frc.robot.commands.drive.characterize.DriveTestingCommand;
 import frc.robot.commands.drive.characterize.DriveTrainSysIDCompatibleLoggerCommand;
 import frc.robot.commands.drive.characterize.SteerTestingCommand;
@@ -72,7 +71,6 @@ public class Autos {
             autoCommandChooser.addOption("DriveTestingCommand", new DriveTestingCommand(1.0, driveSubsystem));
             autoCommandChooser.addOption("SteerTesting", new SteerTestingCommand(driveSubsystem));
             autoCommandChooser.addOption("AutoBalanceTesting", new CorrectBalanceAndLockCommand(driveSubsystem));
-            autoCommandChooser.addOption("NewAutoBalanceTesting", new NewCorrectBalanceAndLockCommand(driveSubsystem));
         }
 
         new Trigger(autoCommandChooser::hasNewValue)

@@ -4,7 +4,6 @@ import static frc.robot.Constants.DriveTrainConstants.*;
 
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
-import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.*;
@@ -53,9 +52,6 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     private final BooleanTelemetryEntry allModulesAtAbsoluteZeroEntry =
             new BooleanTelemetryEntry("/drive/allModulesAtAbsoluteZero", true);
     private final DoubleTelemetryEntry gyroEntry = new DoubleTelemetryEntry("/drive/gyroDegrees", true);
-    private final DoubleTelemetryEntry rollEntry = new DoubleTelemetryEntry("/drive/roll", MiscConstants.TUNING_MODE);
-    private final DoubleTelemetryEntry rollVelocityEntry =
-            new DoubleTelemetryEntry("/drive/rollVelocity", MiscConstants.TUNING_MODE);
     private final ChassisSpeedsEntry chassisSpeedsEntry =
             new ChassisSpeedsEntry("/drive/speeds", MiscConstants.TUNING_MODE);
     private final ChassisSpeedsEntry desiredSpeedsEntry =
@@ -70,18 +66,11 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
     private final Field2d field2d = new Field2d();
 
-    private final LinearFilter rollVelocityFilter = LinearFilter.singlePoleIIR(0.1, 0.02);
-
     private SwerveModuleState[] desiredStates = new SwerveModuleState[NUM_MODULES];
     private boolean activeSteer = true;
     private DriveMode driveMode = DriveMode.OPEN_LOOP;
     private double rawDriveVolts = 0.0;
     private double rawSteerVolts = 0.0;
-    private double lastVelocityTime = 0.0;
-    private int lastRollI = 0;
-    private double[] lastRolls = new double[5];
-    private double[] timeRolls = new double[5];
-    private double fieldCentricVelocity = 0.0;
 
     public SwerveDriveSubsystem(Function<Pose2d, List<EstimatedRobotPose>> cameraPoseDataSupplier) {
         this.cameraPoseDataSupplier = cameraPoseDataSupplier;
@@ -161,12 +150,6 @@ public class SwerveDriveSubsystem extends SubsystemBase {
 
     public void resetOdometry() {
         resetOdometry(new Pose2d());
-    }
-
-    public double getFieldCentricRoll() {
-        // Rotation2d yaw = getPose().getRotation();
-        // return yaw.getSin() * getPitchRadians() + yaw.getCos() * getRollRadians();
-        return 0.0;
     }
 
     /**
@@ -320,10 +303,6 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         return actualPositions;
     }
 
-    public double getRollVelocity() {
-        return 0.0;
-    }
-
     @Override
     public void periodic() {
         Robot.startWNode("SwerveDriveSubsystem#periodic");
@@ -349,16 +328,6 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         Robot.endWNode();
 
         Robot.startWNode("odometry");
-        // double currentTime = Timer.getFPGATimestamp();
-        // double currentAngleThing = getFieldCentricRoll();
-        // double compareRoll = rollBuffer[Math.abs((lastRollI - 5) % 5)];
-        // lastRollI++;
-        // fieldCentricVelocity = rollVelocityFilter.calculate((currentAngleThing - compareRoll) / (currentTime -
-        // lastVelocityTime));
-
-        // lastFieldCentricRoll = currentAngleThing;
-        // lastVelocityTime = currentTime;
-
         List<EstimatedRobotPose> estimatedRobotPoses = cameraPoseDataSupplier.apply(getPose());
         for (EstimatedRobotPose estimatedRobotPose : estimatedRobotPoses) {
             if (!DriverStation.isAutonomousEnabled()) {
@@ -391,9 +360,6 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         for (SwerveModule module : modules) {
             module.logValues();
         }
-
-        // rollEntry.append(lastFieldCentricRoll);
-        // rollVelocityEntry.append(fieldCentricVelocity);
 
         advantageScopeSwerveDesiredStates.append(desiredStates);
         advantageScopeSwerveActualStates.append(getActualStates());
