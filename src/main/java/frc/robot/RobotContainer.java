@@ -389,10 +389,6 @@ public class RobotContainer {
                 // Blink aqua if not pressurized
                 new LEDState(
                         () -> pneumaticHub.getPressure(0) < 10.0, new AlternatePattern(1.0, Color.kPink, Color.kBlack)),
-                // Blink yellow on low idle battery voltage
-                new LEDState(
-                        () -> DriverStation.isDisabled() && RobotController.getBatteryVoltage() < 12.0,
-                        new AlternatePattern(1.0, Color.kOrange, Color.kBlack)),
                 // Going up and going down patterns
                 new LEDState(
                         () -> upFilter.calculate(liftSubsystem.getVelocity() > Units.degreesToRadians(10.0)),

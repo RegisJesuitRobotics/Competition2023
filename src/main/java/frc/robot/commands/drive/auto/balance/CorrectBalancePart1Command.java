@@ -1,16 +1,18 @@
 package frc.robot.commands.drive.auto.balance;
 
-import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.subsystems.swerve.SwerveDriveSubsystem;
+import frc.robot.utils.RaiderMathUtils;
 
 public class CorrectBalancePart1Command extends CommandBase {
     private final SwerveDriveSubsystem driveSubsystem;
 
-    private boolean hasPassedZero = false;
-    private double startAngle = 0.0;
+    private final Debouncer atZeroDebouncer = new Debouncer(1.0);
+    private double startTime = 0.0;
 
     public CorrectBalancePart1Command(SwerveDriveSubsystem driveSubsystem) {
         this.driveSubsystem = driveSubsystem;
@@ -18,43 +20,32 @@ public class CorrectBalancePart1Command extends CommandBase {
         addRequirements(driveSubsystem);
     }
 
-    public static double getAngle(Rotation2d yaw, double pitch, double roll) {
-        return yaw.getSin() * pitch + yaw.getCos() * roll;
-    }
-
     @Override
     public void initialize() {
-        hasPassedZero = false;
-        startAngle = getAngle(
-                driveSubsystem.getPose().getRotation(),
-                driveSubsystem.getPitchRadians(),
-                driveSubsystem.getRollRadians());
+        startTime = Timer.getFPGATimestamp();
+        atZeroDebouncer.calculate(false);
     }
 
     @Override
     public void execute() {
-        double currentAngle = getAngle(
-                driveSubsystem.getPose().getRotation(),
-                driveSubsystem.getPitchRadians(),
-                driveSubsystem.getRollRadians());
-        if (!hasPassedZero) {
-            if (Math.signum(currentAngle) != Math.signum(startAngle)) {
-                hasPassedZero = true;
-            } else {
-                driveSubsystem.setChassisSpeeds(
-                        ChassisSpeeds.fromFieldRelativeSpeeds(
-                                Math.signum(currentAngle) * -AutoConstants.AUTO_BALANCE_SPEED_METERS_SECOND,
-                                0,
-                                0,
-                                driveSubsystem.getPose().getRotation()),
-                        false);
-            }
-        }
+        double currentAngle = driveSubsystem.getFieldCentricRoll();
+        driveSubsystem.setChassisSpeeds(
+                ChassisSpeeds.fromFieldRelativeSpeeds(
+                        Math.signum(currentAngle) * -AutoConstants.AUTO_BALANCE_SPEED_METERS_SECOND,
+                        0,
+                        0,
+                        driveSubsystem.getPose().getRotation()),
+                false);
     }
 
     @Override
     public boolean isFinished() {
-        return hasPassedZero;
+        return ((Math.signum(driveSubsystem.getFieldCentricRoll())
+                                        != Math.signum(driveSubsystem.getFieldCentricRollVelocity())
+                                && !RaiderMathUtils.inAbsRange(driveSubsystem.getFieldCentricRollVelocity(), 0.05))
+                        || atZeroDebouncer.calculate(
+                                RaiderMathUtils.inAbsRange(driveSubsystem.getFieldCentricRoll(), 0.05)))
+                && (Timer.getFPGATimestamp() - startTime > 0.1);
     }
 
     @Override
