@@ -229,7 +229,9 @@ public class LiftSubsystem extends SubsystemBase implements DualHomeable {
     }
 
     public double getVelocity() {
-        return relativeEncoder.getRate();
+        return leftEncoder.getVelocity();
+        // Relative encoder is noisy
+        //        return relativeEncoder.getRate();
     }
 
     @Override

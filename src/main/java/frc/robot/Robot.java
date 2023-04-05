@@ -151,7 +151,7 @@ public class Robot extends TreeTimedRobot {
 
     @Override
     public void testInit() {
-        telemetryPneumaticHub.enableCompressorHybrid(114, 120);
+        telemetryPneumaticHub.enableCompressorDigital();
         CommandScheduler.getInstance().cancelAll();
     }
 
