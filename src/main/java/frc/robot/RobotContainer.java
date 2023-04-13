@@ -5,6 +5,7 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.BooleanSubscriber;
 import edu.wpi.first.networktables.IntegerEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.*;
@@ -123,13 +124,23 @@ public class RobotContainer {
             driveSubsystem.resetPitch();
         }));
 
+        BooleanSubscriber outreachMode = NetworkTableInstance.getDefault()
+                .getBooleanTopic("/toLog/outreachMode")
+                .subscribe(false);
+        Trigger notInOutreachMode = new Trigger(outreachMode).negate();
+
         driverController
                 .rightStick()
+                .and(notInOutreachMode)
                 .onTrue(Commands.runOnce(clawSubsystem::toggleClawState, clawSubsystem)
                         .withName("ToggleClaw"));
-        driverController.leftTrigger().whileTrue(new FullyToggleFlipperCommand(flipperSubsystem));
+        driverController
+                .leftTrigger()
+                .and(notInOutreachMode)
+                .whileTrue(new FullyToggleFlipperCommand(flipperSubsystem));
         driverController
                 .rightTrigger()
+                .and(notInOutreachMode)
                 .onTrue(new PositionClawCommand(AutoScoreConstants.CARRY, liftSubsystem, extensionSubsystem));
 
         Trigger driverTakeControl = new Trigger(() -> !RaiderMathUtils.inAbsRange(
@@ -153,6 +164,7 @@ public class RobotContainer {
                 RaiderUtils.flipIfShould(driveSubsystem.getPose()).getTranslation()));
         driverController
                 .povUp()
+                .and(notInOutreachMode)
                 .debounce(0.1)
                 .onTrue(RaiderCommands.ifCondition(inScoreAllowedArea)
                         .then(new AutoScoreCommand(gridSupplier, driveSubsystem).until(driverTakeControl))
@@ -162,6 +174,7 @@ public class RobotContainer {
                 RaiderUtils.flipIfShould(driveSubsystem.getPose()).getTranslation()));
         driverController
                 .povLeft()
+                .and(notInOutreachMode)
                 .debounce(0.1)
                 .onTrue(RaiderCommands.ifCondition(inSubstationAllowedArea)
                         .then(new SimpleToPointCommand(
@@ -180,6 +193,7 @@ public class RobotContainer {
 
         driverController
                 .povRight()
+                .and(notInOutreachMode)
                 .debounce(0.1)
                 .onTrue(RaiderCommands.ifCondition(inSubstationAllowedArea)
                         .then(new SimpleToPointCommand(
