@@ -61,7 +61,9 @@ public class SwerveDriveSubsystem extends SubsystemBase {
             new SwerveModuleStateArrayEntry("/drive/desiredStates", MiscConstants.TUNING_MODE);
     private final SwerveModuleStateArrayEntry advantageScopeSwerveActualStates =
             new SwerveModuleStateArrayEntry("/drive/actualStates", MiscConstants.TUNING_MODE);
-
+    private final DoubleTelemetryEntry rollEntry = new DoubleTelemetryEntry("/drive/roll", MiscConstants.TUNING_MODE);
+    private final DoubleTelemetryEntry rollVelocityEntry =
+            new DoubleTelemetryEntry("/drive/rollVelocity", MiscConstants.TUNING_MODE);
     private final EventTelemetryEntry driveEventLogger = new EventTelemetryEntry("/drive/events");
 
     private final Field2d field2d = new Field2d();
@@ -71,6 +73,10 @@ public class SwerveDriveSubsystem extends SubsystemBase {
     private DriveMode driveMode = DriveMode.OPEN_LOOP;
     private double rawDriveVolts = 0.0;
     private double rawSteerVolts = 0.0;
+
+    private double[] velocityBuffer = new double[5];
+    private int velocityBufferI = 0;
+    private double rollVelocity = 0.0;
 
     public SwerveDriveSubsystem(Function<Pose2d, List<EstimatedRobotPose>> cameraPoseDataSupplier) {
         this.cameraPoseDataSupplier = cameraPoseDataSupplier;
@@ -270,6 +276,15 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         return allSet;
     }
 
+    public double getFieldCentricRoll() {
+        Rotation2d yaw = getPose().getRotation();
+        return yaw.getSin() * getPitchRadians() + yaw.getCos() * getRollRadians();
+    }
+
+    public double getFieldCentricRollVelocity() {
+        return rollVelocity;
+    }
+
     /**
      * Should only be used for characterization
      * @return the angle in radians
@@ -328,6 +343,12 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         Robot.endWNode();
 
         Robot.startWNode("odometry");
+        velocityBuffer[velocityBufferI] = getFieldCentricRoll();
+        rollVelocity =
+                (velocityBuffer[velocityBufferI] - velocityBuffer[Math.abs((velocityBufferI - 5) % 5)]) / (0.02 * 5);
+        velocityBufferI++;
+        velocityBufferI %= 5;
+
         List<EstimatedRobotPose> estimatedRobotPoses = cameraPoseDataSupplier.apply(getPose());
         for (EstimatedRobotPose estimatedRobotPose : estimatedRobotPoses) {
             if (!DriverStation.isAutonomousEnabled()) {
@@ -336,7 +357,6 @@ public class SwerveDriveSubsystem extends SubsystemBase {
             }
         }
         poseEstimator.update(getGyroRotation(), getModulePositions());
-
         Robot.endWNode();
 
         Robot.startWNode("logValues");
@@ -354,6 +374,9 @@ public class SwerveDriveSubsystem extends SubsystemBase {
         odometryEntry.append(estimatedPose);
 
         chassisSpeedsEntry.append(getCurrentChassisSpeeds());
+
+        rollEntry.append(getFieldCentricRoll());
+        rollVelocityEntry.append(getFieldCentricRollVelocity());
 
         field2d.setRobotPose(estimatedPose);
 

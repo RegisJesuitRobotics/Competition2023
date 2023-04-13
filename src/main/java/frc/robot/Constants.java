@@ -227,7 +227,7 @@ public final class Constants {
         public static final boolean INVERT_RELATIVE_ENCODER = false;
 
         public static final TunablePIDGains PID_GAINS =
-                new TunablePIDGains("/gains/lifter", 5, 0.0, 3.5161, MiscConstants.TUNING_MODE);
+                new TunablePIDGains("/gains/lifter", 8, 0.0, 3.5161, MiscConstants.TUNING_MODE);
         public static final TunableTrapezoidalProfileGains TRAPEZOIDAL_PROFILE_GAINS =
                 new TunableTrapezoidalProfileGains("/gains/lifter", 1.2, 1.2, MiscConstants.TUNING_MODE);
         public static final TunableArmFFGains FF_GAINS =
@@ -239,7 +239,7 @@ public final class Constants {
         public static final double HOME_CURRENT = 0.3;
         public static final double HOME_VOLTAGE = -0.5;
 
-        public static final double POSITION_TOLERANCE_RADIANS = Units.degreesToRadians(5.0);
+        public static final double POSITION_TOLERANCE_RADIANS = Units.degreesToRadians(2.0);
         public static final double VELOCITY_TOLERANCE_RADIANS_SECOND = Units.degreesToRadians(10.0);
     }
 
@@ -320,7 +320,7 @@ public final class Constants {
         public static final Pair<Rotation2d, Double> HIGH = Pair.of(Rotation2d.fromDegrees(26.0), 0.5685);
         public static final Pair<Rotation2d, Double> MID = Pair.of(Rotation2d.fromDegrees(10.08), 0.02839);
         public static final Pair<Rotation2d, Double> LOW = Pair.of(Rotation2d.fromDegrees(-72.39), 0.1903);
-        public static final Pair<Rotation2d, Double> SUBSTATION = Pair.of(Rotation2d.fromDegrees(7.5), 0.2);
+        public static final Pair<Rotation2d, Double> SUBSTATION = Pair.of(Rotation2d.fromDegrees(10.2), 0.2);
         public static final Pair<Rotation2d, Double> STOW =
                 Pair.of(LiftConstants.MIN_ANGLE.plus(Rotation2d.fromDegrees(1.0)), Units.inchesToMeters(0.5));
         public static final Pair<Rotation2d, Double> CARRY =
@@ -372,7 +372,7 @@ public final class Constants {
         private MiscConstants() {}
 
         public static final int[] USED_CONTROLLER_PORTS = {0};
-        public static final boolean TUNING_MODE = false;
+        public static final boolean TUNING_MODE = true;
 
         public static final PneumaticsModuleType PNEUMATICS_MODULE_TYPE = PneumaticsModuleType.REVPH;
         public static final ModuleType POWER_MODULE_TYPE = ModuleType.kRev;

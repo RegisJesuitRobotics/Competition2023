@@ -331,14 +331,15 @@ public class SwerveModule {
         boolean gotAbsolutePosition = false;
         do {
             absolutePosition = getAbsoluteRadians();
-            if (!checkCTREError(absoluteSteerEncoder.getLastError())) {
+            if (!checkCTREError(absoluteSteerEncoder.getLastError()) || timeout == 0.0) {
                 gotAbsolutePosition = true;
             }
             if (gotAbsolutePosition) {
                 ErrorCode settingPositionError = steerMotor.setSelectedSensorPosition(
-                        absolutePosition / steerMotorConversionFactorPosition, 0, CAN_TIMEOUT_MS);
+                        absolutePosition / steerMotorConversionFactorPosition, 0, Math.min(CAN_TIMEOUT_MS, (int)
+                                timeout));
                 // If no error
-                if (!checkCTREError(settingPositionError)) {
+                if (!checkCTREError(settingPositionError) || timeout == 0.0) {
                     setToAbsolute = true;
                 }
             }
