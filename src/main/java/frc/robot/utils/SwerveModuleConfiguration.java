@@ -1,5 +1,6 @@
 package frc.robot.utils;
 
+import com.revrobotics.REVLibError;
 import frc.robot.telemetry.tunable.gains.TunableFFGains;
 import frc.robot.telemetry.tunable.gains.TunablePIDGains;
 
