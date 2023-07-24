@@ -135,6 +135,7 @@ public class SwerveModule {
         this.steerPositionPIDGains = config.sharedConfiguration().steerPositionPIDGains();
 
         // Drive motor
+
         this.driveMotor = new TelemetryTalonFX(
                 config.driveMotorPort(),
                 tableName + "driveMotor",
@@ -143,84 +144,14 @@ public class SwerveModule {
         configDriveMotor(config);
 
         // Steer encoder
-        this.absoluteSteerEncoder = new RelativeEncoder() {
-            @Override
-            public double getPosition() {
-                return 0;
-            }
 
-            @Override
-            public double getVelocity() {
-                return 0;
-            }
-
-            @Override
-            public REVLibError setPosition(double position) {
-                return null;
-            }
-
-            @Override
-            public REVLibError setPositionConversionFactor(double factor) {
-                return null;
-            }
-
-            @Override
-            public REVLibError setVelocityConversionFactor(double factor) {
-                return null;
-            }
-
-            @Override
-            public double getPositionConversionFactor() {
-                return 0;
-            }
-
-            @Override
-            public double getVelocityConversionFactor() {
-                return 0;
-            }
-
-            @Override
-            public REVLibError setAverageDepth(int depth) {
-                return null;
-            }
-
-            @Override
-            public int getAverageDepth() {
-                return 0;
-            }
-
-            @Override
-            public REVLibError setMeasurementPeriod(int period_ms) {
-                return null;
-            }
-
-            @Override
-            public int getMeasurementPeriod() {
-                return 0;
-            }
-
-            @Override
-            public int getCountsPerRevolution() {
-                return 0;
-            }
-
-            @Override
-            public REVLibError setInverted(boolean inverted) {
-                return null;
-            }
-
-            @Override
-            public boolean getInverted() {
-                return false;
-            }
-        };
-        //        configSteerEncoder(config);
+        configSteerEncoder(config);
 
         // Steer motor
         this.steerMotor = new TelemetryCANSparkMax(
                 config.steerMotorPort(), CANSparkMax.MotorType.kBrushless, tableName + "steerMotor", tuningMode);
         //        configSteerMotor(config);
-
+        absoluteSteerEncoder = steerMotor.getEncoder();
         this.nominalVoltage = config.sharedConfiguration().nominalVoltage();
         this.openLoopMaxSpeed = config.sharedConfiguration().openLoopMaxSpeed();
         this.steerEncoderOffsetRadians = config.offsetRadians();
