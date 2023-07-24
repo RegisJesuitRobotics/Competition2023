@@ -42,7 +42,6 @@ public class RaiderUtils {
         return code != ErrorCode.OK;
     }
 
-
     public static boolean checkRevError(REVLibError code) {
         return code != REVLibError.kOk;
     }
