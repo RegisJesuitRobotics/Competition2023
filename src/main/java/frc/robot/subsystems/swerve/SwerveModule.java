@@ -91,7 +91,7 @@ public class SwerveModule {
     private final TunablePIDGains steerPositionPIDGains;
     private SimpleMotorFeedforward driveMotorFF;
 
-    SparkMaxPIDController steerController;
+    private final SparkMaxPIDController steerController;
 
     private boolean setToAbsolute = false;
     private boolean isDeadMode = false;
