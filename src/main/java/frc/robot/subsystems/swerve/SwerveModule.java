@@ -3,6 +3,7 @@ package frc.robot.subsystems.swerve;
 import static frc.robot.utils.RaiderUtils.checkCTREError;
 import static frc.robot.utils.RaiderUtils.checkRevError;
 
+import com.ctre.phoenix.ErrorCode;
 import com.ctre.phoenix.motorcontrol.*;
 import com.ctre.phoenix.motorcontrol.can.SlotConfiguration;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
@@ -76,7 +77,9 @@ public class SwerveModule {
 
     private final TelemetryTalonFX driveMotor;
     private final TelemetryCANSparkMax steerMotor;
-    private final RelativeEncoder absoluteSteerEncoder;
+    private final CANCoder absoluteSteerEncoder;
+
+    private final RelativeEncoder relativeEncoder;
 
     private final double driveMotorConversionFactorPosition;
     private final double driveMotorConversionFactorVelocity;
@@ -150,12 +153,14 @@ public class SwerveModule {
         // Steer motor
         this.steerMotor = new TelemetryCANSparkMax(
                 config.steerMotorPort(), CANSparkMax.MotorType.kBrushless, tableName + "steerMotor", tuningMode);
-        //        configSteerMotor(config);
-        absoluteSteerEncoder = steerMotor.getEncoder();
+        configSteerMotor(config);
+        relativeEncoder = steerMotor.getEncoder();
         this.nominalVoltage = config.sharedConfiguration().nominalVoltage();
         this.openLoopMaxSpeed = config.sharedConfiguration().openLoopMaxSpeed();
         this.steerEncoderOffsetRadians = config.offsetRadians();
-
+        this.absoluteSteerEncoder = new CANCoder(
+                config.steerEncoderPort(), config.sharedConfiguration().canBus());
+        configSteerEncoder(config);
         this.driveMotorFF = driveVelocityFFGains.createFeedforward();
 
         resetSteerToAbsolute(MiscConstants.CONFIGURATION_TIMEOUT_SECONDS);
@@ -213,54 +218,23 @@ public class SwerveModule {
         do {
             faultInitializing = checkRevError(steerMotor.restoreFactoryDefaults());
 
-            //             motorConfiguration = new TelemetryCANSparkMax.();
-            //            applyCommonMotorConfiguration(motorConfiguration, config);
-
-            //            motorConfiguration.sharedConfiguration().steerContinuousCurrentLimit() =
-            //                    config.sharedConfiguration().steerContinuousCurrentLimit();
-
             steerMotor.setSmartCurrentLimit((int) config.sharedConfiguration().steerContinuousCurrentLimit(), (int)
                     config.sharedConfiguration().steerPeakCurrentLimit());
 
-            //            motorConfiguration.supplyCurrLimit.triggerThresholdCurrent =
-            //                    config.sharedConfiguration().steerPeakCurrentLimit();
-
-            //            motorConfiguration.supplyCurrLimit.triggerThresholdTime =
-            //                    config.sharedConfiguration().steerPeakCurrentDurationSeconds();
-
             steerMotor.setClosedLoopRampRate(config.sharedConfiguration().steerClosedLoopRamp());
-
-            //            motorConfiguration.closedloopRamp = config.sharedConfiguration().steerClosedLoopRamp();
-
-            //            config.sharedConfiguration().steerPositionPIDGains().setSlot(motorConfiguration.slot0);
-            //            motorConfiguration.slot0.allowableClosedloopError =
-            //                    config.sharedConfiguration().allowableSteerErrorRadians() /
-            // steerMotorConversionFactorPosition;
 
             // TODO: I have no clue if this works
             steerController.setOutputRange(
                     config.sharedConfiguration().nominalVoltage(),
                     config.sharedConfiguration().maxSteerVoltage());
 
-            //            motorConfiguration.slot0.closedLoopPeakOutput = config.sharedConfiguration()
-            //                            .maxSteerVoltage()
-            //                    / config.sharedConfiguration().nominalVoltage();
-
-            //            faultInitializing |= checkCTREError(steerMotor.set(motorConfiguration, CAN_TIMEOUT_MS));
-
             faultInitializing |= checkRevError(steerMotor.setCANTimeout(CAN_TIMEOUT_MS));
 
-            //            absoluteSteerEncoder.setInverted(
-            //                    config.steerMotorInverted() == true ? absoluteSteerEncoder.setInverted(true) :
-            // absoluteSteerEncoder.setInverted(false));
+            relativeEncoder.setInverted(config.steerMotorInverted());
+            relativeEncoder.setPositionConversionFactor(steerMotorConversionFactorPosition);
+            relativeEncoder.setVelocityConversionFactor(steerMotorConversionFactorVelocity);
 
-            if (config.steerMotorInverted()) {
-                absoluteSteerEncoder.setInverted(true);
-            } else {
-                absoluteSteerEncoder.setInverted(false);
-            }
-
-            faultInitializing |= checkRevError(steerController.setFeedbackDevice(absoluteSteerEncoder));
+            faultInitializing |= checkRevError(steerController.setFeedbackDevice(relativeEncoder));
 
             // Because + on motor is clockwise, and we want + on encoder to be
             // counter-clockwise we have to set the sensor phase
@@ -270,15 +244,9 @@ public class SwerveModule {
 
             steerMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
 
-            absoluteSteerEncoder.setPositionConversionFactor(steerMotorConversionFactorPosition);
-            absoluteSteerEncoder.setVelocityConversionFactor(steerMotorConversionFactorVelocity);
-            //            steerMotor.setLoggingPositionConversionFactor(steerMotorConversionFactorPosition);
-            //            steerMotor.setLoggingVelocityConversionFactor(steerMotorConversionFactorVelocity);
-
         } while (faultInitializing && configTimeout.hasNotTimedOut());
 
         // Clear the reset of it starting up
-        //        steerMotor.hasResetOccurred();
 
         steerMotorFaultAlert.set(faultInitializing);
         moduleEventEntry.append("Steer motor initialized" + (faultInitializing ? " with faults" : ""));
@@ -294,21 +262,22 @@ public class SwerveModule {
 
     private void configSteerEncoder(SwerveModuleConfiguration config) {
         ConfigTimeout configTimeout = new ConfigTimeout(MiscConstants.CONFIGURATION_TIMEOUT_SECONDS);
-        //        CANCoderConfiguration encoderConfiguration = new CANCoderConfiguration();
-        //
-        //        encoderConfiguration.absoluteSensorRange = AbsoluteSensorRange.Unsigned_0_to_360;
-        //        encoderConfiguration.sensorDirection = config.steerEncoderInverted();
-        //        encoderConfiguration.sensorTimeBase = SensorTimeBase.PerSecond;
+        CANCoderConfiguration encoderConfiguration = new CANCoderConfiguration();
+
+        encoderConfiguration.absoluteSensorRange = AbsoluteSensorRange.Unsigned_0_to_360;
+        encoderConfiguration.sensorDirection = config.steerEncoderInverted();
+        encoderConfiguration.sensorTimeBase = SensorTimeBase.PerSecond;
 
         boolean faultInitializing;
         do {
             faultInitializing =
-                    //                    REVLibError(absoluteSteerEncoder.(encoderConfiguration, CAN_TIMEOUT_MS));
+                    checkCTREError(absoluteSteerEncoder.configAllSettings(encoderConfiguration, CAN_TIMEOUT_MS));
 
-                    // Because we are only reading this at the beginning we do not have to update it
-                    // often
-                    // TODO: could be the wrong time period
-                    checkRevError(absoluteSteerEncoder.setMeasurementPeriod(CANCODER_PERIOD_MS));
+            // Because we are only reading this at the beginning we do not have to update it
+            // often
+
+            faultInitializing |= checkCTREError(absoluteSteerEncoder.setStatusFramePeriod(
+                    CANCoderStatusFrame.SensorData, CANCODER_PERIOD_MS, CAN_TIMEOUT_MS));
         } while (faultInitializing && configTimeout.hasNotTimedOut());
 
         steerEncoderFaultAlert.set(faultInitializing);
@@ -325,14 +294,14 @@ public class SwerveModule {
         DriverStation.reportError(String.format("Module %d: %s", instanceId, message), false);
     }
 
-    //    private void checkForSteerMotorReset() {
-    //        // Steer motor lost power
-    //        if (RobotBase.isReal() && steerMotor.getL()) {
-    //            reportError("Steer motor reset occurred");
-    //            setToAbsolute = false;
-    //            resetSteerToAbsolute();
-    //        }
-    //    }
+    private void checkForSteerMotorReset() {
+        // Steer motor lost power
+        if (RobotBase.isReal() && absoluteSteerEncoder.hasResetOccurred()) {
+            reportError("Steer motor reset occurred");
+            setToAbsolute = false;
+            resetSteerToAbsolute();
+        }
+    }
 
     private void checkForDriveMotorReset() {
         if (RobotBase.isReal() && driveMotor.hasResetOccurred()) {
@@ -361,17 +330,16 @@ public class SwerveModule {
         boolean gotAbsolutePosition = false;
         do {
             absolutePosition = getAbsoluteRadians();
-            if (steerMotor.getLastError() == null || timeout == 0.0) {
-                // TODO: IDK if this works
+            if (!checkCTREError(absoluteSteerEncoder.getLastError()) || timeout == 0.0) {
 
                 gotAbsolutePosition = true;
             }
             if (gotAbsolutePosition) {
 
-                REVLibError settingPositionError =
+                ErrorCode settingPositionError =
                         absoluteSteerEncoder.setPosition(absolutePosition / steerMotorConversionFactorPosition);
                 // If no error
-                if (!checkRevError(settingPositionError) || timeout == 0.0) {
+                if (!checkCTREError(settingPositionError) || timeout == 0.0) {
                     setToAbsolute = true;
                 }
             }
@@ -463,7 +431,7 @@ public class SwerveModule {
     public void setDesiredState(SwerveModuleState state, boolean activeSteer, boolean openLoop) {
         Robot.startWNode("SwerveModule[" + instanceId + "]#setDesiredState");
         Robot.startWNode("checkForResetAndGains");
-        //        absoluteSteerEncoder.;
+        checkForSteerMotorReset();
         checkForDriveMotorReset();
         checkAndUpdateGains();
         Robot.endWNode();
@@ -511,7 +479,7 @@ public class SwerveModule {
         controlModeEntry.append(SwerveModuleControlMode.RAW_VOLTAGE.logValue);
 
         driveMotor.set(TalonFXControlMode.PercentOutput, driveVolts / nominalVoltage);
-        steerMotor.setVoltage(steerVolts / nominalVoltage);
+        steerMotor.setVoltage(steerVolts);
     }
 
     private void setSteerReference(double targetAngleRadians, boolean activeSteer) {
@@ -523,8 +491,7 @@ public class SwerveModule {
                     RaiderMathUtils.calculateContinuousInputSetpoint(getSteerAngleRadiansNoWrap(), targetAngleRadians)
                             / steerMotorConversionFactorPosition);
         } else {
-            steerMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
-            // TODO: IDK how this works
+            steerMotor.setVoltage(0.0);
         }
     }
 
@@ -556,12 +523,10 @@ public class SwerveModule {
         }
 
         if (steerPositionPIDGains.hasChanged()) {
-            SlotConfiguration newSlotConfig = new SlotConfiguration();
-            steerPositionPIDGains.setSlot(newSlotConfig);
             steerController = steerMotor.getPIDController();
-            steerController.setP(newSlotConfig.kP);
-            steerController.setD(newSlotConfig.kD);
-            steerController.setI(newSlotConfig.kI);
+            steerController.setP(steerPositionPIDGains.p.get());
+            steerController.setD(steerPositionPIDGains.d.get());
+            steerController.setI(steerPositionPIDGains.i.get());
 
             moduleEventEntry.append("Updated steer gains due to value change");
         }
