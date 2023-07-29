@@ -5,7 +5,7 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.networktables.BooleanSubscriber;
+import edu.wpi.first.networktables.BooleanEntry;
 import edu.wpi.first.networktables.IntegerEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.*;
@@ -109,6 +109,12 @@ public class RobotContainer {
     private void configureDriverBindings() {
         configureDriving();
 
+        BooleanEntry outreachMode = NetworkTableInstance.getDefault()
+                .getBooleanTopic("/toLog/outreachMode")
+                .getEntry(false);
+        outreachMode.set(false);
+        Trigger notInOutreachMode = new Trigger(outreachMode).negate();
+
         driverController
                 .home()
                 .onTrue(RaiderCommands.runOnceAllowDisable(driveSubsystem::zeroHeading)
@@ -117,17 +123,13 @@ public class RobotContainer {
         // driverController.plus().whileTrue(new LockModulesParallelCommand(driveSubsystem).repeatedly());
         driverController
                 .leftStick()
+                .and(notInOutreachMode)
                 .onTrue(new PositionClawCommand(AutoScoreConstants.STOW, liftSubsystem, extensionSubsystem));
 
         driverController.plus().onTrue(RaiderCommands.runOnceAllowDisable(() -> {
             driveSubsystem.resetRoll();
             driveSubsystem.resetPitch();
         }));
-
-        BooleanSubscriber outreachMode = NetworkTableInstance.getDefault()
-                .getBooleanTopic("/toLog/outreachMode")
-                .subscribe(false);
-        Trigger notInOutreachMode = new Trigger(outreachMode).negate();
 
         driverController
                 .rightStick()
