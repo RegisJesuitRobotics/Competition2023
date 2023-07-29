@@ -68,9 +68,8 @@ public final class Constants {
         public static final double DRIVE_PEAK_CURRENT_LIMIT = 65.0;
         public static final double DRIVE_CONTINUOUS_CURRENT_LIMIT = 35.0;
         public static final double DRIVE_CONTINUOUS_CURRENT_LIMIT_TIME_SECONDS = 0.2;
-        public static final double STEER_PEAK_CURRENT_LIMIT = 45.0;
-        public static final double STEER_CONTINUOUS_CURRENT_LIMIT = 25.0;
-        public static final double STEER_CONTINUOUS_CURRENT_LIMIT_TIME_SECONDS = 0.2;
+        public static final int STEER_STALL_CURRENT_LIMIT = 45;
+        public static final int STEER_FREE_CURRENT_LIMIT = 25;
 
         public static final double NOMINAL_VOLTAGE = 12.0;
 
@@ -122,9 +121,8 @@ public final class Constants {
                         DRIVE_PEAK_CURRENT_LIMIT,
                         DRIVE_CONTINUOUS_CURRENT_LIMIT,
                         DRIVE_CONTINUOUS_CURRENT_LIMIT_TIME_SECONDS,
-                        STEER_PEAK_CURRENT_LIMIT,
-                        STEER_CONTINUOUS_CURRENT_LIMIT,
-                        STEER_CONTINUOUS_CURRENT_LIMIT_TIME_SECONDS,
+                        STEER_FREE_CURRENT_LIMIT,
+                        STEER_STALL_CURRENT_LIMIT,
                         NOMINAL_VOLTAGE,
                         WHEEL_DIAMETER_METERS,
                         MAX_VELOCITY_METERS_SECOND,
