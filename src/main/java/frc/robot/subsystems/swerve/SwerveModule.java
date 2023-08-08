@@ -145,7 +145,8 @@ public class SwerveModule {
         configDriveMotor(config);
 
         // Steer encoder
-
+        this.absoluteSteerEncoder = new CANCoder(
+                config.steerEncoderPort(), config.sharedConfiguration().canBus());
         configSteerEncoder(config);
 
         // Steer motor
@@ -158,9 +159,6 @@ public class SwerveModule {
         this.nominalVoltage = config.sharedConfiguration().nominalVoltage();
         this.openLoopMaxSpeed = config.sharedConfiguration().openLoopMaxSpeed();
         this.steerEncoderOffsetRadians = config.offsetRadians();
-        this.absoluteSteerEncoder = new CANCoder(
-                config.steerEncoderPort(), config.sharedConfiguration().canBus());
-        configSteerEncoder(config);
         this.driveMotorFF = driveVelocityFFGains.createFeedforward();
 
         resetSteerToAbsolute(MiscConstants.CONFIGURATION_TIMEOUT_SECONDS);
@@ -227,7 +225,12 @@ public class SwerveModule {
             faultInitializing |= checkRevError(steerMotor.setClosedLoopRampRate(
                     config.sharedConfiguration().steerClosedLoopRamp()));
 
-            faultInitializing |= checkRevError(relativeEncoder.setInverted(config.steerMotorInverted()));
+            steerMotor.setInverted(config.steerMotorInverted());
+
+            faultInitializing |= checkRevError(steerController.setP(steerPositionPIDGains.p.get()));
+            faultInitializing |= checkRevError(steerController.setD(steerPositionPIDGains.d.get()));
+            faultInitializing |= checkRevError(steerController.setI(steerPositionPIDGains.i.get()));
+
             faultInitializing |=
                     checkRevError(relativeEncoder.setPositionConversionFactor(steerMotorConversionFactorPosition));
             faultInitializing |=
@@ -346,7 +349,7 @@ public class SwerveModule {
 
     private double getAbsoluteRadians() {
         return MathUtil.angleModulus(
-                Units.degreesToRadians(absoluteSteerEncoder.getPosition()) + steerEncoderOffsetRadians);
+                Units.degreesToRadians(absoluteSteerEncoder.getAbsolutePosition()) + steerEncoderOffsetRadians);
     }
 
     private double getSteerAngleRadiansNoWrap() {
