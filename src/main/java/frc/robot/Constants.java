@@ -68,9 +68,8 @@ public final class Constants {
         public static final double DRIVE_PEAK_CURRENT_LIMIT = 65.0;
         public static final double DRIVE_CONTINUOUS_CURRENT_LIMIT = 35.0;
         public static final double DRIVE_CONTINUOUS_CURRENT_LIMIT_TIME_SECONDS = 0.2;
-        public static final double STEER_PEAK_CURRENT_LIMIT = 45.0;
-        public static final double STEER_CONTINUOUS_CURRENT_LIMIT = 25.0;
-        public static final double STEER_CONTINUOUS_CURRENT_LIMIT_TIME_SECONDS = 0.2;
+        public static final int STEER_STALL_CURRENT_LIMIT = 45;
+        public static final int STEER_FREE_CURRENT_LIMIT = 25;
 
         public static final double NOMINAL_VOLTAGE = 12.0;
 
@@ -82,7 +81,7 @@ public final class Constants {
                 new TunableFFGains("/gains/drive", 0.2776, 2.32302894, 0.31227, MiscConstants.TUNING_MODE);
 
         public static final TunablePIDGains STEER_POSITION_PID_GAINS =
-                new TunablePIDGains("/gains/steer", 0.3, 0.0, 0.1, MiscConstants.TUNING_MODE);
+                new TunablePIDGains("/gains/steer", 1.0, 0.0, 0.1, MiscConstants.TUNING_MODE);
 
         public static final double ACCEPTABLE_STEER_ERROR_RADIANS = Units.degreesToRadians(0.20);
 
@@ -122,9 +121,8 @@ public final class Constants {
                         DRIVE_PEAK_CURRENT_LIMIT,
                         DRIVE_CONTINUOUS_CURRENT_LIMIT,
                         DRIVE_CONTINUOUS_CURRENT_LIMIT_TIME_SECONDS,
-                        STEER_PEAK_CURRENT_LIMIT,
-                        STEER_CONTINUOUS_CURRENT_LIMIT,
-                        STEER_CONTINUOUS_CURRENT_LIMIT_TIME_SECONDS,
+                        STEER_FREE_CURRENT_LIMIT,
+                        STEER_STALL_CURRENT_LIMIT,
                         NOMINAL_VOLTAGE,
                         WHEEL_DIAMETER_METERS,
                         MAX_VELOCITY_METERS_SECOND,
@@ -139,7 +137,6 @@ public final class Constants {
 
         public static final SwerveModuleConfiguration FRONT_LEFT_MODULE_CONFIGURATION = new SwerveModuleConfiguration(
                 1, 5, 9, true, true, Units.degreesToRadians(-69.685547), false, SHARED_SWERVE_MODULE_CONFIGURATION);
-
         public static final SwerveModuleConfiguration FRONT_RIGHT_MODULE_CONFIGURATION = new SwerveModuleConfiguration(
                 2, 6, 10, true, true, Units.degreesToRadians(75.673828), false, SHARED_SWERVE_MODULE_CONFIGURATION);
 
@@ -324,7 +321,7 @@ public final class Constants {
         public static final Pair<Rotation2d, Double> STOW =
                 Pair.of(LiftConstants.MIN_ANGLE.plus(Rotation2d.fromDegrees(1.0)), Units.inchesToMeters(0.5));
         public static final Pair<Rotation2d, Double> CARRY =
-                Pair.of(LiftConstants.MIN_ANGLE.plus(Rotation2d.fromDegrees(20.0)), Units.inchesToMeters(0.5));
+                Pair.of(LiftConstants.MIN_ANGLE.plus(Rotation2d.fromDegrees(25.0)), Units.inchesToMeters(0.5));
 
         public static final Pose2d[] preScoreFromLocations = new Pose2d[Grids.highTranslations.length];
         public static final Pose2d[] scoreFromLocations = new Pose2d[Grids.highTranslations.length];
