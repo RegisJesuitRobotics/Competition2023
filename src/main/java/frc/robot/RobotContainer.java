@@ -282,6 +282,16 @@ public class RobotContainer {
         TunableDouble maxTranslationSpeedPercent = new TunableDouble("/speed/maxTranslation", 0.9, true);
         TunableDouble maxMaxAngularSpeedPercent = new TunableDouble("/speed/maxAngular", 0.3, true);
 
+        SendableTelemetryManager.getInstance().addSendable("/SlowDown", Commands.runOnce(() -> {
+            maxTranslationSpeedPercent.set(0.3);
+            maxMaxAngularSpeedPercent.set(0.15);
+        }));
+
+        SendableTelemetryManager.getInstance().addSendable("/SpeedUp", Commands.runOnce(() -> {
+            maxTranslationSpeedPercent.set(0.9);
+            maxMaxAngularSpeedPercent.set(0.3);
+        }));
+
         BooleanSupplier armHigh = () -> liftSubsystem.getArmAngle().getRadians() > Units.degreesToRadians(-20.0);
 
         DoubleSupplier maxTranslationalSpeedSuppler = () -> maxTranslationSpeedPercent.get()

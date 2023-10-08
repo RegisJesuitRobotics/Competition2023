@@ -49,6 +49,10 @@ public class TunableDouble {
         return value;
     }
 
+    public void set(double value) {
+        networkEntry.set(value);
+    }
+
     /**
      * Checks whether the number has changed since our last check
      *
