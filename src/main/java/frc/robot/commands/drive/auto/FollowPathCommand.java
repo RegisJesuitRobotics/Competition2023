@@ -6,6 +6,7 @@ import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants.AutoConstants;
@@ -68,6 +69,16 @@ public class FollowPathCommand extends CommandBase {
     @Override
     public void initialize() {
         currentPath = pathSupplier.get();
+
+        // TODO: Validate, does rotation matter?
+        if (currentPath
+                        .getInitialHolonomicPose()
+                        .minus(driveSubsystem.getPose())
+                        .getTranslation()
+                        .getNorm()
+                > Units.inchesToMeters(6.0)) {
+            driveSubsystem.resetOdometry(currentPath.getInitialHolonomicPose());
+        }
 
         driveSubsystem.getField2d().getObject("traj").setTrajectory(currentPath);
         trajectoryEntry.append(currentPath);
