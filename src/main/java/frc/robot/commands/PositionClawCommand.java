@@ -21,7 +21,7 @@ public class PositionClawCommand extends ParallelCommandGroup {
             LiftSubsystem liftSubsystem,
             ExtensionSubsystem extensionSubsystem) {
         addCommands(Commands.parallel(
-                new SetLiftPositionCommand(liftAngle, liftSubsystem),
+                new SetLiftPositionCommand(liftAngle, true, liftSubsystem),
                 Commands.sequence(
                         Commands.deadline(
                                 new WaitUntilCommand(() -> liftSubsystem.getEstimatedTimeForPosition(liftAngle)

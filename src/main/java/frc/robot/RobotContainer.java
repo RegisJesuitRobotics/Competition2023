@@ -1,7 +1,9 @@
 package frc.robot;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
@@ -23,6 +25,7 @@ import frc.robot.commands.drive.teleop.SwerveDriveCommand;
 import frc.robot.commands.flipper.FullyToggleFlipperCommand;
 import frc.robot.commands.led.LEDStateMachineCommand;
 import frc.robot.commands.led.LEDStateMachineCommand.LEDState;
+import frc.robot.commands.lift.SetLiftPositionCommand;
 import frc.robot.hid.CommandNintendoSwitchController;
 import frc.robot.hid.CommandXboxPlaystationController;
 import frc.robot.subsystems.claw.ClawSubsystem;
@@ -196,23 +199,17 @@ public class RobotContainer {
                         .otherwise(rumbleDriverControllerCommand()));
     }
 
+    private CommandBase positionClawCommand(Pair<Rotation2d, Double> position) {
+        return new PositionClawCommand(position, liftSubsystem, extensionSubsystem)
+                .andThen(rumbleOperatorControllerCommand())
+                .andThen(new SetLiftPositionCommand(position.getFirst(), false, liftSubsystem));
+    }
+
     private void configureOperatorBindings() {
-        operatorController
-                .povUp()
-                .whileTrue(new PositionClawCommand(AutoScoreConstants.HIGH, liftSubsystem, extensionSubsystem)
-                        .andThen(rumbleOperatorControllerCommand()));
-        operatorController
-                .povRight()
-                .whileTrue(new PositionClawCommand(AutoScoreConstants.MID, liftSubsystem, extensionSubsystem)
-                        .andThen(rumbleOperatorControllerCommand()));
-        operatorController
-                .povDown()
-                .whileTrue(new PositionClawCommand(AutoScoreConstants.LOW, liftSubsystem, extensionSubsystem)
-                        .andThen(rumbleOperatorControllerCommand()));
-        operatorController
-                .circle()
-                .whileTrue(new PositionClawCommand(AutoScoreConstants.SUBSTATION, liftSubsystem, extensionSubsystem)
-                        .andThen(rumbleOperatorControllerCommand()));
+        operatorController.povUp().whileTrue(positionClawCommand(AutoScoreConstants.HIGH));
+        operatorController.povRight().whileTrue(positionClawCommand(AutoScoreConstants.MID));
+        operatorController.povDown().whileTrue(positionClawCommand(AutoScoreConstants.LOW));
+        operatorController.circle().whileTrue(positionClawCommand(AutoScoreConstants.SUBSTATION));
 
         operatorController
                 .x()
