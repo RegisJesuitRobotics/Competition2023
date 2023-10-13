@@ -7,10 +7,12 @@ import frc.robot.subsystems.lift.LiftSubsystem;
 public class SetLiftPositionCommand extends CommandBase {
     private final LiftSubsystem liftSubsystem;
     private final Rotation2d desiredPosition;
+    private final boolean endCommand;
 
-    public SetLiftPositionCommand(Rotation2d desiredPosition, LiftSubsystem liftSubsystem) {
+    public SetLiftPositionCommand(Rotation2d desiredPosition, boolean endCommand, LiftSubsystem liftSubsystem) {
         this.desiredPosition = desiredPosition;
         this.liftSubsystem = liftSubsystem;
+        this.endCommand = endCommand;
 
         addRequirements(liftSubsystem);
     }
@@ -27,6 +29,6 @@ public class SetLiftPositionCommand extends CommandBase {
 
     @Override
     public boolean isFinished() {
-        return liftSubsystem.atClosedLoopGoal();
+        return endCommand && liftSubsystem.atClosedLoopGoal();
     }
 }

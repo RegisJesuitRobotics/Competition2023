@@ -64,9 +64,10 @@ public class SwerveDriveCommand extends CommandBase {
 
         Rotation2d currentHeading = driveSubsystem.getPose().getRotation();
         double omega;
-        // Snap does not work if we are field relative
+        // Snap does not work if we are not field relative
         if (isSnapSupplier.getAsBoolean() && isFieldRelative) {
             double currentOmegaRadiansSecond = driveSubsystem.getCurrentChassisSpeeds().omegaRadiansPerSecond;
+            // If this is first loop on snap, reset the controller
             if (!isSnapping) {
                 snapPIDController.reset(currentHeading.getRadians(), currentOmegaRadiansSecond);
                 isSnapping = true;

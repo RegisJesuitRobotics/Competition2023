@@ -210,7 +210,7 @@ public final class Constants {
         public static final Translation2d TOP_HORIZONTAL_TO_BOTTOM_HORIZONTAL =
                 new Translation2d(Units.inchesToMeters(-1.0), Units.inchesToMeters(-5.0));
 
-        public static final double GEAR_REDUCTION = 5.0 * 5.0 * 5.0 * 4.0;
+        public static final double GEAR_REDUCTION = 5.0 * 5.0 * 4.0 * 4.0;
 
         public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(-87.0);
         public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(40.0);
@@ -224,17 +224,17 @@ public final class Constants {
         public static final boolean INVERT_RELATIVE_ENCODER = false;
 
         public static final TunablePIDGains PID_GAINS =
-                new TunablePIDGains("/gains/lifter", 8, 0.0, 3.5161, MiscConstants.TUNING_MODE);
+                new TunablePIDGains("/gains/lifter", 6, 0.0, 2.4869, MiscConstants.TUNING_MODE);
         public static final TunableTrapezoidalProfileGains TRAPEZOIDAL_PROFILE_GAINS =
-                new TunableTrapezoidalProfileGains("/gains/lifter", 1.2, 1.2, MiscConstants.TUNING_MODE);
+                new TunableTrapezoidalProfileGains("/gains/lifter", 1.5, 1.7, MiscConstants.TUNING_MODE);
         public static final TunableArmFFGains FF_GAINS =
-                new TunableArmFFGains("/gains/lifter", 0.12116, 0.22606, 9.737, 0.15967, MiscConstants.TUNING_MODE);
+                new TunableArmFFGains("/gains/lifter", 0.12997, 0.3, 7.8979, 0.12943, MiscConstants.TUNING_MODE);
 
         public static final int STALL_CURRENT_LIMIT = 10;
         public static final int FREE_CURRENT_LIMIT = 40;
 
-        public static final double HOME_CURRENT = 0.3;
-        public static final double HOME_VOLTAGE = -0.5;
+        public static final double HOME_CURRENT = 0.5;
+        public static final double HOME_VOLTAGE = -0.3;
 
         public static final double POSITION_TOLERANCE_RADIANS = Units.degreesToRadians(2.0);
         public static final double VELOCITY_TOLERANCE_RADIANS_SECOND = Units.degreesToRadians(10.0);
@@ -316,7 +316,8 @@ public final class Constants {
         // encoder
         public static final Pair<Rotation2d, Double> HIGH = Pair.of(Rotation2d.fromDegrees(26.0), 0.5685);
         public static final Pair<Rotation2d, Double> MID = Pair.of(Rotation2d.fromDegrees(10.08), 0.02839);
-        public static final Pair<Rotation2d, Double> LOW = Pair.of(Rotation2d.fromDegrees(-72.39), 0.1903);
+        public static final Pair<Rotation2d, Double> LOW =
+                Pair.of(LiftConstants.MIN_ANGLE.plus(Rotation2d.fromDegrees(25.0)), 0.1903);
         public static final Pair<Rotation2d, Double> SUBSTATION = Pair.of(Rotation2d.fromDegrees(10.2), 0.2);
         public static final Pair<Rotation2d, Double> STOW =
                 Pair.of(LiftConstants.MIN_ANGLE.plus(Rotation2d.fromDegrees(1.0)), Units.inchesToMeters(0.5));

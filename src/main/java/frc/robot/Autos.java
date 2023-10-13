@@ -247,7 +247,7 @@ public class Autos {
     }
 
     private Command retractLift() {
-        return new SetLiftPositionCommand(AutoScoreConstants.STOW.getFirst(), liftSubsystem);
+        return new SetLiftPositionCommand(AutoScoreConstants.STOW.getFirst(), true, liftSubsystem);
     }
 
     private Command correctBalance() {
