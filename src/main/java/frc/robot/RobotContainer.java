@@ -209,9 +209,15 @@ public class RobotContainer {
         operatorController.povUp().whileTrue(positionClawCommand(AutoScoreConstants.HIGH));
         operatorController.povRight().whileTrue(positionClawCommand(AutoScoreConstants.MID));
         operatorController.povDown().whileTrue(positionClawCommand(AutoScoreConstants.LOW));
-        operatorController.circle().and(wantCube::get).whileTrue(positionClawCommand(AutoScoreConstants.SUBSTATION_CUBE));
-        operatorController.circle().and(() -> !wantCube.get()).whileTrue(positionClawCommand(AutoScoreConstants.SUBSTATION));
-                                        
+        operatorController
+                .circle()
+                .and(wantCube::get)
+                .whileTrue(positionClawCommand(AutoScoreConstants.SUBSTATION_CUBE));
+        operatorController
+                .circle()
+                .and(() -> !wantCube.get())
+                .whileTrue(positionClawCommand(AutoScoreConstants.SUBSTATION));
+
         operatorController
                 .x()
                 .whileTrue(new PositionClawCommand(AutoScoreConstants.STOW, liftSubsystem, extensionSubsystem)
