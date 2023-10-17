@@ -233,10 +233,10 @@ public final class Constants {
         public static final int STALL_CURRENT_LIMIT = 10;
         public static final int FREE_CURRENT_LIMIT = 40;
 
-        public static final double HOME_CURRENT = 0.5;
+        public static final double HOME_CURRENT = 0.7;
         public static final double HOME_VOLTAGE = -0.3;
 
-        public static final double POSITION_TOLERANCE_RADIANS = Units.degreesToRadians(2.0);
+        public static final double POSITION_TOLERANCE_RADIANS = Units.degreesToRadians(3.0);
         public static final double VELOCITY_TOLERANCE_RADIANS_SECOND = Units.degreesToRadians(10.0);
     }
 
@@ -314,11 +314,12 @@ public final class Constants {
 
         // These are hard-coded right now because of the drift and stuff, but this will be changed once we get the
         // encoder
-        public static final Pair<Rotation2d, Double> HIGH = Pair.of(Rotation2d.fromDegrees(26.0), 0.5685);
+        public static final Pair<Rotation2d, Double> HIGH = Pair.of(Rotation2d.fromDegrees(30.0), 0.5685);
         public static final Pair<Rotation2d, Double> MID = Pair.of(Rotation2d.fromDegrees(10.08), 0.02839);
         public static final Pair<Rotation2d, Double> LOW =
                 Pair.of(LiftConstants.MIN_ANGLE.plus(Rotation2d.fromDegrees(25.0)), 0.1903);
-        public static final Pair<Rotation2d, Double> SUBSTATION = Pair.of(Rotation2d.fromDegrees(10.2), 0.2);
+        public static final Pair<Rotation2d, Double> SUBSTATION = Pair.of(Rotation2d.fromDegrees(7.2), 0.2);
+        public static final Pair<Rotation2d, Double> SUBSTATION_CUBE = Pair.of(Rotation2d.fromDegrees(11.0), 0.2);
         public static final Pair<Rotation2d, Double> STOW =
                 Pair.of(LiftConstants.MIN_ANGLE.plus(Rotation2d.fromDegrees(1.0)), Units.inchesToMeters(0.5));
         public static final Pair<Rotation2d, Double> CARRY =
@@ -350,10 +351,10 @@ public final class Constants {
                                 SUBSTATION.getFirst(), SUBSTATION.getSecond())
                         .getX();
         public static final Pose2d WALL_SIDE_SUBSTATION_PICKUP = new Pose2d(
-                new Translation2d(SUBSTATION_PICKUP_X, LoadingZone.leftY - Units.inchesToMeters(18.0)),
+                new Translation2d(SUBSTATION_PICKUP_X, LoadingZone.leftY - Units.inchesToMeters(20.0)),
                 Rotation2d.fromDegrees(0.0));
         public static final Pose2d NOT_WALL_SIDE_SUBSTATION_PICKUP = new Pose2d(
-                new Translation2d(SUBSTATION_PICKUP_X, LoadingZone.rightY + Units.inchesToMeters(18.0)),
+                new Translation2d(SUBSTATION_PICKUP_X, LoadingZone.rightY + Units.inchesToMeters(20.0)),
                 Rotation2d.fromDegrees(0.0));
 
         public static final Rectangle ALLOWED_SCORING_AREA = new Rectangle(
